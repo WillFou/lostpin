@@ -258,7 +258,7 @@ class MultiplayerController {
   createOnlineRoom() {
     try { this.ensurePeerAvailable(); } catch(e){ return this.setModalError(e.message); }
     this.cleanupPeer(); this.myName=sanitizeName($('onlineName').value,'Hote'); this.code=roomCode(); this.isHost=true; this.kind='online';
-    const id=`guessr360-${this.code.toLowerCase()}`;
+    const id=`lostpin-v4-${this.code.toLowerCase()}`;
     this.peer=new Peer(id,{debug:1});
     this.setOnlineStatus('Creation de la salle...');
     this.peer.on('open', peerId=>{
@@ -276,7 +276,7 @@ class MultiplayerController {
     this.cleanupPeer(); this.myName=sanitizeName($('onlineName').value,'Joueur'); this.code=code; this.isHost=false; this.kind='online';
     this.peer=new Peer(undefined,{debug:1}); this.setOnlineStatus('Connexion a la salle...');
     this.peer.on('open', peerId=>{
-      this.myId=peerId; const conn=this.peer.connect(`guessr360-${code.toLowerCase()}`,{reliable:true,metadata:{name:this.myName}}); this.hostConn=conn;
+      this.myId=peerId; const conn=this.peer.connect(`lostpin-v4-${code.toLowerCase()}`,{reliable:true,metadata:{name:this.myName}}); this.hostConn=conn;
       conn.on('open',()=>{ conn.send({type:'hello',name:this.myName}); this.showOnlineLobby(); this.setOnlineStatus('Connecte.'); });
       conn.on('data',data=>this.handleGuestData(data));
       conn.on('close',()=>this.onlineDisconnected('Connexion avec l\'hote fermee.'));

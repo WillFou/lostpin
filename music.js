@@ -42,14 +42,14 @@ class ChillMusic {
   }
 
   refreshUI() {
-    const glyph = this.enabled ? '♫' : '♪';
     for (const id of ['musicStartButton','musicGameButton']) {
       const b = $(id); if (!b) continue;
-      b.textContent = glyph;
+      b.innerHTML = '<span class="lpIcon" data-lp-icon="music"></span>';
       b.title = this.enabled ? 'Couper la musique' : 'Activer la musique chill';
       b.setAttribute('aria-label', b.title);
       b.classList.toggle('musicMuted', !this.enabled);
     }
+    window.LostPinTheme?.refreshIcons?.();
     if ($('musicEnabled')) $('musicEnabled').checked = this.enabled;
     if ($('musicVolume')) $('musicVolume').value = String(Math.round(this.volume * 100));
     if ($('musicVolumeLabel')) $('musicVolumeLabel').textContent = `${Math.round(this.volume * 100)} %`;

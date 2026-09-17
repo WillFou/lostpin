@@ -34,7 +34,7 @@ function Write-Response($stream, [int]$status, [string]$statusText, [byte[]]$bod
 
 try {
     $listener.Start()
-    Write-Host "Guessr360 est disponible sur http://127.0.0.1:$port/" -ForegroundColor Green
+    Write-Host "LostPin V4 est disponible sur http://127.0.0.1:$port/" -ForegroundColor Green
     Write-Host "Ctrl+C pour arreter." -ForegroundColor DarkGray
     Start-Process "http://127.0.0.1:$port/"
 

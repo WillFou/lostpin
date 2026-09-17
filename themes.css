@@ -1,0 +1,336 @@
+/* LostPin V4.1 - two fully differentiated visual identities */
+
+body{
+  --theme-card:rgba(9,25,40,.94);
+  --theme-card-solid:#0c2134;
+  --theme-card-soft:rgba(255,255,255,.055);
+  --theme-glass:rgba(7,23,37,.90);
+  --theme-glass-strong:rgba(7,23,37,.97);
+  --theme-map-panel:#091d2f;
+  --theme-map-head:#0f2e46;
+  --theme-field:#061522;
+  --theme-field-text:#f7fbff;
+  --theme-screen-bg:#071522;
+  --theme-radius:18px;
+  --brand-pin:#20d7d0;
+  --brand-v4:#ff785f;
+  --brand-font:"Bungee",Impact,system-ui,sans-serif;
+  --heading-font:"Bungee",Impact,system-ui,sans-serif;
+  --body-font:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --button-font:"Bungee",Impact,system-ui,sans-serif;
+  font-family:var(--body-font);
+  transition:background .22s ease,color .22s ease;
+}
+
+body[data-theme="arcade"]{
+  --bg:#071726;
+  --panel:#0e2a43;
+  --panel2:#163b59;
+  --text:#fff7e8;
+  --muted:#a9c6d7;
+  --line:#55e9ff36;
+  --accent:#ff7457;
+  --accent2:#ffb052;
+  --good:#22d9cf;
+  --blue:#3ce1ff;
+  --shadow:0 24px 76px #00101fc7;
+  --theme-card:rgba(10,38,58,.96);
+  --theme-card-solid:#0c2940;
+  --theme-card-soft:rgba(61,225,255,.075);
+  --theme-glass:rgba(7,28,45,.91);
+  --theme-glass-strong:rgba(6,25,41,.98);
+  --theme-map-panel:#09283f;
+  --theme-map-head:#0f3b58;
+  --theme-field:#061a2b;
+  --theme-field-text:#fff7e8;
+  --theme-screen-bg:#061827;
+  --theme-radius:22px;
+  --brand-pin:#2ce4dc;
+  --brand-v4:#ff7457;
+  --brand-font:"Bungee",Impact,system-ui,sans-serif;
+  --heading-font:"Bungee",Impact,system-ui,sans-serif;
+  --body-font:"Nunito Sans",system-ui,sans-serif;
+  --button-font:"Bungee",Impact,system-ui,sans-serif;
+}
+
+body[data-theme="midnight"]{
+  --bg:#03080e;
+  --panel:#08131e;
+  --panel2:#0c1d2b;
+  --text:#eef6f7;
+  --muted:#7f9dac;
+  --line:#40dce52a;
+  --accent:#08d1c5;
+  --accent2:#19b7df;
+  --good:#00d1c6;
+  --blue:#36d8ff;
+  --shadow:0 30px 90px #000e;
+  --theme-card:rgba(5,17,28,.97);
+  --theme-card-solid:#061522;
+  --theme-card-soft:rgba(0,209,198,.048);
+  --theme-glass:rgba(4,16,27,.93);
+  --theme-glass-strong:rgba(4,15,25,.985);
+  --theme-map-panel:#06131f;
+  --theme-map-head:#0a2031;
+  --theme-field:#030b12;
+  --theme-field-text:#eef6f7;
+  --theme-screen-bg:#030911;
+  --theme-radius:7px;
+  --brand-pin:#00d1c6;
+  --brand-v4:#ff9f3d;
+  --brand-font:"Oxanium","Arial Narrow",system-ui,sans-serif;
+  --heading-font:"Oxanium","Arial Narrow",system-ui,sans-serif;
+  --body-font:"Space Grotesk",system-ui,sans-serif;
+  --button-font:"Oxanium","Arial Narrow",system-ui,sans-serif;
+}
+
+body,button,input{font-family:var(--body-font)}
+h1,h2,h3,.sectionTitle,.roomCode,.finalScore,.resultPlace{font-family:var(--heading-font)}
+
+/* ------------------------------------------------------------------
+   Brand lockup - genuinely different logo/wordmark behavior per theme
+   ------------------------------------------------------------------ */
+.brandLockup{display:flex;align-items:center;gap:18px;margin:10px 0 10px}
+.brandSymbol{width:82px;height:82px;display:grid;place-items:center;flex:0 0 auto;position:relative}
+.brandSymbol img{width:100%;height:100%;display:block;filter:drop-shadow(0 12px 18px #0006)}
+.brandText{min-width:0}
+.brandTitle{display:flex;align-items:baseline;gap:0;margin:0;line-height:.9;font-family:var(--brand-font);font-size:clamp(46px,7vw,76px)}
+.brandTitle .brandLost{color:var(--text)}
+.brandTitle .brandPinText{color:var(--brand-pin)}
+.brandTitle em{font-style:normal;color:var(--brand-v4)}
+.brandTagline{margin:9px 0 0;color:var(--muted);text-transform:uppercase;font-weight:850}
+
+body[data-theme="arcade"] .brandTitle{letter-spacing:-.045em;text-transform:uppercase;text-shadow:0 4px 0 #001421,0 0 24px #32d8ff18}
+body[data-theme="arcade"] .brandTitle em{font-size:.34em;margin-left:.36em;transform:rotate(-5deg) translateY(-.35em);padding:.24em .38em;border-radius:999px;background:#ff7457;color:#fff7e8;box-shadow:0 3px 0 #a93a2c}
+body[data-theme="arcade"] .brandTagline{font-family:"Nunito Sans",sans-serif;letter-spacing:.19em;font-size:11px;color:#6eeeff}
+body[data-theme="arcade"] .brandSymbol{transform:rotate(-3deg)}
+
+body[data-theme="midnight"] .brandLockup{gap:14px}
+body[data-theme="midnight"] .brandSymbol{width:72px;height:72px}
+body[data-theme="midnight"] .brandTitle{font-weight:700;letter-spacing:.055em;text-transform:uppercase;font-size:clamp(43px,6.6vw,70px)}
+body[data-theme="midnight"] .brandTitle .brandPinText{color:#f0f6f6}
+body[data-theme="midnight"] .brandTitle em{font-size:.28em;margin-left:.5em;letter-spacing:.16em;color:#ff9f3d;transform:translateY(-.5em)}
+body[data-theme="midnight"] .brandTagline{font-family:"Space Grotesk",sans-serif;letter-spacing:.36em;font-size:9px;color:#73a7b8}
+
+.gameBrand{display:flex;align-items:center;gap:7px;padding-right:11px;margin-right:2px;border-right:1px solid var(--line)}
+.gameBrand img{width:25px;height:25px;display:block}.gameBrand span{font-family:var(--brand-font);font-size:11px;line-height:1}.gameBrand b{font-size:8px;color:var(--brand-v4);letter-spacing:.08em}
+body[data-theme="arcade"] .gameBrand span{text-transform:uppercase;color:#fff7e8}
+body[data-theme="midnight"] .gameBrand span{text-transform:uppercase;letter-spacing:.12em;color:#dfeef0}
+
+/* ------------------------------------------------------------------
+   Icon system
+   ------------------------------------------------------------------ */
+.lpIcon{display:inline-grid;place-items:center;vertical-align:middle;flex:0 0 auto;color:currentColor}
+.lpIcon svg{width:100%;height:100%;display:block;overflow:visible}
+.mapCard .lpIcon{width:42px;height:42px;margin-bottom:10px}
+.modeCard .lpIcon{width:28px;height:28px;margin-right:8px}
+.modeTitle{display:flex;align-items:center;gap:6px}.modeTitle strong{margin:0}
+.btnWithIcon{display:inline-flex!important;align-items:center;justify-content:center;gap:8px}.btnWithIcon .lpIcon{width:18px;height:18px}
+.icon .lpIcon{width:20px;height:20px;margin:auto}
+#travelActions .lpIcon{width:15px;height:15px}
+.multiHeading{display:flex;align-items:center;gap:9px}.multiHeading .lpIcon{width:24px;height:24px}
+
+body[data-theme="arcade"] .mapCard .lpIcon{padding:8px;border-radius:14px;background:linear-gradient(145deg,#124767,#0a304c);color:#5beaff;box-shadow:0 5px 0 #04131f,0 8px 20px #00d8ff18;transform:rotate(-4deg)}
+body[data-theme="arcade"] .mapCard:nth-child(2n) .lpIcon{color:#ff8a69;transform:rotate(4deg)}
+body[data-theme="arcade"] .mapCard:nth-child(3n) .lpIcon{color:#ffe27a}
+body[data-theme="arcade"] .modeCard .lpIcon{padding:5px;border-radius:10px;background:#0b2337;color:#62ecff;box-shadow:0 3px 0 #03121d}
+body[data-theme="midnight"] .mapCard .lpIcon{width:34px;height:34px;color:#19d8cf;margin-bottom:12px}
+body[data-theme="midnight"] .mapCard:nth-child(2n) .lpIcon{color:#7dbed0}
+body[data-theme="midnight"] .modeCard .lpIcon{color:#00d1c6;width:24px;height:24px}
+
+/* ------------------------------------------------------------------
+   Background language
+   ------------------------------------------------------------------ */
+#startScreen,#endScreen,#multiEndScreen{isolation:isolate}
+#startScreen:before,#endScreen:before,#multiEndScreen:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-2}
+#startScreen:after,#endScreen:after,#multiEndScreen:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1}
+
+body[data-theme="arcade"] #startScreen,
+body[data-theme="arcade"] #endScreen,
+body[data-theme="arcade"] #multiEndScreen{
+  background:linear-gradient(145deg,#061521,#0b2d47 55%,#061521);
+}
+body[data-theme="arcade"] #startScreen:before,
+body[data-theme="arcade"] #endScreen:before,
+body[data-theme="arcade"] #multiEndScreen:before{
+  background:
+    radial-gradient(circle at 13% 10%,#2fe2f52a 0 2px,transparent 3px),
+    radial-gradient(circle at 86% 18%,#ff74572e 0 4px,transparent 5px),
+    radial-gradient(circle at 77% 83%,#ffe27a22 0 3px,transparent 4px),
+    radial-gradient(circle at 12% 9%,#13d5cf26,transparent 30%),
+    radial-gradient(circle at 89% 86%,#ff74571f,transparent 34%);
+  background-size:auto,auto,auto,auto,auto;
+}
+body[data-theme="arcade"] #startScreen:after,
+body[data-theme="arcade"] #endScreen:after,
+body[data-theme="arcade"] #multiEndScreen:after{
+  opacity:.24;
+  background-image:radial-gradient(circle,#7defff 1.4px,transparent 1.6px);
+  background-size:34px 34px;
+  mask-image:linear-gradient(125deg,#000,transparent 30%,transparent 70%,#000);
+}
+
+body[data-theme="midnight"] #startScreen,
+body[data-theme="midnight"] #endScreen,
+body[data-theme="midnight"] #multiEndScreen{
+  background:linear-gradient(160deg,#02070d,#06131f 58%,#02060b);
+}
+body[data-theme="midnight"] #startScreen:before,
+body[data-theme="midnight"] #endScreen:before,
+body[data-theme="midnight"] #multiEndScreen:before{
+  background-image:linear-gradient(#1be4df0c 1px,transparent 1px),linear-gradient(90deg,#1be4df0c 1px,transparent 1px);
+  background-size:48px 48px;
+}
+body[data-theme="midnight"] #startScreen:after,
+body[data-theme="midnight"] #endScreen:after,
+body[data-theme="midnight"] #multiEndScreen:after{
+  background:radial-gradient(circle at 50% -5%,#0b729539,transparent 36%),radial-gradient(circle at 100% 100%,#ff9f3d0d,transparent 28%);
+}
+
+/* ------------------------------------------------------------------
+   Major surfaces
+   ------------------------------------------------------------------ */
+.hero,.multiEndHero,.modalCard,.loadingCard,.multiTurnCard{background:var(--theme-card);border-color:var(--line);position:relative}
+.subtitle{color:color-mix(in srgb,var(--text) 76%,var(--muted) 24%)}
+.sectionTitle{color:var(--muted);font-family:var(--heading-font)}
+.mapCard,.modeCard,.multiModeBox,.onlinePlayer,.multiRankRow,.multiFinalRow,.stat,.perfectStat,.compassChoice,.themeChoice{background:var(--theme-card-soft);border-color:var(--line);color:var(--text)}
+.mapCard:hover,.modeCard:hover{background:color-mix(in srgb,var(--theme-card-soft) 65%,var(--text) 7%);border-color:color-mix(in srgb,var(--line) 45%,var(--text) 22%)}
+.mapCard.selected,.modeCard.selected,.compassChoice.selected,.themeChoice.selected{border-color:var(--good);box-shadow:inset 0 0 0 1px var(--good),0 0 28px color-mix(in srgb,var(--good) 11%,transparent)}
+.primary{background:linear-gradient(120deg,var(--accent),var(--accent2));box-shadow:0 8px 28px color-mix(in srgb,var(--accent) 25%,transparent)}
+.secondary,.icon{background:var(--theme-card-soft);border-color:var(--line)}
+.secondary:hover,.icon:hover{background:color-mix(in srgb,var(--theme-card-soft) 72%,var(--text) 8%)}
+.statusPill{background:var(--theme-card-soft);border-color:var(--line);color:var(--muted)}
+.statusPill.ready{color:var(--good);border-color:color-mix(in srgb,var(--good) 44%,transparent)}
+
+body[data-theme="arcade"] .hero{border-radius:32px;border-width:2px;box-shadow:0 26px 80px #001323cc,0 0 0 5px #2de1dc0a;overflow:hidden}
+body[data-theme="arcade"] .hero:before{content:"";position:absolute;right:-80px;top:-80px;width:240px;height:240px;border:4px dashed #36e4f72b;border-radius:50%;pointer-events:none}
+body[data-theme="arcade"] .hero:after{content:"PLAY · EXPLORE · TOGETHER";position:absolute;right:25px;bottom:17px;font-family:"Bungee",sans-serif;font-size:8px;letter-spacing:.14em;color:#6adce7a6;transform:rotate(-2deg);pointer-events:none}
+body[data-theme="arcade"] .sectionTitle{font-size:11px;letter-spacing:.11em;color:#6eefff;text-transform:uppercase}
+body[data-theme="arcade"] .sectionTitle:before{content:"★ ";color:#ff8b68}
+body[data-theme="arcade"] .mapCard,body[data-theme="arcade"] .modeCard,body[data-theme="arcade"] .multiModeBox{border-radius:22px;border-width:2px;box-shadow:0 7px 0 #03111b}
+body[data-theme="arcade"] .mapCard:hover,body[data-theme="arcade"] .modeCard:hover{transform:translateY(-2px);box-shadow:0 9px 0 #03111b}
+body[data-theme="arcade"] .mapCard.selected,body[data-theme="arcade"] .modeCard.selected{box-shadow:0 7px 0 #03111b,inset 0 0 0 2px #22d9cf,0 0 28px #22d9cf18}
+body[data-theme="arcade"] .primary{font-family:var(--button-font);border-radius:16px;font-size:12px;letter-spacing:.035em;text-transform:uppercase;color:#fff8ea;border-bottom:4px solid #a43c2d;box-shadow:0 8px 22px #ff74552d}
+body[data-theme="arcade"] .primary:active{transform:translateY(2px);border-bottom-width:2px}
+body[data-theme="arcade"] .secondary,body[data-theme="arcade"] .icon{border-radius:15px;border-width:2px}
+body[data-theme="arcade"] .eyebrow{font-family:"Nunito Sans",sans-serif;color:#45efe8;font-weight:1000}
+body[data-theme="arcade"] .mapCard.selected:after,body[data-theme="arcade"] .modeCard.selected:after{font-family:"Bungee",sans-serif;content:"GO!";background:#22d9cf;color:#052126;padding:4px 7px;transform:rotate(4deg);right:9px;top:9px}
+
+body[data-theme="midnight"] .hero{border-radius:4px;border:1px solid #2b596f72;box-shadow:0 30px 100px #000f;clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,24px 100%,0 calc(100% - 24px))}
+body[data-theme="midnight"] .hero:before{content:"";position:absolute;left:14px;top:14px;width:46px;height:1px;background:#00d1c6;box-shadow:0 8px 0 #00d1c655;pointer-events:none}
+body[data-theme="midnight"] .hero:after{content:"48.8566° N   2.3522° E";position:absolute;right:18px;bottom:13px;font:600 8px/1 "Space Grotesk",sans-serif;letter-spacing:.2em;color:#51798a;pointer-events:none}
+body[data-theme="midnight"] .sectionTitle{font-size:10px;letter-spacing:.28em;color:#7b9cac;text-transform:uppercase;border-left:2px solid #00d1c6;padding-left:9px}
+body[data-theme="midnight"] .mapCard,body[data-theme="midnight"] .modeCard,body[data-theme="midnight"] .multiModeBox{border-radius:3px;border-color:#24455790;background:linear-gradient(135deg,#081724db,#06111bd9)}
+body[data-theme="midnight"] .mapCard:before,body[data-theme="midnight"] .modeCard:before{content:"";position:absolute;left:-1px;top:12px;bottom:12px;width:2px;background:#00d1c6;opacity:.28;transition:.15s}
+body[data-theme="midnight"] .mapCard.selected:before,body[data-theme="midnight"] .modeCard.selected:before{opacity:1;box-shadow:0 0 12px #00d1c6}
+body[data-theme="midnight"] .mapCard:hover,body[data-theme="midnight"] .modeCard:hover{border-color:#00d1c65f;background:#081b2a}
+body[data-theme="midnight"] .primary{font-family:var(--button-font);border-radius:2px;text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:#001417;background:linear-gradient(90deg,#00d1c6,#31cbed);box-shadow:0 0 25px #00d1c624}
+body[data-theme="midnight"] .secondary,body[data-theme="midnight"] .icon{border-radius:2px;border-color:#2f566a80;background:#071522}
+body[data-theme="midnight"] .secondary:hover,body[data-theme="midnight"] .icon:hover{border-color:#00d1c6;color:#81f5f0;background:#0a1d2b}
+body[data-theme="midnight"] .eyebrow{font-family:"Oxanium",sans-serif;color:#00d1c6;letter-spacing:.26em}
+body[data-theme="midnight"] .mapCard.selected:after,body[data-theme="midnight"] .modeCard.selected:after{content:"LOCKED";background:transparent;color:#00d1c6;border:1px solid #00d1c6;border-radius:1px;font:600 7px/1 "Oxanium",sans-serif;letter-spacing:.12em;padding:5px 6px}
+
+/* ------------------------------------------------------------------
+   Gameplay HUD / panels
+   ------------------------------------------------------------------ */
+#gameScreen{background:var(--theme-screen-bg)}
+.hud,.topActions .icon,#modeBadge,#travelPanel,#resultPanel,#multiHud,#multiRoundPanel{background:var(--theme-glass);border-color:var(--line);color:var(--text)}
+#multiOnlineStatus{background:var(--theme-glass-strong);color:var(--muted)}
+#mapPanel{background:var(--theme-map-panel);border-color:var(--line);border-radius:var(--theme-radius)}
+.mapHeader{background:var(--theme-map-head);color:var(--muted)}.mapHeader b{color:var(--text)}.mapActions{background:var(--theme-map-panel)}
+#travelHint,.travelInfo,.multiRoundPlace,.multiWaiting,.onlineStatus,.multiNote{color:var(--muted)}
+.localPlayerRow input,.onlineField{background:var(--theme-field);color:var(--theme-field-text);border-color:var(--line)}
+.roomCode{color:var(--good)}.compassPanel{background:var(--theme-glass);border-color:var(--line)}
+
+body[data-theme="arcade"] .hud{border-radius:18px;border-width:2px;box-shadow:0 5px 0 #02111b,0 12px 28px #00111d80;padding:8px 12px}
+body[data-theme="arcade"] .hudBlock small{font-family:"Nunito Sans",sans-serif;font-weight:900;color:#77c9da}.hudBlock b{font-family:var(--heading-font)}
+body[data-theme="arcade"] #modeBadge{border-radius:999px;border-width:2px;font-family:"Bungee",sans-serif;font-size:9px}
+body[data-theme="arcade"] #mapPanel{border-radius:24px;border-width:2px;box-shadow:0 12px 0 #02111a,0 20px 60px #0008}
+body[data-theme="arcade"] .mapHeader{font-family:"Bungee",sans-serif;letter-spacing:.06em;height:38px;color:#7ce7ef}
+body[data-theme="arcade"] #travelPanel,body[data-theme="arcade"] #resultPanel{border-width:2px;border-radius:22px;box-shadow:0 8px 0 #02111a,0 18px 50px #0008}
+body[data-theme="arcade"] #multiHud{border-width:2px;border-radius:999px;font-weight:900}
+body[data-theme="arcade"] .topActions .icon{box-shadow:0 4px 0 #02111b}
+body[data-theme="arcade"] .compassPanel{border-width:2px;box-shadow:0 4px 0 #02111b}
+
+body[data-theme="midnight"] .hud{border-radius:2px;border-color:#335a6e91;box-shadow:inset 3px 0 0 #00d1c6,0 15px 35px #0009}
+body[data-theme="midnight"] .hudBlock small{font:600 8px/1 "Oxanium",sans-serif;letter-spacing:.16em;color:#6f93a3}.hudBlock b{font-family:var(--heading-font)}
+body[data-theme="midnight"] #modeBadge{border-radius:1px;border-color:#36596b80;font:600 9px/1 "Oxanium",sans-serif;letter-spacing:.17em}
+body[data-theme="midnight"] #mapPanel{border-radius:3px;border-color:#31546788;box-shadow:0 22px 65px #000d}
+body[data-theme="midnight"] .mapHeader{height:38px;font:600 9px/1 "Oxanium",sans-serif;letter-spacing:.18em;border-bottom:1px solid #26485b}
+body[data-theme="midnight"] #travelPanel,body[data-theme="midnight"] #resultPanel{border-radius:3px;border-color:#31546788;box-shadow:0 20px 55px #000c}
+body[data-theme="midnight"] #multiHud{border-radius:2px;border-color:#00d1c64d;font-family:"Oxanium",sans-serif}
+body[data-theme="midnight"] .topActions .icon{border-radius:2px}
+body[data-theme="midnight"] .compassPanel{border-radius:2px!important;border-color:#2c576c!important;box-shadow:0 0 25px #00d1c60d!important}
+body[data-theme="midnight"] .realReadout{font-family:"Oxanium",sans-serif;letter-spacing:.1em}
+
+/* ------------------------------------------------------------------
+   Multiplayer identity
+   ------------------------------------------------------------------ */
+body[data-theme="arcade"] .multiModeBox{position:relative;overflow:hidden}
+body[data-theme="arcade"] .multiModeBox:after{content:"";position:absolute;right:-24px;bottom:-30px;width:105px;height:105px;border:3px dashed #34e2ef1f;border-radius:50%}
+body[data-theme="arcade"] .multiHeading{font-family:"Bungee",sans-serif;text-transform:uppercase;font-size:14px;color:#fff7e8}
+body[data-theme="arcade"] .onlinePlayer{border-radius:16px!important;border-width:2px!important;box-shadow:0 4px 0 #02111a}
+body[data-theme="arcade"] .roomCode{font-family:"Bungee",sans-serif;color:#52eff0;text-shadow:0 3px 0 #00131f}
+body[data-theme="arcade"] .multiRankRow,body[data-theme="arcade"] .multiFinalRow{border-radius:16px!important}
+
+body[data-theme="midnight"] .multiHeading{font-family:"Oxanium",sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:13px;color:#dceff0}
+body[data-theme="midnight"] .onlinePlayer,body[data-theme="midnight"] .multiRankRow,body[data-theme="midnight"] .multiFinalRow{border-radius:2px!important;background:#06131f!important;border-color:#274a5d!important}
+body[data-theme="midnight"] .roomCode{font-family:"Oxanium",sans-serif;letter-spacing:.28em;color:#00d1c6;text-shadow:0 0 18px #00d1c638}
+body[data-theme="midnight"] .onlineLobbyBox{border-color:#2c5266}
+
+/* ------------------------------------------------------------------
+   Theme picker: compare identities, not just colors
+   ------------------------------------------------------------------ */
+.themePickerButton{display:inline-flex;align-items:center;gap:8px}.themePickerButton .lpIcon{width:18px;height:18px}
+.themeModalCard{width:min(930px,100%)}
+.themeChoices{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.themeChoice{appearance:none;position:relative;text-align:left;padding:16px;min-height:390px;transition:.18s;overflow:hidden}
+.themeChoice:hover{transform:translateY(-3px)}
+.themeChoiceTop{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:start}
+.themeChoiceTop strong{display:block;font-family:var(--heading-font);font-size:15px}.themeChoiceTop small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.themeRadio{width:19px;height:19px;border:2px solid var(--muted);border-radius:50%;margin-top:1px;position:relative}.themeChoice.selected .themeRadio{border-color:var(--good)}.themeChoice.selected .themeRadio:after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--good)}
+.themeSelectedBadge{display:none;font-size:8px;padding:4px 7px;border-radius:999px;background:var(--good);color:#06231f;letter-spacing:.08em}.themeChoice.selected .themeSelectedBadge{display:block}
+.themeChoice p{font-size:10px!important;line-height:1.55!important;color:var(--muted)!important;margin:11px 0 0!important}
+.themeSwatches{display:flex;gap:6px;margin:12px 0}.themeSwatches i{width:19px;height:19px;border-radius:50%;border:1px solid #ffffff55;box-shadow:0 2px 7px #0003}
+.themeChoice[data-theme-choice="arcade"] .themeSwatches i:nth-child(1){background:#071726}.themeChoice[data-theme-choice="arcade"] .themeSwatches i:nth-child(2){background:#22d9cf}.themeChoice[data-theme-choice="arcade"] .themeSwatches i:nth-child(3){background:#ff7457}.themeChoice[data-theme-choice="arcade"] .themeSwatches i:nth-child(4){background:#fff7e8}.themeChoice[data-theme-choice="arcade"] .themeSwatches i:nth-child(5){background:#3ce1ff}
+.themeChoice[data-theme-choice="midnight"] .themeSwatches i:nth-child(1){background:#03080e}.themeChoice[data-theme-choice="midnight"] .themeSwatches i:nth-child(2){background:#0c1d2b}.themeChoice[data-theme-choice="midnight"] .themeSwatches i:nth-child(3){background:#00d1c6}.themeChoice[data-theme-choice="midnight"] .themeSwatches i:nth-child(4){background:#eef6f7}.themeChoice[data-theme-choice="midnight"] .themeSwatches i:nth-child(5){background:#ff9f3d}
+.themeIdentityPreview{height:228px;border-radius:15px;position:relative;overflow:hidden;border:1px solid #ffffff26;margin-top:10px}
+.previewLogo{position:absolute;left:14px;top:13px;display:flex;align-items:center;gap:9px;z-index:3}.previewLogo img{width:37px;height:37px}.previewLogo strong{display:block}.previewLogo small{display:block;font-size:7px;letter-spacing:.12em;margin-top:1px}
+.previewUi{position:absolute;left:13px;right:13px;top:62px;bottom:13px;display:grid;grid-template-columns:1.4fr .8fr;gap:8px}
+.previewScene,.previewLobby{position:relative;overflow:hidden}.previewScene:before,.previewScene:after{content:"";position:absolute}
+.previewHud{position:absolute;left:8px;right:8px;top:8px;height:22px;z-index:3}.previewCta{position:absolute;left:8px;right:8px;bottom:8px;height:27px;display:grid;place-items:center;font-size:8px;font-weight:900;z-index:4}.previewLobby{padding:10px}.previewLobby i{display:block;height:10px;margin:7px 0}.previewFeatureRow{display:flex;gap:8px;margin-top:10px}.previewFeatureRow span{font-size:8px;padding:4px 7px;border-radius:999px;border:1px solid currentColor;opacity:.82}
+
+.themeChoice[data-theme-choice="arcade"]{border-radius:24px;border-width:2px;background:linear-gradient(145deg,#0b2b45,#082137);box-shadow:0 8px 0 #03111b;color:#fff7e8}
+.themeChoice[data-theme-choice="arcade"] .themeChoiceTop strong{font-family:"Bungee",sans-serif;text-transform:uppercase}
+.themeChoice[data-theme-choice="arcade"] .themeIdentityPreview{background:linear-gradient(145deg,#0b3150,#0d5674)}
+.themeChoice[data-theme-choice="arcade"] .previewLogo strong{font-family:"Bungee",sans-serif;text-transform:uppercase;font-size:13px}.themeChoice[data-theme-choice="arcade"] .previewLogo small{color:#53edf0}
+.themeChoice[data-theme-choice="arcade"] .previewScene{border-radius:12px;background:linear-gradient(#39bce4 0 42%,#17718a 43% 62%,#0b3450 63%)}
+.themeChoice[data-theme-choice="arcade"] .previewScene:before{left:12%;bottom:20%;width:44%;height:42%;background:#fff0d6;clip-path:polygon(0 100%,18% 56%,40% 68%,59% 26%,78% 55%,100% 38%,100% 100%)}
+.themeChoice[data-theme-choice="arcade"] .previewScene:after{right:12px;top:39px;width:18px;height:18px;border-radius:50%;background:#ffb052}
+.themeChoice[data-theme-choice="arcade"] .previewHud{border-radius:999px;background:#061828d9;border:2px solid #55e9ff44}
+.themeChoice[data-theme-choice="arcade"] .previewCta{border-radius:11px;background:#ff7457;color:#fff;font-family:"Bungee",sans-serif;box-shadow:0 3px 0 #a43c2d}
+.themeChoice[data-theme-choice="arcade"] .previewLobby{border-radius:12px;background:#061828d9;border:2px solid #55e9ff35}.themeChoice[data-theme-choice="arcade"] .previewLobby i{border-radius:999px;background:#2bd9d348}.themeChoice[data-theme-choice="arcade"] .previewFeatureRow span{color:#64edf0}
+
+.themeChoice[data-theme-choice="midnight"]{border-radius:3px;background:#050e17;border-color:#2b4e60;clip-path:polygon(0 0,calc(100% - 15px) 0,100% 15px,100% 100%,15px 100%,0 calc(100% - 15px));color:#eef6f7}
+.themeChoice[data-theme-choice="midnight"] .themeChoiceTop strong{font-family:"Oxanium",sans-serif;text-transform:uppercase;letter-spacing:.08em}
+.themeChoice[data-theme-choice="midnight"] .themeIdentityPreview{border-radius:2px;background:linear-gradient(#02070d,#061827);border-color:#294b5e}
+.themeChoice[data-theme-choice="midnight"] .previewLogo strong{font-family:"Oxanium",sans-serif;text-transform:uppercase;letter-spacing:.09em;font-size:12px}.themeChoice[data-theme-choice="midnight"] .previewLogo small{color:#7295a7;letter-spacing:.18em}
+.themeChoice[data-theme-choice="midnight"] .previewScene{border-radius:1px;background:radial-gradient(circle at 78% 22%,#eef6f7 0 2px,transparent 3px),linear-gradient(#04101b,#09253a 58%,#04101a)}
+.themeChoice[data-theme-choice="midnight"] .previewScene:before{inset:auto 0 0 0;height:58%;background:#071b29;clip-path:polygon(0 100%,0 71%,19% 46%,34% 70%,51% 31%,62% 61%,80% 19%,100% 57%,100% 100%)}
+.themeChoice[data-theme-choice="midnight"] .previewScene:after{left:0;right:0;top:0;bottom:0;background-image:linear-gradient(#00d1c60a 1px,transparent 1px),linear-gradient(90deg,#00d1c60a 1px,transparent 1px);background-size:18px 18px}
+.themeChoice[data-theme-choice="midnight"] .previewHud{border-radius:1px;background:#030b12e8;border:1px solid #31576b;box-shadow:inset 2px 0 0 #00d1c6}
+.themeChoice[data-theme-choice="midnight"] .previewCta{border-radius:1px;background:#00d1c6;color:#001317;font-family:"Oxanium",sans-serif;letter-spacing:.12em}
+.themeChoice[data-theme-choice="midnight"] .previewLobby{border-radius:1px;background:#030b12e8;border:1px solid #31576b}.themeChoice[data-theme-choice="midnight"] .previewLobby i{border-radius:0;background:#00d1c622;border-left:2px solid #00d1c6}.themeChoice[data-theme-choice="midnight"] .previewFeatureRow span{border-radius:1px;color:#65a8ba}
+.themeFooter{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}.themeFooter .primary{min-width:210px}
+
+/* ------------------------------------------------------------------
+   Cross-theme readability
+   ------------------------------------------------------------------ */
+.modalCard p,.modalCard li,.fineprint,.resultLegend,.compassChoice small{color:var(--muted)}
+.compassPreview{background:var(--theme-field);color:var(--theme-field-text)}
+#loadingPanel,#multiTurnOverlay{background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px)}
+#busyBadge,.toast{background:var(--theme-glass-strong);border-color:var(--line);color:var(--text)}
+.themeChoice.selected:after{content:none!important;display:none!important}
+
+@media(max-width:900px){.themeChoices{grid-template-columns:1fr}.themeChoice{min-height:0}.themeIdentityPreview{height:180px}.brandSymbol{width:66px;height:66px}.gameBrand span,.gameBrand b{display:none}.gameBrand{padding-right:7px}}
+@media(max-width:600px){.brandLockup{gap:10px}.brandSymbol{width:54px;height:54px}.brandTitle{font-size:42px!important}.brandTagline{font-size:8px!important;letter-spacing:.12em!important}.themePickerButton{padding:10px 12px}.themeModalCard{padding:16px}.themeIdentityPreview{height:160px}.previewFeatureRow{display:none}.gameBrand{display:none}}

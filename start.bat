@@ -10,7 +10,7 @@ goto START
 :ASKKEY
 echo.
 echo ============================================================
-echo   Guessr360 V3.9 - configuration Google Maps
+echo   LostPin V4.1 - configuration Google Maps
 echo ============================================================
 echo.
 echo Colle ici ta NOUVELLE cle Google Maps API.
@@ -30,7 +30,7 @@ echo Cle enregistree localement dans config.js.
 
 :START
 echo.
-echo Demarrage de Guessr360 sur http://127.0.0.1:8080/
+echo Demarrage de LostPin V4 sur http://127.0.0.1:8080/
 echo Garde cette fenetre ouverte pendant la partie.
 echo Ferme-la ou fais Ctrl+C pour arreter le serveur local.
 echo.
