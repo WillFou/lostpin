@@ -1,4 +1,4 @@
-LostPin V4.1.3
+LostPin V4.1.4
 =============
 
 LostPin est un jeu de geolocalisation base sur Google Street View.
@@ -98,10 +98,17 @@ server.ps1       serveur HTTP local
 start.bat        lancement Windows
 
 
-COMPATIBILITE MULTIJOUEUR V4.1.3
---------------------------------
-Le namespace PeerJS historique "guessr360" est volontairement conserve pour permettre a un client LostPin V4.1.3 de jouer avec un client Guessr360 V3.9.
-La V4.1 originale utilisait par erreur un namespace different (lostpin-v4), ce qui rendait les salles invisibles entre les deux versions.
+V4.1.4 - HUD MULTIJOUEUR
+-------------------------
+- Le timer est integre a la barre d'actions du HUD : il ne se superpose plus aux boutons.
+- Sa taille est ajustee sur les ecrans etroits.
+
+
+COMPATIBILITE MULTIJOUEUR
+-------------------------
+Le namespace PeerJS historique "guessr360" reste volontairement conserve.
+La V4.1 originale utilisait par erreur un namespace different (lostpin-v4), ce qui rendait les salles invisibles entre les versions.
+Pour le timer et les statuts synchronises, tous les joueurs doivent utiliser la meme version recente de LostPin.
 
 
 NOUVEAUTES V4.1.3 - MULTIJOUEUR EN LIGNE
@@ -112,4 +119,4 @@ NOUVEAUTES V4.1.3 - MULTIJOUEUR EN LIGNE
 - A l'expiration du timer, une absence de validation vaut 0 point.
 - Correction du bouton Accueil sur l'ecran de classement final multijoueur.
 
-Pour profiter du timer et des statuts synchronises, tous les joueurs doivent utiliser la V4.1.3. Le namespace PeerJS historique reste conserve.
+Pour profiter du timer et des statuts synchronises, tous les joueurs doivent utiliser la meme version recente de LostPin. Le namespace PeerJS historique reste conserve.

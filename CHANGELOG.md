@@ -1,3 +1,8 @@
+# LostPin V4.1.4
+
+- Correction du HUD multijoueur : le timer fait maintenant partie de la barre d'actions et ne peut plus se superposer aux boutons.
+- Ajustement du timer sur les ecrans etroits.
+
 # LostPin V4.1.3
 
 - Timer multijoueur configurable par l'hote a la creation de la salle : 60, 120 ou 180 secondes.
