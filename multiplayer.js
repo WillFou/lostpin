@@ -5,6 +5,10 @@ const COLORS = ['#2f80ed','#7b61ff','#15b88a','#ff9f43','#f15b92','#20b6d2'];
 const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 // Keep the original network namespace for compatibility with Guessr360 v3.9 clients.
 const ROOM_NAMESPACE = 'guessr360';
+const DEFAULT_ONLINE_ROUND_SECONDS = 60;
+const ONLINE_ROUND_OPTIONS = new Set([60,120,180]);
+const ONLINE_FINAL_COUNTDOWN_SECONDS = 20;
+const ONLINE_PROTOCOL_VERSION = 2;
 
 function esc(text) {
   return String(text ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -32,9 +36,21 @@ class MultiplayerController {
     this.myId = null;
     this.myName = '';
     this.code = '';
+    this.roundClosed = false;
+    this.guessLocked = false;
+    this.submittedIds = new Set();
+    this.timerInterval = null;
+    this.roundDeadline = 0;
+    this.lastTimerSecond = null;
+    this.onlineRoundSeconds = DEFAULT_ONLINE_ROUND_SECONDS;
     this.originalSubmit = game.submitGuess.bind(game);
     this.originalShowMenu = game.showMenu.bind(game);
+    this.originalSetGuess = game.setGuess.bind(game);
     game.submitGuess = () => this.active ? this.submitCurrentGuess() : this.originalSubmit();
+    game.setGuess = pos => {
+      if (this.active && this.kind === 'online' && this.guessLocked) return;
+      this.originalSetGuess(pos);
+    };
     game.showMenu = () => { if (this.active) this.cleanup(true); this.originalShowMenu(); };
     this.bindUI();
     this.renderLocalInputs(['Joueur 1','Joueur 2']);
@@ -52,7 +68,7 @@ class MultiplayerController {
     $('leaveOnlineLobby')?.addEventListener('click', () => { this.cleanup(true); this.resetOnlineLobby(); });
     $('multiReadyButton')?.addEventListener('click', () => this.beginLocalTurn(this.localPlayerIndex));
     $('multiNextRound')?.addEventListener('click', () => this.advanceAfterRound());
-    $('multiEndMenu')?.addEventListener('click', () => { this.cleanup(true); this.game.showMenu(); });
+    $('multiEndMenu')?.addEventListener('click', () => { this.hideMultiEnd(); this.cleanup(true); this.originalShowMenu(); });
     $('multiReplay')?.addEventListener('click', () => {
       const kind = this.kind;
       const names = this.players.map(p => p.name);
@@ -104,7 +120,9 @@ class MultiplayerController {
   }
 
   async loadHostRound() {
-    this.clearMultiMarkers(); this.submissions.clear();
+    this.clearRoundTimer();
+    this.clearMultiMarkers(); this.submissions.clear(); this.submittedIds.clear();
+    this.roundClosed=false; this.guessLocked=false;
     this.game.round = this.round; this.game.total = 0; this.game.results = [];
     await this.game.loadRound();
     if (!this.active) return;
@@ -115,7 +133,9 @@ class MultiplayerController {
       heading:this.game.startPov?.heading || 0,
       zoneId:this.game.zoneId,
       mode:this.game.mode,
-      round:this.round
+      round:this.round,
+      timerSeconds:this.kind === 'online' ? this.onlineRoundSeconds : null,
+      protocol:ONLINE_PROTOCOL_VERSION
     };
     if (this.kind === 'local') {
       this.localPlayerIndex = 0;
@@ -128,6 +148,7 @@ class MultiplayerController {
 
   resetRoundView(player) {
     const zone = this.api.ZONES[this.game.zoneId];
+    this.guessLocked=false;
     this.game.guess = null;
     this.game.answer = {...this.roundInfo.answer};
     this.game.startPano = this.roundInfo.pano;
@@ -194,13 +215,15 @@ class MultiplayerController {
   }
 
   finishRound(entries, fromNetwork=false) {
-    entries.sort((a,b)=>b.points-a.points || a.seconds-b.seconds);
+    if (this.kind === 'online') { this.roundClosed=true; this.guessLocked=true; this.clearRoundTimer(); }
+    entries.sort((a,b)=>b.points-a.points || Number(!!a.timedOut)-Number(!!b.timedOut) || (a.seconds||0)-(b.seconds||0));
     this.renderResultMarkers(entries);
     const body=$('multiRoundRanking'); body.replaceChildren();
     entries.forEach((e,i)=>{
       const row=document.createElement('div'); row.className='multiRankRow';
       const total=e.player?.total ?? e.total ?? 0;
-      row.innerHTML=`<span class="multiPlace">${i+1}</span><span><b>${esc(e.player?.name||e.name)}</b><small>${this.api.formatDistance(e.distance)} · ${e.seconds}s</small></span><strong>${e.points.toLocaleString('fr-FR')} pts</strong><em>${Number(total).toLocaleString('fr-FR')} total</em>`;
+      const detail=e.timedOut?'Temps ecoule · aucune reponse':`${this.api.formatDistance(e.distance)} · ${e.seconds}s`;
+      row.innerHTML=`<span class="multiPlace">${i+1}</span><span><b>${esc(e.player?.name||e.name)}</b><small>${detail}</small></span><strong>${e.points.toLocaleString('fr-FR')} pts</strong><em>${Number(total).toLocaleString('fr-FR')} total</em>`;
       body.appendChild(row);
     });
     $('multiRoundTitle').textContent=`Manche ${this.round+1} terminee`;
@@ -241,6 +264,7 @@ class MultiplayerController {
   }
 
   showMultiEnd(playersOverride=null) {
+    this.clearRoundTimer(); this.roundClosed=true; this.guessLocked=true;
     const list=(playersOverride || this.players).slice().sort((a,b)=>b.total-a.total);
     $('gameScreen').classList.add('hidden'); $('multiEndScreen').classList.remove('hidden');
     const box=$('multiFinalRanking'); box.replaceChildren();
@@ -257,8 +281,15 @@ class MultiplayerController {
   // ---------------- Online peer-to-peer ----------------
   ensurePeerAvailable(){ if (!window.Peer) throw new Error("Le module multijoueur en ligne n'a pas pu etre charge. Verifie ta connexion Internet."); }
 
+
+  readOnlineRoundSeconds() {
+    const value=Number($('onlineRoundTimer')?.value || DEFAULT_ONLINE_ROUND_SECONDS);
+    return ONLINE_ROUND_OPTIONS.has(value) ? value : DEFAULT_ONLINE_ROUND_SECONDS;
+  }
+
   createOnlineRoom() {
     try { this.ensurePeerAvailable(); } catch(e){ return this.setModalError(e.message); }
+    this.onlineRoundSeconds=this.readOnlineRoundSeconds();
     this.cleanupPeer(); this.myName=sanitizeName($('onlineName').value,'Hote'); this.code=roomCode(); this.isHost=true; this.kind='online';
     const id=`${ROOM_NAMESPACE}-${this.code.toLowerCase()}`;
     this.peer=new Peer(id,{debug:1});
@@ -310,8 +341,14 @@ class MultiplayerController {
   handleGuestData(data) {
     if (!data || typeof data!=='object') return;
     if (data.type==='error') { this.setModalError(data.message); return; }
-    if (data.type==='lobby') { this.players=data.players||[]; this.renderOnlineLobby(); return; }
+    if (data.type==='lobby') {
+      this.players=data.players||[];
+      if (ONLINE_ROUND_OPTIONS.has(Number(data.timerSeconds))) this.onlineRoundSeconds=Number(data.timerSeconds);
+      this.renderOnlineLobby();
+      return;
+    }
     if (data.type==='round:start') { this.applySharedRound(data).catch(e=>this.fatalMulti(e)); return; }
+    if (data.type==='round:timer') { this.applyRoundTimerUpdate(data); return; }
     if (data.type==='round:status') { this.renderOnlineStatus(data); return; }
     if (data.type==='round:results') {
       this.players=data.players||this.players; this.roundInfo={...this.roundInfo,answer:data.answer,description:data.description};
@@ -321,7 +358,7 @@ class MultiplayerController {
     if (data.type==='game:end') { this.players=data.players||this.players; this.showMultiEnd(); }
   }
 
-  broadcastLobby() { this.broadcast({type:'lobby',players:this.serializedPlayers(),code:this.code,zoneId:this.game.zoneId,mode:this.game.mode}); }
+  broadcastLobby() { this.broadcast({type:'lobby',players:this.serializedPlayers(),code:this.code,zoneId:this.game.zoneId,mode:this.game.mode,timerSeconds:this.onlineRoundSeconds,protocol:ONLINE_PROTOCOL_VERSION}); }
   broadcast(data) { for (const conn of this.connections.values()) if (conn.open) { try{conn.send(data);}catch(_){}} }
   serializedPlayers(){ return this.players.map(p=>({id:p.id,name:p.name,total:p.total||0,rounds:p.rounds||[],host:!!p.host})); }
 
@@ -330,6 +367,8 @@ class MultiplayerController {
   renderOnlineLobby() {
     if (!$('onlinePlayerList')) return;
     $('onlineRoomCodeDisplay').textContent=this.code||'-----';
+    const settings=$('onlineRoomSettings');
+    if (settings) settings.textContent=`Timer : ${this.onlineRoundSeconds} s · 5 manches`;
     const box=$('onlinePlayerList'); box.replaceChildren();
     this.players.forEach((p,i)=>{ const row=document.createElement('div'); row.className='onlinePlayer'; row.innerHTML=`<span class="playerColor" style="background:${COLORS[i%COLORS.length]}">${i+1}</span><b>${esc(p.name)}</b>${p.host?'<small>hote</small>':''}`; box.appendChild(row); });
     $('onlineStartGame').classList.toggle('hidden',!this.isHost);
@@ -345,52 +384,145 @@ class MultiplayerController {
 
   beginOnlineRoundForSelf() {
     const me=this.myPlayer(); this.resetRoundView(me); this.updateMultiHud(me,`Salle ${this.code} · hote`); this.renderOnlineStatus({submitted:[]});
+    this.startRoundTimer(this.onlineRoundSeconds);
   }
 
   async applySharedRound(data) {
+    this.clearRoundTimer(); this.submissions.clear(); this.submittedIds.clear(); this.roundClosed=false; this.guessLocked=false;
     this.active=true; this.started=true; this.kind='online'; this.isHost=false; this.round=data.round; this.game.zoneId=data.zoneId; this.game.mode=data.mode;
+    if (ONLINE_ROUND_OPTIONS.has(Number(data.timerSeconds))) this.onlineRoundSeconds=Number(data.timerSeconds);
     await this.prepareShell();
     this.roundInfo={pano:data.pano,answer:data.answer,description:data.description,heading:data.heading,zoneId:data.zoneId,mode:data.mode,round:data.round};
-    const me=this.myPlayer(); this.resetRoundView(me); this.updateMultiHud(me,`Salle ${this.code}`);
+    const me=this.myPlayer(); this.resetRoundView(me); this.updateMultiHud(me,`Salle ${this.code}`); this.renderOnlineStatus({submitted:[]});
     $('multiplayerModal').classList.add('hidden');
+    if (Number.isFinite(Number(data.timerSeconds)) && Number(data.timerSeconds) > 0) this.startRoundTimer(Number(data.timerSeconds));
+    else this.clearRoundTimer();
   }
 
   submitOnline() {
-    const me=this.myPlayer(); if (!me || this.submissions.has(me.id)) return;
+    const me=this.myPlayer(); if (!me || this.roundClosed || this.guessLocked || this.submissions.has(me.id)) return;
     const payload={type:'guess',round:this.round,guess:{...this.game.guess},seconds:Math.max(1,Math.round((Date.now()-this.game.startTime)/1000)),moves:this.game.moveCount||0,travel:this.game.maxTravel||0};
+    this.guessLocked=true;
+    this.submittedIds.add(me.id);
     $('guessButton').disabled=true; $('guessButton').textContent='Reponse envoyee'; this.game.panorama?.setOptions({clickToGo:false,linksControl:false});
+    this.renderOnlineStatus({submitted:Array.from(this.submittedIds)});
     if (this.isHost) this.recordOnlineGuess(me.id,payload); else { this.hostConn?.send(payload); $('multiWaiting').classList.remove('hidden'); $('multiWaiting').textContent='Reponse envoyee · en attente des autres joueurs...'; }
   }
 
   recordOnlineGuess(id,data) {
-    if (this.submissions.has(id) || !data.guess) return;
+    if (this.roundClosed || this.submissions.has(id) || !data.guess) return;
     const player=this.players.find(p=>p.id===id); if (!player) return;
+    const firstSubmission=this.submissions.size===0;
     const scored=this.scoreGuess(data.guess); scored.seconds=Number(data.seconds)||scored.seconds; scored.moves=Number(data.moves)||0; scored.travel=Number(data.travel)||0;
     this.submissions.set(id,{player,...scored});
+    this.submittedIds=new Set(this.submissions.keys());
     this.broadcast({type:'round:status',submitted:Array.from(this.submissions.keys())});
     this.renderOnlineStatus({submitted:Array.from(this.submissions.keys())});
+    if (firstSubmission) this.triggerFinalCountdown();
     this.checkOnlineRoundComplete();
   }
 
   checkOnlineRoundComplete() {
-    if (!this.isHost || !this.started || !this.players.length) return;
+    if (!this.isHost || !this.started || this.roundClosed || !this.players.length) return;
     const activeIds=this.players.map(p=>p.id);
     if (!activeIds.every(id=>this.submissions.has(id))) return;
-    const entries=activeIds.map(id=>this.submissions.get(id)).filter(Boolean);
-    entries.forEach(e=>{ e.player.total=(e.player.total||0)+e.points; e.player.rounds[this.round]={points:e.points,distance:e.distance}; });
-    const results=entries.map(e=>({id:e.player.id,name:e.player.name,total:e.player.total,guess:e.guess,distance:e.distance,points:e.points,seconds:e.seconds,moves:e.moves,travel:e.travel}));
+    this.finalizeOnlineRound(activeIds.map(id=>this.submissions.get(id)).filter(Boolean));
+  }
+
+  finalizeOnlineRound(entries) {
+    if (this.roundClosed) return;
+    this.roundClosed=true; this.guessLocked=true; this.clearRoundTimer();
+    entries.forEach(e=>{
+      e.player.total=(e.player.total||0)+e.points;
+      e.player.rounds[this.round]={points:e.points,distance:e.distance,timedOut:!!e.timedOut};
+    });
+    const results=entries.map(e=>({id:e.player.id,name:e.player.name,total:e.player.total,guess:e.guess||null,distance:e.distance,points:e.points,seconds:e.seconds,moves:e.moves,travel:e.travel,timedOut:!!e.timedOut}));
     this.broadcast({type:'round:results',round:this.round,answer:this.roundInfo.answer,description:this.roundInfo.description,results,players:this.serializedPlayers()});
     this.finishRound(entries);
   }
 
+  expireOnlineRound() {
+    if (!this.isHost || this.roundClosed) return;
+    const entries=[];
+    for (const player of this.players) {
+      const existing=this.submissions.get(player.id);
+      if (existing) entries.push(existing);
+      else entries.push({player,guess:null,distance:null,points:0,seconds:0,moves:0,travel:0,timedOut:true});
+    }
+    this.finalizeOnlineRound(entries);
+  }
+
+  triggerFinalCountdown() {
+    if (!this.isHost || this.roundClosed) return;
+    const remaining=this.remainingRoundSeconds();
+    if (remaining <= ONLINE_FINAL_COUNTDOWN_SECONDS) return;
+    this.startRoundTimer(ONLINE_FINAL_COUNTDOWN_SECONDS);
+    this.broadcast({type:'round:timer',seconds:ONLINE_FINAL_COUNTDOWN_SECONDS,reason:'first-submit',round:this.round});
+    this.game.showToast?.(`Un joueur a valide : ${ONLINE_FINAL_COUNTDOWN_SECONDS} secondes restantes.`,2600);
+  }
+
+  applyRoundTimerUpdate(data) {
+    if (this.kind!=='online' || !this.active || data.round!==this.round) return;
+    const seconds=Math.max(0,Number(data.seconds)||0);
+    if (!seconds) return;
+    this.startRoundTimer(seconds);
+    if (data.reason==='first-submit') this.game.showToast?.(`Un joueur a valide : ${seconds} secondes restantes.`,2600);
+  }
+
+  remainingRoundSeconds() {
+    if (!this.roundDeadline) return 0;
+    return Math.max(0,Math.ceil((this.roundDeadline-Date.now())/1000));
+  }
+
+  startRoundTimer(seconds) {
+    this.clearRoundTimer(false);
+    this.roundDeadline=Date.now()+Math.max(0,seconds)*1000;
+    this.lastTimerSecond=null;
+    $('multiTimer')?.classList.remove('hidden');
+    const tick=()=>{
+      const remaining=this.remainingRoundSeconds();
+      if (remaining!==this.lastTimerSecond) { this.lastTimerSecond=remaining; this.renderRoundTimer(remaining); }
+      if (remaining>0) return;
+      if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval=null; }
+      this.guessLocked=true;
+      if ($('guessButton')) { $('guessButton').disabled=true; if (!$('guessButton').textContent.includes('envoyee')) $('guessButton').textContent='Temps ecoule'; }
+      if (!this.isHost && this.active && !this.roundClosed) { $('multiWaiting')?.classList.remove('hidden'); if ($('multiWaiting')) $('multiWaiting').textContent='Temps ecoule · en attente des resultats...'; }
+      if (this.isHost && this.active && !this.roundClosed) this.expireOnlineRound();
+    };
+    tick();
+    this.timerInterval=setInterval(tick,250);
+  }
+
+  renderRoundTimer(seconds) {
+    const box=$('multiTimer'), value=$('multiTimerValue'); if (!box || !value) return;
+    const mins=Math.floor(seconds/60), secs=seconds%60; value.textContent=`${mins}:${String(secs).padStart(2,'0')}`;
+    box.classList.toggle('urgent',seconds>0 && seconds<=ONLINE_FINAL_COUNTDOWN_SECONDS);
+    box.classList.toggle('critical',seconds>0 && seconds<=5);
+  }
+
+  clearRoundTimer(hide=true) {
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    this.timerInterval=null; this.roundDeadline=0; this.lastTimerSecond=null;
+    if (hide) $('multiTimer')?.classList.add('hidden');
+    $('multiTimer')?.classList.remove('urgent','critical');
+  }
+
   renderOnlineStatus(data) {
-    const submitted=new Set(data?.submitted||[]); const parts=this.players.map(p=>`${submitted.has(p.id)?'✓':'…'} ${p.name}`);
-    const el=$('multiOnlineStatus'); if (el) { el.textContent=parts.join('   '); el.classList.toggle('hidden', this.kind!=='online' || !this.active); }
+    this.submittedIds=new Set(data?.submitted||[]);
+    const el=$('multiOnlineStatus'); if (!el) return;
+    el.replaceChildren();
+    this.players.forEach(p=>{
+      const done=this.submittedIds.has(p.id);
+      const pill=document.createElement('span'); pill.className=`multiStatusPlayer ${done?'submitted':'pending'}`;
+      pill.innerHTML=`<b>${done?'✓':'•'}</b><span>${esc(p.name)}</span>`;
+      el.appendChild(pill);
+    });
+    el.classList.toggle('hidden', this.kind!=='online' || !this.active);
   }
 
   myPlayer(){ return this.players.find(p=>p.id===this.myId) || (this.kind==='local'?this.players[this.localPlayerIndex]:null); }
 
-  restartOnlineHost(){ if (!this.isHost) return; this.round=0; this.players.forEach(p=>{p.total=0;p.rounds=[];}); this.active=true; this.started=true; this.prepareShell().then(()=>this.loadHostRound()).catch(e=>this.fatalMulti(e)); }
+  restartOnlineHost(){ if (!this.isHost) return; this.clearRoundTimer(); this.round=0; this.roundClosed=false; this.guessLocked=false; this.players.forEach(p=>{p.total=0;p.rounds=[];}); this.active=true; this.started=true; this.prepareShell().then(()=>this.loadHostRound()).catch(e=>this.fatalMulti(e)); }
 
   peerError(err,isHost) {
     const type=err?.type||'';
@@ -405,7 +537,7 @@ class MultiplayerController {
 
   cleanupPeer(){ try{this.hostConn?.close();}catch(_){} for(const c of this.connections.values())try{c.close();}catch(_){} this.connections.clear(); try{this.peer?.destroy();}catch(_){} this.peer=null; this.hostConn=null; }
   cleanup(closePeer=true) {
-    this.clearMultiMarkers(); this.active=false; this.started=false; this.submissions.clear(); $('multiHud')?.classList.add('hidden'); $('multiOnlineStatus')?.classList.add('hidden'); $('multiRoundPanel')?.classList.add('hidden'); $('multiTurnOverlay')?.classList.add('hidden'); $('multiWaiting')?.classList.add('hidden');
+    this.clearRoundTimer(); this.clearMultiMarkers(); this.active=false; this.started=false; this.roundClosed=false; this.guessLocked=false; this.submittedIds.clear(); this.submissions.clear(); $('multiHud')?.classList.add('hidden'); $('multiOnlineStatus')?.classList.add('hidden'); $('multiRoundPanel')?.classList.add('hidden'); $('multiTurnOverlay')?.classList.add('hidden'); $('multiWaiting')?.classList.add('hidden'); this.hideMultiEnd();
     if (closePeer) { this.cleanupPeer(); this.resetOnlineLobby(true); }
   }
 }

@@ -1,4 +1,20 @@
-# LostPin V4.1.1
+# LostPin V4.1.3
+
+- Timer multijoueur configurable par l'hote a la creation de la salle : 60, 120 ou 180 secondes.
+- Le choix du timer est partage aux joueurs dans le lobby et applique a chaque manche.
+- La regle des 20 secondes apres la premiere validation reste active quel que soit le timer initial.
+
+# LostPin V4.1.2
+
+- Ajout d'un timer en ligne de 60 s par manche.
+- Apres la premiere validation, le timer est ramene a 20 s s'il etait encore superieur.
+- Ajout d'un indicateur en direct des joueurs ayant deja valide.
+- Verrouillage du marqueur apres validation.
+- Les joueurs sans validation a l'expiration recoivent 0 point pour la manche.
+- Correction du bouton Accueil du classement final multijoueur.
+- Le namespace PeerJS historique `guessr360` reste conserve.
+
+## 4.1.1
 
 - Fixed online room compatibility with Guessr360 V3.9.
 - Restored the historical PeerJS room namespace (`guessr360-*`).
