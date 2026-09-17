@@ -3,6 +3,8 @@
 const $ = id => document.getElementById(id);
 const COLORS = ['#2f80ed','#7b61ff','#15b88a','#ff9f43','#f15b92','#20b6d2'];
 const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+// Keep the original network namespace for compatibility with Guessr360 v3.9 clients.
+const ROOM_NAMESPACE = 'guessr360';
 
 function esc(text) {
   return String(text ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -258,7 +260,7 @@ class MultiplayerController {
   createOnlineRoom() {
     try { this.ensurePeerAvailable(); } catch(e){ return this.setModalError(e.message); }
     this.cleanupPeer(); this.myName=sanitizeName($('onlineName').value,'Hote'); this.code=roomCode(); this.isHost=true; this.kind='online';
-    const id=`lostpin-v4-${this.code.toLowerCase()}`;
+    const id=`${ROOM_NAMESPACE}-${this.code.toLowerCase()}`;
     this.peer=new Peer(id,{debug:1});
     this.setOnlineStatus('Creation de la salle...');
     this.peer.on('open', peerId=>{
@@ -276,7 +278,7 @@ class MultiplayerController {
     this.cleanupPeer(); this.myName=sanitizeName($('onlineName').value,'Joueur'); this.code=code; this.isHost=false; this.kind='online';
     this.peer=new Peer(undefined,{debug:1}); this.setOnlineStatus('Connexion a la salle...');
     this.peer.on('open', peerId=>{
-      this.myId=peerId; const conn=this.peer.connect(`lostpin-v4-${code.toLowerCase()}`,{reliable:true,metadata:{name:this.myName}}); this.hostConn=conn;
+      this.myId=peerId; const conn=this.peer.connect(`${ROOM_NAMESPACE}-${code.toLowerCase()}`,{reliable:true,metadata:{name:this.myName}}); this.hostConn=conn;
       conn.on('open',()=>{ conn.send({type:'hello',name:this.myName}); this.showOnlineLobby(); this.setOnlineStatus('Connecte.'); });
       conn.on('data',data=>this.handleGuestData(data));
       conn.on('close',()=>this.onlineDisconnected('Connexion avec l\'hote fermee.'));
@@ -392,7 +394,7 @@ class MultiplayerController {
 
   peerError(err,isHost) {
     const type=err?.type||'';
-    const msg=type==='unavailable-id'?'Ce code de salle est deja utilise. Reessaie.':type==='peer-unavailable'?'Salle introuvable. Verifie le code.':(err?.message||'Erreur de connexion multijoueur.');
+    const msg=type==='unavailable-id'?'Ce code de salle est deja utilise. Reessaie.':type==='peer-unavailable'?'Salle introuvable. Verifie le code et assure-toi que l\'hote a bien cree la salle et la garde ouverte.':(err?.message||'Erreur de connexion multijoueur.');
     this.setModalError(msg); this.setOnlineStatus(msg); if (isHost && type==='unavailable-id') setTimeout(()=>this.createOnlineRoom(),400);
   }
   onlineDisconnected(msg) { if (this.started) this.fatalMulti(new Error(msg)); else { this.setModalError(msg); this.resetOnlineLobby(); } }

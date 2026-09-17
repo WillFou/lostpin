@@ -1,3 +1,9 @@
+# LostPin V4.1.1
+
+- Fixed online room compatibility with Guessr360 V3.9.
+- Restored the historical PeerJS room namespace (`guessr360-*`).
+- Improved the room-not-found message.
+
 # Changelog
 
 ## 4.1.0

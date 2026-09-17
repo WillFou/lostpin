@@ -1,4 +1,4 @@
-LostPin V4.1
+LostPin V4.1.1
 =============
 
 LostPin est un jeu de geolocalisation base sur Google Street View.
@@ -96,3 +96,9 @@ assets/          logos et packs d'icones SVG
 config.js        cle Google Maps locale
 server.ps1       serveur HTTP local
 start.bat        lancement Windows
+
+
+COMPATIBILITE MULTIJOUEUR V4.1.1
+--------------------------------
+Le namespace PeerJS historique "guessr360" est volontairement conserve pour permettre a un client LostPin V4.1.1 de jouer avec un client Guessr360 V3.9.
+La V4.1 originale utilisait par erreur un namespace different (lostpin-v4), ce qui rendait les salles invisibles entre les deux versions.

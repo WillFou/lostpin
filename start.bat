@@ -10,7 +10,7 @@ goto START
 :ASKKEY
 echo.
 echo ============================================================
-echo   LostPin V4.1 - configuration Google Maps
+echo   LostPin V4.1.1 - configuration Google Maps
 echo ============================================================
 echo.
 echo Colle ici ta NOUVELLE cle Google Maps API.
