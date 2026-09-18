@@ -6,7 +6,7 @@ const COMPASS_KEY = 'guessr360-v37-compass-style';
 const THEMES = {
   arcade: {
     name: 'Arcade Night',
-    description: 'Identite jeu/sociale : logo badge, typo Bungee, icones pleines et interface plus punchy.',
+    description: 'Identité jeu/sociale : logo badge, typo Bungee, icônes pleines et interface plus punchy.',
     color: '#071726',
     mark: 'assets/lostpin-arcade-mark.svg',
     icons: 'assets/icons-arcade.svg',
@@ -15,7 +15,7 @@ const THEMES = {
   },
   midnight: {
     name: 'Midnight Explorer',
-    description: 'Identite exploration premium : logo boussole, typo Oxanium, icones techniques et HUD geometrique.',
+    description: 'Identité exploration premium : logo boussole, typo Oxanium, icônes techniques et HUD géométrique.',
     color: '#03080e',
     mark: 'assets/lostpin-midnight-mark.svg',
     icons: 'assets/icons-midnight.svg',
@@ -76,7 +76,7 @@ function applyBrand(theme) {
 function updatePicker(theme) {
   const info = THEMES[theme];
   const label = document.getElementById('themeStartLabel');
-  if (label) label.textContent = `Identite : ${info.name}`;
+  if (label) label.textContent = `Identité : ${info.name}`;
   const desc = document.getElementById('themeCurrentDescription');
   if (desc) desc.textContent = info.description;
   document.querySelectorAll('[data-theme-choice]').forEach(card => {

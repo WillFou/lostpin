@@ -1,4 +1,4 @@
-/* LostPin V4.1.4 - two fully differentiated visual identities */
+/* LostPin V4.4.11 - anchored HUD width fix */
 
 body{
   --theme-card:rgba(9,25,40,.94);
@@ -334,3 +334,844 @@ body[data-theme="midnight"] .onlineLobbyBox{border-color:#2c5266}
 
 @media(max-width:900px){.themeChoices{grid-template-columns:1fr}.themeChoice{min-height:0}.themeIdentityPreview{height:180px}.brandSymbol{width:66px;height:66px}.gameBrand span,.gameBrand b{display:none}.gameBrand{padding-right:7px}}
 @media(max-width:600px){.brandLockup{gap:10px}.brandSymbol{width:54px;height:54px}.brandTitle{font-size:42px!important}.brandTagline{font-size:8px!important;letter-spacing:.12em!important}.themePickerButton{padding:10px 12px}.themeModalCard{padding:16px}.themeIdentityPreview{height:160px}.previewFeatureRow{display:none}.gameBrand{display:none}}
+
+/* V4.3 social multiplayer accents */
+body[data-theme="arcade"] .playerAvatar{border-radius:13px;box-shadow:0 4px 0 #00111d,0 8px 18px #0005}
+body[data-theme="arcade"] #multiEmoteBar{border-radius:18px;border-width:2px}
+body[data-theme="arcade"] .multiEmoteButton{border-radius:12px;box-shadow:0 3px 0 #02111a}
+body[data-theme="arcade"] .podiumCard{border-radius:20px;border-width:2px}
+body[data-theme="arcade"] .photoFinish{border-radius:16px;font-family:"Nunito Sans",sans-serif}
+body[data-theme="midnight"] .playerAvatar{border-radius:3px;border-color:#40dce566;box-shadow:0 0 0 1px #000,0 0 18px #00d1c61c}
+body[data-theme="midnight"] #multiEmoteBar{border-radius:2px;border-color:#274a5d;background:#04101bed}
+body[data-theme="midnight"] .multiEmoteButton{border-radius:2px;background:#06131f}
+body[data-theme="midnight"] .podiumCard{border-radius:2px;background:#06131f;border-color:#274a5d}
+body[data-theme="midnight"] .photoFinish{border-radius:2px;font-family:"Space Grotesk",sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.multiOverallRow{grid-template-columns:24px 30px minmax(0,1fr) auto!important}
+@media(max-width:760px){.onlinePlayer{grid-template-columns:34px minmax(0,1fr)!important}.multiOverallRow{grid-template-columns:22px 30px minmax(0,1fr) auto!important}}
+
+
+/* V4.4.4 - timer separated from controls and emotes raised */
+#gameScreen.multiplayer-active #multiHud{
+  top:8px;
+  max-width:min(68vw,780px);
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+}
+#gameScreen.multiplayer-active #multiHudName,
+#gameScreen.multiplayer-active #multiHudScore{flex:0 0 auto}
+#gameScreen.multiplayer-active #multiHudExtra{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#gameScreen.multiplayer-active #multiOnlineStatus{
+  top:52px;
+  max-width:min(76vw,820px);
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
+  justify-content:flex-start;
+  white-space:nowrap;
+  scrollbar-width:none;
+}
+#gameScreen.multiplayer-active #multiOnlineStatus::-webkit-scrollbar{display:none}
+#gameScreen.multiplayer-active #modeBadge{top:52px}
+#gameScreen.multiplayer-active #compass[data-style="band"]{
+  top:92px;
+}
+#gameScreen.multiplayer-active #compass[data-style="pano"]{
+  top:90px;
+}
+#gameScreen.multiplayer-active #compass[data-style="circle"],
+#gameScreen.multiplayer-active #compass[data-style="minimal"],
+#gameScreen.multiplayer-active #compass[data-style="rose"],
+#gameScreen.multiplayer-active #compass[data-style="hybrid"],
+#gameScreen.multiplayer-active #compass[data-style="real"],
+#gameScreen.multiplayer-active #compass[data-style="vintage"]{
+  top:92px;
+}
+#gameScreen.multiplayer-active #multiEmoteToast{
+  left:auto;
+  right:18px;
+  top:92px;
+  transform:none;
+  max-width:min(270px,32vw);
+}
+#gameScreen.multiplayer-active #multiEmoteBar{
+  left:18px!important;
+  right:auto!important;
+  top:154px!important;
+  bottom:auto!important;
+  transform:none!important;
+}
+
+@media(max-width:760px){
+  #gameScreen.multiplayer-active #multiHud{
+    top:8px;
+    max-width:calc(100vw - 20px);
+    font-size:10px;
+  }
+  #gameScreen.multiplayer-active #multiOnlineStatus{
+    top:52px;
+    max-width:calc(100vw - 20px);
+    padding:4px 6px;
+  }
+  #gameScreen.multiplayer-active #modeBadge{top:52px}
+  #gameScreen.multiplayer-active #compass[data-style="band"],
+  #gameScreen.multiplayer-active #compass[data-style="pano"]{
+    top:92px;
+  }
+  #gameScreen.multiplayer-active #compass[data-style="circle"],
+  #gameScreen.multiplayer-active #compass[data-style="minimal"],
+  #gameScreen.multiplayer-active #compass[data-style="rose"],
+  #gameScreen.multiplayer-active #compass[data-style="hybrid"],
+  #gameScreen.multiplayer-active #compass[data-style="real"],
+  #gameScreen.multiplayer-active #compass[data-style="vintage"]{
+    top:92px;
+  }
+  #gameScreen.multiplayer-active #multiEmoteToast{
+    left:50%;
+    right:auto;
+    top:220px;
+    transform:translateX(-50%);
+    max-width:calc(100vw - 24px);
+  }
+  #gameScreen.multiplayer-active #multiEmoteBar{
+    left:50%!important;
+    top:154px!important;
+    bottom:auto!important;
+    transform:translateX(-50%)!important;
+  }
+}
+
+/* V4.4.4 - keep timer visually separate from the action buttons */
+.topActions #multiTimer{margin-right:2px}
+.topButtonGroup{display:flex;align-items:flex-start;gap:7px}
+@media(max-width:760px){.topActions{gap:8px}.topButtonGroup{gap:5px}}
+
+/* V4.4.6 - compact HUD: left multiplayer rail, centered timer and relocated compass */
+.gameTop{
+  top:12px;
+  left:14px;
+  right:14px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:start;
+  gap:12px;
+}
+.topHudLeft{
+  grid-column:1;
+  justify-self:start;
+  width:min(372px,calc(100vw - 28px));
+  min-width:0;
+  pointer-events:none;
+}
+.topHudLeft>*{pointer-events:auto}
+#gameScreen .hud{
+  width:max-content;
+  max-width:100%;
+  gap:8px;
+  padding:6px 9px;
+  border-radius:12px;
+  box-shadow:0 4px 18px #0005;
+}
+#gameScreen .gameBrand{gap:6px;padding-right:8px;margin-right:0}
+#gameScreen .gameBrand img{width:20px;height:20px}
+#gameScreen .gameBrand span{font-size:9px}
+#gameScreen .gameBrand b{font-size:7px}
+#gameScreen .hudBlock small{font-size:7px;line-height:1.05}
+#gameScreen .hudBlock b{font-size:12px;line-height:1.15}
+#gameScreen .hudDivider{height:19px}
+#gameScreen #mapHud{min-width:0}
+#gameScreen #zoneLabel{display:block;max-width:126px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#gameScreen #modeBadge{
+  position:static;
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  max-width:100%;
+  margin-top:5px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:9px;
+  box-shadow:0 4px 16px #0004;
+}
+
+/* One compact multiplayer block. It naturally grows to 2 rows / 3 rows for 3-6 players. */
+#multiCompactPanel{display:none}
+#gameScreen.multiplayer-active #multiCompactPanel{
+  display:grid;
+  gap:6px;
+  width:min(352px,calc(100vw - 28px));
+  margin-top:7px;
+  padding:7px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--theme-glass);
+  backdrop-filter:blur(12px);
+  box-shadow:0 6px 22px #0005;
+}
+#gameScreen #multiCompactPanel #multiHud{
+  position:static;
+  inset:auto;
+  transform:none;
+  display:flex;
+  width:100%;
+  max-width:none;
+  min-width:0;
+  gap:7px;
+  align-items:center;
+  padding:2px 3px 5px;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+  backdrop-filter:none;
+  box-shadow:none;
+  font-size:10px;
+  overflow:hidden;
+}
+#gameScreen #multiCompactPanel #multiHud.hidden{display:none!important}
+#gameScreen #multiCompactPanel .multiHudDot{width:7px;height:7px;flex:0 0 auto}
+#gameScreen #multiCompactPanel #multiHudName{font-size:10px;max-width:88px;overflow:hidden;text-overflow:ellipsis}
+#gameScreen #multiCompactPanel #multiHudScore{font-size:10px}
+#gameScreen #multiCompactPanel #multiHudExtra{
+  margin-left:auto;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:8px;
+  text-align:right;
+}
+#gameScreen #multiCompactPanel #multiOnlineStatus{
+  position:static;
+  inset:auto;
+  transform:none;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
+  width:100%;
+  max-width:none;
+  padding:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--muted);
+  overflow:visible;
+  white-space:normal;
+  pointer-events:none;
+}
+#gameScreen #multiCompactPanel #multiOnlineStatus.hidden{display:none!important}
+#gameScreen #multiCompactPanel .multiStatusPlayer{
+  min-width:0;
+  justify-content:flex-start;
+  gap:4px;
+  padding:4px 5px;
+  border-radius:9px;
+  overflow:hidden;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer .playerAvatar.compact{
+  width:22px;
+  height:22px;
+  border-radius:7px;
+  border-width:1px;
+  font-size:12px;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer b{font-size:10px;flex:0 0 auto}
+#gameScreen #multiCompactPanel .multiStatusPlayer>span:last-child{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:9px;
+}
+#gameScreen #multiCompactPanel #multiEmoteBar{
+  position:static!important;
+  inset:auto!important;
+  transform:none!important;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:4px;
+  width:100%;
+  padding:5px 0 0;
+  border:0;
+  border-top:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+  backdrop-filter:none;
+  box-shadow:none;
+}
+#gameScreen #multiCompactPanel #multiEmoteBar.hidden{display:none!important}
+#gameScreen #multiCompactPanel #multiEmoteBar:before{
+  content:"Réagir";
+  margin:0 3px 0 2px;
+  color:var(--muted);
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+#gameScreen #multiCompactPanel .multiEmoteButton{
+  width:29px;
+  height:29px;
+  border-radius:8px;
+  font-size:16px;
+}
+
+/* Timer is now its own central HUD element, independent from utility controls. */
+#gameScreen #multiTimer{
+  grid-column:2;
+  justify-self:center;
+  position:relative;
+  inset:auto;
+  z-index:1;
+  min-width:102px;
+  min-height:52px;
+  padding:5px 14px 6px;
+  border-radius:15px;
+  box-shadow:0 7px 26px #0007;
+}
+#gameScreen #multiTimer small{font-size:8px;letter-spacing:.18em}
+#gameScreen #multiTimerValue{font-size:28px;font-weight:950;letter-spacing:.02em}
+#gameScreen .topActions{grid-column:3;justify-self:end;gap:0}
+#gameScreen .topButtonGroup{gap:6px}
+#gameScreen .topActions .icon{width:38px;height:38px;font-size:16px}
+
+/* Compass leaves the left multiplayer rail and lives below the utility controls. */
+#gameScreen #compass[data-style="band"],
+#gameScreen #compass[data-style="pano"],
+#gameScreen #compass[data-style="circle"],
+#gameScreen #compass[data-style="minimal"],
+#gameScreen #compass[data-style="rose"],
+#gameScreen #compass[data-style="hybrid"],
+#gameScreen #compass[data-style="real"],
+#gameScreen #compass[data-style="vintage"],
+#gameScreen.multiplayer-active #compass[data-style="band"],
+#gameScreen.multiplayer-active #compass[data-style="pano"],
+#gameScreen.multiplayer-active #compass[data-style="circle"],
+#gameScreen.multiplayer-active #compass[data-style="minimal"],
+#gameScreen.multiplayer-active #compass[data-style="rose"],
+#gameScreen.multiplayer-active #compass[data-style="hybrid"],
+#gameScreen.multiplayer-active #compass[data-style="real"],
+#gameScreen.multiplayer-active #compass[data-style="vintage"]{
+  left:auto;
+  right:14px;
+  top:61px;
+  transform:none;
+}
+#gameScreen .compassBand{width:min(300px,32vw)}
+#gameScreen .compassPano{width:min(360px,38vw)}
+
+#gameScreen.multiplayer-active #multiEmoteToast{
+  left:382px;
+  right:auto;
+  top:78px;
+  transform:none;
+  max-width:min(260px,30vw);
+}
+
+/* Keep the two visual identities, but make the combined block feel native to each. */
+body[data-theme="arcade"] #multiCompactPanel{border-width:2px;border-radius:17px}
+body[data-theme="midnight"] #multiCompactPanel{border-radius:2px;border-color:#274a5d;background:#04101bed}
+body[data-theme="midnight"] #gameScreen #multiCompactPanel .multiStatusPlayer{border-radius:2px}
+body[data-theme="midnight"] #gameScreen #multiCompactPanel .multiEmoteButton{border-radius:2px}
+
+@media(max-width:900px){
+  .topHudLeft{width:min(330px,calc(100vw - 24px))}
+  #gameScreen.multiplayer-active #multiCompactPanel{width:min(320px,calc(100vw - 24px))}
+  #gameScreen .topActions .icon{width:36px;height:36px}
+  #gameScreen #multiTimer{min-width:90px;min-height:48px;padding-inline:10px}
+  #gameScreen #multiTimerValue{font-size:24px}
+  #gameScreen .compassBand{width:min(260px,31vw)}
+  #gameScreen .compassPano{width:min(300px,35vw)}
+  #gameScreen.multiplayer-active #multiEmoteToast{left:344px;max-width:240px}
+}
+
+@media(max-width:760px){
+  .gameTop{top:9px;left:9px;right:9px;gap:7px}
+  #gameScreen .hud{gap:6px;padding:5px 7px}
+  #gameScreen #zoneLabel{max-width:82px}
+  #gameScreen .topActions .icon{width:34px;height:34px}
+  #gameScreen .topButtonGroup{gap:4px}
+  #gameScreen #multiTimer{min-width:78px;min-height:44px;padding:4px 8px}
+  #gameScreen #multiTimerValue{font-size:21px}
+  #gameScreen.multiplayer-active #multiCompactPanel{width:min(300px,calc(100vw - 18px));padding:6px}
+  #gameScreen #multiCompactPanel #multiOnlineStatus{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #gameScreen #multiCompactPanel .multiStatusPlayer .playerAvatar.compact{width:20px;height:20px;font-size:11px}
+  #gameScreen #compass[data-style="band"],
+  #gameScreen #compass[data-style="pano"],
+  #gameScreen #compass[data-style="circle"],
+  #gameScreen #compass[data-style="minimal"],
+  #gameScreen #compass[data-style="rose"],
+  #gameScreen #compass[data-style="hybrid"],
+  #gameScreen #compass[data-style="real"],
+  #gameScreen #compass[data-style="vintage"],
+  #gameScreen.multiplayer-active #compass[data-style="band"],
+  #gameScreen.multiplayer-active #compass[data-style="pano"],
+  #gameScreen.multiplayer-active #compass[data-style="circle"],
+  #gameScreen.multiplayer-active #compass[data-style="minimal"],
+  #gameScreen.multiplayer-active #compass[data-style="rose"],
+  #gameScreen.multiplayer-active #compass[data-style="hybrid"],
+  #gameScreen.multiplayer-active #compass[data-style="real"],
+  #gameScreen.multiplayer-active #compass[data-style="vintage"]{right:9px;top:54px}
+  #gameScreen .compassBand{width:min(230px,46vw)}
+  #gameScreen .compassPano{width:min(270px,50vw)}
+  #gameScreen.multiplayer-active #multiEmoteToast{left:50%;right:auto;top:205px;transform:translateX(-50%);max-width:calc(100vw - 18px)}
+}
+
+@media(max-width:560px){
+  #gameScreen .hudBlock small{font-size:6px}
+  #gameScreen .hudBlock b{font-size:10px}
+  #gameScreen #zoneLabel{max-width:60px}
+  #gameScreen #multiCompactPanel #multiOnlineStatus{grid-template-columns:1fr 1fr}
+  #gameScreen #multiCompactPanel #multiEmoteBar:before{display:none}
+}
+
+
+/* V4.4.6 - panneau Joueurs / Réactions inspiré de la maquette et timer renforcé */
+#gameScreen.multiplayer-active #multiCompactPanel{
+  width:min(408px,calc(100vw - 28px));
+  gap:0;
+  padding:0;
+  overflow:hidden;
+  border-radius:18px;
+  background:linear-gradient(155deg,color-mix(in srgb,var(--theme-glass) 94%,#07111d),color-mix(in srgb,var(--theme-glass) 88%,#02070d));
+  box-shadow:0 9px 30px #0007,inset 0 1px 0 #ffffff0d;
+}
+.multiCompactHeader{
+  display:grid;
+  grid-template-columns:56% 44%;
+  min-height:38px;
+  border-bottom:1px solid var(--line);
+}
+.multiCompactTitle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 13px 8px;
+  color:var(--theme-accent-2,var(--good));
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+}
+.multiCompactTitleReactions{border-left:1px solid var(--line)}
+.multiCompactTitleIcon{width:18px;height:18px;display:inline-grid;place-items:center;flex:0 0 auto}
+.multiCompactTitleIcon svg{width:18px;height:18px;display:block}
+.multiReactionIcon{position:relative;width:17px;height:13px;border:2px solid currentColor;border-radius:6px;display:inline-block;flex:0 0 auto}
+.multiReactionIcon:after{content:"";position:absolute;left:2px;bottom:-5px;width:6px;height:6px;border-left:2px solid currentColor;transform:skewY(-35deg)}
+.multiCompactBody{display:grid;grid-template-columns:56% 44%;min-height:120px}
+.multiPlayersPane{padding:10px 10px 9px 11px;min-width:0}
+.multiReactionsPane{padding:8px 10px 10px;border-left:1px solid var(--line);min-width:0}
+.multiPlayState{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-height:20px;margin-bottom:6px;color:#c7d2dc;font-size:10px;font-weight:800}
+.multiPlayStateDot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 10px color-mix(in srgb,var(--good) 75%,transparent)}
+#gameScreen #multiCompactPanel #multiOnlineStatus{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  max-height:188px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:0 3px 0 0;
+  pointer-events:auto;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--theme-accent-2,var(--good)) 60%,transparent) transparent;
+}
+#gameScreen #multiCompactPanel #multiOnlineStatus.hidden{display:none!important}
+#gameScreen #multiCompactPanel #multiOnlineStatus::-webkit-scrollbar{width:4px}
+#gameScreen #multiCompactPanel #multiOnlineStatus::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--theme-accent-2,var(--good)) 55%,transparent);border-radius:999px}
+#gameScreen #multiCompactPanel .multiStatusPlayer{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:39px;
+  padding:3px 7px 3px 4px;
+  border:1px solid #ffffff12;
+  border-radius:11px;
+  background:#ffffff06;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer .playerAvatar.compact{
+  order:1;
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  border-width:2px;
+  font-size:17px;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer>span:last-child{
+  order:2;
+  flex:1 1 auto;
+  min-width:0;
+  color:#f2f6fa;
+  font-size:14px;
+  font-weight:850;
+  line-height:1.1;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer b{
+  order:3;
+  flex:0 0 auto;
+  width:16px;
+  text-align:center;
+  font-size:14px;
+  line-height:1;
+}
+#gameScreen #multiCompactPanel #multiEmoteBar{
+  display:grid;
+  grid-template-columns:repeat(2,42px);
+  justify-content:end;
+  align-content:start;
+  gap:7px;
+  width:100%;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+#gameScreen #multiCompactPanel #multiEmoteBar.hidden{display:none!important}
+#gameScreen #multiCompactPanel #multiEmoteBar:before{display:none!important}
+#gameScreen #multiCompactPanel .multiEmoteButton{
+  width:42px;
+  height:42px;
+  padding:0;
+  border-radius:11px;
+  border:1px solid color-mix(in srgb,var(--theme-accent-2,var(--good)) 58%,var(--line));
+  background:linear-gradient(145deg,#12283a,#071522);
+  box-shadow:inset 0 0 0 1px #ffffff08,0 3px 11px #0004;
+  font-size:20px;
+}
+#gameScreen #multiCompactPanel .multiEmoteButton:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 1px #ffffff14,0 5px 15px #0006,0 0 12px color-mix(in srgb,var(--theme-accent-2,var(--good)) 25%,transparent)}
+#gameScreen #multiCompactPanel #multiHud{
+  display:flex;
+  min-height:31px;
+  padding:6px 11px;
+  border:0;
+  border-top:1px solid var(--line);
+  background:#02070d28;
+  gap:7px;
+}
+#gameScreen #multiCompactPanel #multiHud.hidden{display:none!important}
+#gameScreen #multiCompactPanel #multiHudName{max-width:112px;font-size:10px;color:#dce6ee}
+#gameScreen #multiCompactPanel #multiHudScore{font-size:10px;color:#fff}
+#gameScreen #multiCompactPanel #multiHudExtra{font-size:8px;color:var(--muted)}
+
+/* Timer capsule: gros chrono blanc et arcs cyan latéraux, sans rejoindre les boutons utilitaires. */
+#gameScreen #multiTimer{
+  min-width:164px;
+  min-height:76px;
+  padding:9px 24px 10px;
+  border:2px solid color-mix(in srgb,var(--theme-accent-2,var(--good)) 76%,#2d89aa);
+  border-radius:999px;
+  background:radial-gradient(circle at 50% 35%,#153047 0,#0a1d2d 42%,#06131f 76%,#030b12 100%);
+  box-shadow:0 9px 28px #0008,inset 0 0 0 3px #03101a,inset 0 0 22px #00b8d51a;
+  overflow:visible;
+}
+#gameScreen #multiTimer:before,#gameScreen #multiTimer:after{
+  content:"";
+  position:absolute;
+  top:12px;
+  bottom:12px;
+  width:13px;
+  border:5px solid #00d8f1;
+  filter:drop-shadow(0 0 6px #00cdec88);
+  pointer-events:none;
+}
+#gameScreen #multiTimer:before{left:8px;border-right:0;border-radius:18px 0 0 18px}
+#gameScreen #multiTimer:after{right:8px;border-left:0;border-radius:0 18px 18px 0}
+#gameScreen #multiTimer small{font-size:9px;letter-spacing:.09em;color:#87abc0;margin-bottom:1px}
+#gameScreen #multiTimerValue{font-size:38px;line-height:1;font-weight:950;letter-spacing:.01em;text-shadow:0 2px 10px #0008}
+#gameScreen #multiTimer.urgent:before,#gameScreen #multiTimer.urgent:after{border-color:#ffb24d;filter:drop-shadow(0 0 6px #ffb24d88)}
+#gameScreen #multiTimer.critical:before,#gameScreen #multiTimer.critical:after{border-color:#ff5d70;filter:drop-shadow(0 0 7px #ff5d70aa)}
+
+body[data-theme="arcade"] #multiCompactPanel{border-radius:18px}
+body[data-theme="midnight"] #multiCompactPanel{border-radius:3px}
+body[data-theme="midnight"] .multiCompactHeader,body[data-theme="midnight"] .multiCompactTitleReactions,body[data-theme="midnight"] .multiReactionsPane{border-color:#274a5d}
+body[data-theme="midnight"] #gameScreen #multiCompactPanel .multiStatusPlayer{border-radius:2px}
+body[data-theme="midnight"] #gameScreen #multiCompactPanel .multiEmoteButton{border-radius:2px;background:#06131f}
+
+@media(max-width:900px){
+  #gameScreen.multiplayer-active #multiCompactPanel{width:min(380px,calc(100vw - 24px))}
+  #gameScreen #multiTimer{min-width:142px;min-height:68px;padding:8px 20px}
+  #gameScreen #multiTimerValue{font-size:33px}
+}
+@media(max-width:760px){
+  #gameScreen.multiplayer-active #multiCompactPanel{width:min(350px,calc(100vw - 18px))}
+  .multiCompactBody,.multiCompactHeader{grid-template-columns:58% 42%}
+  #gameScreen #multiCompactPanel .multiStatusPlayer>span:last-child{font-size:12px}
+  #gameScreen #multiCompactPanel .multiStatusPlayer .playerAvatar.compact{width:28px;height:28px;font-size:15px}
+  #gameScreen #multiCompactPanel #multiEmoteBar{grid-template-columns:repeat(2,37px);gap:6px}
+  #gameScreen #multiCompactPanel .multiEmoteButton{width:37px;height:37px;font-size:18px}
+  #gameScreen #multiTimer{min-width:118px;min-height:58px;padding:6px 17px}
+  #gameScreen #multiTimer small{font-size:7px}
+  #gameScreen #multiTimerValue{font-size:28px}
+  #gameScreen #multiTimer:before,#gameScreen #multiTimer:after{top:10px;bottom:10px;width:10px;border-width:4px}
+}
+@media(max-width:560px){
+  .multiCompactTitle{padding-inline:9px;font-size:9px}
+  #gameScreen.multiplayer-active #multiCompactPanel{width:min(330px,calc(100vw - 18px))}
+  #gameScreen #multiCompactPanel .multiStatusPlayer>span:last-child{font-size:11px}
+  #gameScreen #multiCompactPanel #multiOnlineStatus{max-height:158px}
+  #gameScreen #multiTimer{min-width:102px;min-height:52px;padding-inline:15px}
+  #gameScreen #multiTimerValue{font-size:24px}
+}
+
+/* V4.4.7 - panneau horizontal aligné avec navigation gauche/droite */
+#gameScreen.multiplayer-active #multiCompactPanel{
+  width:min(472px,calc(100vw - 28px));
+  gap:0;
+  padding:0;
+  overflow:hidden;
+}
+#gameScreen #multiCompactPanel .multiCompactSectionHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:38px;
+  padding:0 10px;
+  border-bottom:1px solid var(--line);
+}
+#gameScreen #multiCompactPanel .multiCompactSectionHeaderReactions{
+  min-height:34px;
+}
+#gameScreen #multiCompactPanel .multiCompactTitle{
+  padding:0;
+  min-width:0;
+}
+#gameScreen #multiCompactPanel .multiPlayersCount{
+  color:#dce6ee;
+  font-size:11px;
+  letter-spacing:0;
+}
+#gameScreen #multiCompactPanel .multiSectionArrows{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex:0 0 auto;
+}
+#gameScreen #multiCompactPanel .multiArrowButton{
+  width:24px;
+  height:24px;
+  padding:0;
+  border:1px solid color-mix(in srgb,var(--theme-accent-2,var(--good)) 52%,var(--line));
+  border-radius:8px;
+  background:linear-gradient(145deg,#102638,#071522);
+  color:#cfe8f0;
+  font-size:15px;
+  font-weight:900;
+  line-height:1;
+  box-shadow:inset 0 0 0 1px #ffffff08;
+}
+#gameScreen #multiCompactPanel .multiArrowButton:disabled{
+  opacity:.35;
+}
+#gameScreen #multiCompactPanel .multiPlayersRowWrap{
+  padding:10px;
+}
+#gameScreen #multiCompactPanel #multiOnlineStatus{
+  display:flex;
+  flex-direction:row;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:8px;
+  min-height:48px;
+  max-height:none;
+  overflow:hidden;
+  padding:0;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer{
+  flex:1 1 0;
+  min-width:0;
+  min-height:42px;
+  padding:5px 8px;
+  border-radius:14px;
+  background:#ffffff06;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer .playerAvatar.compact{
+  width:34px;
+  height:34px;
+  font-size:18px;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer>span:last-child{
+  font-size:15px;
+  font-weight:900;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer b{
+  width:auto;
+  min-width:14px;
+  margin-left:auto;
+}
+#gameScreen #multiCompactPanel .multiCompactTitleReactions{
+  color:var(--theme-accent-2,var(--good));
+}
+#gameScreen #multiCompactPanel .multiPlayState{
+  justify-content:flex-end;
+  margin:0;
+  min-height:0;
+}
+#gameScreen #multiCompactPanel #multiEmoteBar{
+  display:grid;
+  grid-template-columns:repeat(6,42px);
+  justify-content:flex-start;
+  gap:8px;
+  width:auto;
+  padding:10px;
+  border:0;
+  background:transparent;
+}
+#gameScreen #multiCompactPanel #multiHud{
+  margin-top:0;
+}
+@media(max-width:900px){
+  #gameScreen.multiplayer-active #multiCompactPanel{width:min(438px,calc(100vw - 24px))}
+  #gameScreen #multiCompactPanel #multiEmoteBar{grid-template-columns:repeat(6,39px);gap:7px}
+  #gameScreen #multiCompactPanel .multiEmoteButton{width:39px;height:39px}
+}
+@media(max-width:760px){
+  #gameScreen.multiplayer-active #multiCompactPanel{width:min(392px,calc(100vw - 18px))}
+  #gameScreen #multiCompactPanel .multiStatusPlayer>span:last-child{font-size:13px}
+  #gameScreen #multiCompactPanel #multiEmoteBar{grid-template-columns:repeat(3,39px)}
+}
+@media(max-width:560px){
+  #gameScreen.multiplayer-active #multiCompactPanel{width:min(342px,calc(100vw - 18px))}
+  #gameScreen #multiCompactPanel .multiCompactSectionHeader{padding:0 8px}
+  #gameScreen #multiCompactPanel .multiPlayersCount{font-size:10px}
+  #gameScreen #multiCompactPanel #multiEmoteBar{grid-template-columns:repeat(3,36px);gap:6px}
+  #gameScreen #multiCompactPanel .multiEmoteButton{width:36px;height:36px;font-size:18px}
+  #gameScreen #multiCompactPanel .multiStatusPlayer .playerAvatar.compact{width:30px;height:30px;font-size:16px}
+}
+
+/* V4.4.8 - lisibilité des pseudos et suppression du badge de mode */
+#gameScreen #multiCompactPanel .multiStatusPlayer>span:not(.playerAvatar){
+  flex:1 1 auto;
+  min-width:0;
+  color:#f4f8fb;
+  font-size:17px;
+  font-weight:900;
+  line-height:1.08;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#gameScreen #modeBadge{display:none!important}
+@media(max-width:760px){
+  #gameScreen #multiCompactPanel .multiStatusPlayer>span:not(.playerAvatar){font-size:15px}
+}
+@media(max-width:560px){
+  #gameScreen #multiCompactPanel .multiStatusPlayer>span:not(.playerAvatar){font-size:14px}
+}
+
+/* V4.4.9 - largeur harmonisée et panneau J/R rétractable */
+#gameScreen.multiplayer-active .topHudLeft{
+  --left-rail-width:min(472px,calc(100vw - 28px));
+  width:var(--left-rail-width);
+}
+#gameScreen.multiplayer-active .topHudLeft .hud{
+  width:100%;
+  max-width:none;
+  justify-content:flex-start;
+}
+#gameScreen.multiplayer-active #multiCompactPanel{
+  width:100%;
+}
+#gameScreen #multiCompactPanel .multiSectionControls{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex:0 0 auto;
+}
+#gameScreen #multiCompactPanel .multiCompactToggle{
+  font-size:18px;
+  font-weight:900;
+}
+#gameScreen #multiCompactPanel.is-collapsed .multiPlayersRowWrap,
+#gameScreen #multiCompactPanel.is-collapsed .multiCompactSectionHeaderReactions,
+#gameScreen #multiCompactPanel.is-collapsed #multiEmoteBar,
+#gameScreen #multiCompactPanel.is-collapsed #multiHud{
+  display:none !important;
+}
+#gameScreen #multiCompactPanel.is-collapsed{
+  overflow:hidden;
+}
+#gameScreen #multiCompactPanel.is-collapsed .multiCompactSectionHeader{
+  border-bottom:0;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer>span:not(.playerAvatar){
+  font-size:16px;
+  font-weight:950;
+}
+@media(max-width:900px){
+  #gameScreen.multiplayer-active .topHudLeft{--left-rail-width:min(438px,calc(100vw - 24px))}
+}
+@media(max-width:760px){
+  #gameScreen.multiplayer-active .topHudLeft{--left-rail-width:min(392px,calc(100vw - 18px))}
+  #gameScreen #multiCompactPanel .multiStatusPlayer>span:not(.playerAvatar){font-size:15px}
+}
+@media(max-width:560px){
+  #gameScreen.multiplayer-active .topHudLeft{--left-rail-width:min(342px,calc(100vw - 18px))}
+  #gameScreen #multiCompactPanel .multiStatusPlayer>span:not(.playerAvatar){font-size:14px}
+}
+
+/* V4.4.10 - HUD déplaçable avec ancrages */
+#gameScreen #travelPanel{display:none!important}
+#gameScreen .hudLayoutButton.active{outline:2px solid var(--theme-accent-2,var(--good));box-shadow:0 0 18px color-mix(in srgb,var(--theme-accent-2,var(--good)) 38%,transparent)}
+#gameScreen .hudDraggable.hudAnchored{
+  position:fixed!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  margin:0!important;
+  z-index:56!important;
+  justify-self:auto!important;
+  grid-column:auto!important;
+}
+#gameScreen.hud-layout-editing .hudDraggable{
+  outline:2px dashed color-mix(in srgb,var(--theme-accent-2,var(--good)) 78%,white 8%);
+  outline-offset:3px;
+  cursor:grab;
+  touch-action:none;
+}
+#gameScreen.hud-layout-editing .hudDraggable.hudDragging{
+  cursor:grabbing;
+  opacity:.94;
+  z-index:80!important;
+  box-shadow:0 14px 38px #0009,0 0 0 2px color-mix(in srgb,var(--theme-accent-2,var(--good)) 75%,transparent)!important;
+}
+#gameScreen.hud-layout-editing #multiCompactPanel .multiCompactSectionHeader:first-child{cursor:grab}
+.hudAnchorOverlay{position:fixed;inset:0;z-index:54;pointer-events:none}
+.hudAnchorOverlay>span{
+  position:absolute;
+  width:54px;height:30px;
+  display:grid;place-items:center;
+  border:1px dashed color-mix(in srgb,var(--theme-accent-2,var(--good)) 65%,transparent);
+  border-radius:9px;
+  background:#06131fc4;
+  color:#aeeff1;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.08em;
+  box-shadow:0 4px 15px #0006;
+  opacity:.56;
+  transition:.12s;
+}
+.hudAnchorOverlay>span.active{opacity:1;transform:scale(1.12);background:color-mix(in srgb,var(--theme-accent-2,var(--good)) 24%,#06131f);border-style:solid;box-shadow:0 0 18px color-mix(in srgb,var(--theme-accent-2,var(--good)) 38%,transparent)}
+#gameScreen.hud-layout-editing .hudDraggable{pointer-events:auto!important}
+
+/* V4.4.11 - un panneau ancré garde sa largeur compacte au lieu de prendre 100vw */
+#gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{
+  width:min(472px,calc(100vw - 28px))!important;
+  max-width:calc(100vw - 28px)!important;
+}
+@media(max-width:900px){
+  #gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{width:min(438px,calc(100vw - 24px))!important}
+}
+@media(max-width:760px){
+  #gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{width:min(392px,calc(100vw - 18px))!important}
+}
+@media(max-width:560px){
+  #gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{width:min(342px,calc(100vw - 18px))!important}
+}

@@ -10,7 +10,7 @@ const BEST_KEY = 'guessr360-v3-best';
 const PERFECT_KEY = 'guessr360-v36-perfects';
 const COMPASS_STYLE_KEY = 'guessr360-v37-compass-style';
 const COMPASS_STYLES = ['band','circle','minimal','rose','pano','hybrid','real','vintage'];
-const COMPASS_STYLE_NAMES = {band:'Bandeau',circle:'Circulaire',minimal:'Minimaliste',rose:'Rose des vents',pano:'Panorama',hybrid:'Hybride',real:'Reelle stylisee',vintage:'Vintage'};
+const COMPASS_STYLE_NAMES = {band:'Bandeau',circle:'Circulaire',minimal:'Minimaliste',rose:'Rose des vents',pano:'Panorama',hybrid:'Hybride',real:'Réelle stylisée',vintage:'Vintage'};
 
 function haversine(a, b) {
   const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
@@ -118,7 +118,7 @@ function outerRings(geometry) {
 }
 
 function parseOfficialParisContours(geojson) {
-  if (!geojson || !Array.isArray(geojson.features)) throw new Error('Reponse GeoJSON invalide.');
+  if (!geojson || !Array.isArray(geojson.features)) throw new Error('Réponse GeoJSON invalide.');
   const byArrondissement = {};
   for (const feature of geojson.features) {
     const props = feature.properties || {};
@@ -198,6 +198,7 @@ class GuessrGame {
     this.zoneId = 'paris';
     this.mode = 'explore';
     this.round = 0;
+    this.roundCount = 5;
     this.total = 0;
     this.results = [];
     this.guess = null;
@@ -206,6 +207,7 @@ class GuessrGame {
     this.startDescription = '';
     this.currentRoundToken = 0;
     this.restoringNoMove = false;
+    this.restoringNmpzView = false;
     this.map = null;
     this.panorama = null;
     this.sv = null;
@@ -288,8 +290,8 @@ class GuessrGame {
       const key = e.key;
       if (key.toLowerCase() === 'm') { e.preventDefault(); $('expandMap').click(); return; }
       if (!$('resultPanel').classList.contains('hidden')) return;
-      if (key === 'ArrowLeft') { e.preventDefault(); this.rotateView(-15); }
-      else if (key === 'ArrowRight') { e.preventDefault(); this.rotateView(15); }
+      if (key === 'ArrowLeft' && this.mode !== 'nmpz') { e.preventDefault(); this.rotateView(-15); }
+      else if (key === 'ArrowRight' && this.mode !== 'nmpz') { e.preventDefault(); this.rotateView(15); }
       else if (key === 'ArrowUp' && this.mode === 'explore') { e.preventDefault(); this.goForward(); }
       else if (key === 'ArrowDown' && this.mode === 'explore') { e.preventDefault(); this.goBack(); }
       else if (key === 'Home' && this.mode === 'explore') { e.preventDefault(); this.goHome(); }
@@ -305,7 +307,7 @@ class GuessrGame {
     this.apiReady = false;
     this.setApiStatus('Google Maps indisponible', 'error');
     $('startButton').disabled = true;
-    $('startButton').textContent = 'Verifier la configuration';
+    $('startButton').textContent = 'Vérifier la configuration';
     $('helpError').textContent = message;
     $('helpError').classList.remove('hidden');
   }
@@ -313,10 +315,10 @@ class GuessrGame {
   async loadGoogle() {
     const key = window.PG_CONFIG && String(window.PG_CONFIG.googleMapsApiKey || '').trim();
     if (!key || key.includes('PASTE_')) {
-      this.failApi("Aucune cle n'est configuree. Ferme cette page puis relance start.bat : il te demandera la cle Google Maps.");
+      this.failApi("Aucune clé n'est configurée. Ferme cette page puis relance start.bat : il te demandera la clé Google Maps.");
       return;
     }
-    window.gm_authFailure = () => this.failApi("Google a refuse la cle. Verifie les referents localhost/127.0.0.1, la restriction Maps JavaScript API et la facturation du projet.");
+    window.gm_authFailure = () => this.failApi("Google a refusé la clé. Vérifie les référents localhost/127.0.0.1, la restriction Maps JavaScript API et la facturation du projet.");
     try {
       await new Promise((resolve, reject) => {
         const callbackName = '__guessrGoogleMapsReady';
@@ -344,15 +346,15 @@ class GuessrGame {
         script.defer = true;
         script.onerror = () => finish(new Error('Impossible de charger maps.googleapis.com.'));
         document.head.appendChild(script);
-        timer = setTimeout(() => finish(new Error("Google Maps n'a pas termine son initialisation dans les 20 secondes.")), 20000);
+        timer = setTimeout(() => finish(new Error("Google Maps n'a pas terminé son initialisation dans les 20 secondes.")), 20000);
       });
 
       if (!window.google?.maps?.Map || !window.google?.maps?.StreetViewService || !window.google?.maps?.StreetViewPanorama) {
-        throw new Error("L'API s'est chargee mais les composants Maps/Street View ne sont pas disponibles.");
+        throw new Error("L'API s'est chargée mais les composants Maps/Street View ne sont pas disponibles.");
       }
 
       this.apiReady = true;
-      this.setApiStatus('Google Maps pret', 'ready');
+      this.setApiStatus('Google Maps prêt', 'ready');
       $('startButton').disabled = false;
       $('startButton').textContent = 'Lancer la partie';
       // Preload official Paris boundaries without blocking non-Paris maps.
@@ -423,12 +425,12 @@ class GuessrGame {
           });
           return;
         } catch (error) {
-          lastError = error?.name === 'AbortError' ? new Error('delai depasse') : error;
+          lastError = error?.name === 'AbortError' ? new Error('délai dépassé') : error;
         } finally {
           clearTimeout(timer);
         }
       }
-      throw new Error(`le service des limites officielles de Paris ne repond pas${lastError?.message ? ` (${lastError.message})` : ''}`);
+      throw new Error(`le service des limites officielles de Paris ne répond pas${lastError?.message ? ` (${lastError.message})` : ''}`);
     })();
 
     try {
@@ -454,10 +456,10 @@ class GuessrGame {
     if (score) parts.push(`Meilleur score : ${score.toLocaleString('fr-FR')}`);
     if (perfect?.count) {
       parts.push(`25 000 depuis V3.6 : ${perfect.count}`);
-      if (Number.isFinite(perfect.bestAvg)) parts.push(`record precision : ${formatDistance(perfect.bestAvg)}`);
+      if (Number.isFinite(perfect.bestAvg)) parts.push(`record précision : ${formatDistance(perfect.bestAvg)}`);
     } else if (score === 25000) {
       // V3.5 stored the best score but not the number of perfect games nor their average.
-      parts.push('25 000 deja atteint · stats detaillees a partir de V3.6');
+      parts.push('25 000 déjà atteint · stats détaillées à partir de V3.6');
     }
     $('bestLabel').textContent = parts.join(' · ');
   }
@@ -482,7 +484,7 @@ class GuessrGame {
     this.panorama.addListener('pano_changed', () => {
       const panoId = this.panorama.getPano();
       if (!panoId) return;
-      if (this.mode === 'nomove' && this.startPano && panoId !== this.startPano && !this.restoringNoMove) {
+      if ((this.mode === 'nomove' || this.mode === 'nmpz') && this.startPano && panoId !== this.startPano && !this.restoringNoMove) {
         this.restoringNoMove = true;
         this.pendingNavReason = 'nomove-restore';
         this.panorama.setPano(this.startPano);
@@ -502,7 +504,25 @@ class GuessrGame {
       this.updateTravelUI();
       this.setBusy(false);
     });
-    this.panorama.addListener('pov_changed', () => this.updateCompass());
+    this.panorama.addListener('pov_changed', () => {
+      if (this.mode === 'nmpz' && this.startPov && !this.restoringNmpzView) {
+        const pov = this.panorama.getPov() || {};
+        const changed = headingDifference(pov.heading || 0, this.startPov.heading) > 0.2 || Math.abs((pov.pitch || 0) - (this.startPov.pitch || 0)) > 0.2;
+        if (changed) {
+          this.restoringNmpzView = true;
+          this.panorama.setPov({heading:this.startPov.heading,pitch:this.startPov.pitch || 0});
+          setTimeout(() => { this.restoringNmpzView = false; }, 0);
+        }
+      }
+      this.updateCompass();
+    });
+    this.panorama.addListener('zoom_changed', () => {
+      if (this.mode === 'nmpz' && this.startPov && !this.restoringNmpzView && Math.abs((this.panorama.getZoom() || 0) - (this.startPov.zoom || 0)) > 0.01) {
+        this.restoringNmpzView = true;
+        this.panorama.setZoom(this.startPov.zoom || 0);
+        setTimeout(() => { this.restoringNmpzView = false; }, 0);
+      }
+    });
     this.panorama.addListener('links_changed', () => this.updateTravelUI());
     this.map = new google.maps.Map($('guessMap'), {
       center: ZONES.paris.center,
@@ -521,6 +541,11 @@ class GuessrGame {
       if (!e.latLng || !$('resultPanel').classList.contains('hidden')) return;
       this.setGuess({lat:e.latLng.lat(),lng:e.latLng.lng()});
     });
+  }
+
+  applyInteractionMode() {
+    const lock = $('panoInteractionLock');
+    if (lock) lock.classList.toggle('hidden', this.mode !== 'nmpz' || $('gameScreen')?.classList.contains('hidden'));
   }
 
   openCompassPicker() {
@@ -589,7 +614,7 @@ class GuessrGame {
     $('travelPanel').classList.toggle('hidden', !explore);
     if (!explore) return;
     const count = this.moveCount;
-    $('travelStats').textContent = `${count} deplacement${count === 1 ? '' : 's'} · ${formatDistance(this.currentTravel)} du depart`;
+    $('travelStats').textContent = `${count} déplacement${count === 1 ? '' : 's'} · ${formatDistance(this.currentTravel)} du départ`;
     const links = this.panorama?.getLinks?.() || [];
     $('forwardButton').disabled = !this.startPano || !links.length;
     $('backButton').disabled = !this.navHistory.length;
@@ -668,9 +693,9 @@ class GuessrGame {
   goBack() {
     if (this.mode !== 'explore' || !this.panorama || !$('resultPanel').classList.contains('hidden')) return;
     const target = this.navHistory.pop();
-    if (!target) { this.showToast('Tu es deja au debut de ton historique.'); this.updateTravelUI(); return; }
+    if (!target) { this.showToast('Tu es déjà au début de ton historique.'); this.updateTravelUI(); return; }
     this.pendingNavReason = 'back';
-    this.setBusy(true, 'Retour a la vue precedente...');
+    this.setBusy(true, 'Retour à la vue précédente...');
     this.panorama.setPano(target);
   }
 
@@ -685,7 +710,7 @@ class GuessrGame {
     }
     this.pendingNavReason = 'home';
     this.pendingPovAfterNav = this.startPov ? {...this.startPov} : null;
-    this.setBusy(true, 'Retour au point de depart...');
+    this.setBusy(true, 'Retour au point de départ...');
     this.panorama.setPano(this.startPano);
   }
 
@@ -720,13 +745,13 @@ class GuessrGame {
     this.guess = pos;
     if (!this.guessMarker) {
       this.guessMarker = new google.maps.Marker({
-        map:this.map, position:pos, title:'Ta reponse', zIndex:2,
+        map:this.map, position:pos, title:'Ta réponse', zIndex:2,
         label:{text:'T',color:'#ffffff',fontWeight:'900',fontSize:'12px'},
         icon:{path:google.maps.SymbolPath.CIRCLE,scale:11,fillColor:'#2f80ed',fillOpacity:1,strokeColor:'#ffffff',strokeOpacity:1,strokeWeight:3}
       });
     } else this.guessMarker.setPosition(pos);
     $('guessButton').disabled = false;
-    $('guessButton').textContent = 'Valider ma reponse';
+    $('guessButton').textContent = 'Valider ma réponse';
   }
 
   randomCandidate(zone) {
@@ -734,7 +759,7 @@ class GuessrGame {
       const area = zone.areas[Math.floor(Math.random() * zone.areas.length)];
       return { point: randomInBounds(area), area };
     }
-    if (!zone.polygons?.length) throw new Error('Les contours de cette map ne sont pas charges.');
+    if (!zone.polygons?.length) throw new Error('Les contours de cette map ne sont pas chargés.');
     let poly;
     let group = null;
     if (zone.groups?.length) {
@@ -772,7 +797,7 @@ class GuessrGame {
   async findStart(zone, token) {
     let lastError = null;
     for (let i = 0; i < zone.attempts; i++) {
-      if (token !== this.currentRoundToken) throw new Error('Recherche annulee.');
+      if (token !== this.currentRoundToken) throw new Error('Recherche annulée.');
       let candidate = this.randomCandidate(zone);
       if (this.avoidPoint) {
         for (let reroll = 0; reroll < 8 && haversine(candidate.point, this.avoidPoint) < Math.max(zone.recent * 2, zone.radius * 2); reroll++) candidate = this.randomCandidate(zone);
@@ -807,7 +832,7 @@ class GuessrGame {
       }
     }
     const suffix = lastError && lastError.message ? ` (${lastError.message})` : '';
-    throw new Error(`Aucun depart jouable trouve dans ${zone.name}. Reessaie : le tirage est aleatoire et la couverture peut varier.${suffix}`);
+    throw new Error(`Aucun départ jouable trouvé dans ${zone.name}. Réessaie : le tirage est aléatoire et la couverture peut varier.${suffix}`);
   }
 
   async startGame() {
@@ -820,7 +845,7 @@ class GuessrGame {
         await this.prepareSelectedZone();
       }
     } catch (error) {
-      $('helpError').textContent = `Limites officielles de Paris indisponibles : ${error.message}. Le jeu refuse volontairement de revenir aux anciens contours approximatifs. Reessaie dans quelques instants.`;
+      $('helpError').textContent = `Limites officielles de Paris indisponibles : ${error.message}. Le jeu refuse volontairement de revenir aux anciens contours approximatifs. Réessaie dans quelques instants.`;
       $('helpError').classList.remove('hidden');
       $('helpModal').classList.remove('hidden');
       return;
@@ -832,6 +857,7 @@ class GuessrGame {
     this.avoidPoint = null;
     this.lastAttemptPoint = null;
     this.round = 0;
+    this.roundCount = 5;
     this.total = 0;
     this.results = [];
     $('startScreen').classList.add('hidden');
@@ -866,16 +892,13 @@ class GuessrGame {
     $('toast').classList.add('hidden');
     $('loadingTitle').textContent = 'Recherche d\'un panorama...';
     $('loadingText').textContent = zone.officialParis
-      ? `Google Street View cherche un depart dans les limites officielles de ${zone.name}.`
-      : `Google Street View cherche un depart dans ${zone.name}.`;
-    $('roundLabel').textContent = `${this.round + 1} / 5`;
+      ? `Google Street View cherche un départ dans les limites officielles de ${zone.name}.`
+      : `Google Street View cherche un départ dans ${zone.name}.`;
+    $('roundLabel').textContent = `${this.round + 1} / ${this.roundCount || 5}`;
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('zoneLabel').textContent = zone.name;
     $('guessButton').disabled = true;
     $('guessButton').textContent = 'Place ton marqueur';
-    const badge = $('modeBadge');
-    badge.textContent = this.mode === 'nomove' ? 'NO MOVE' : 'EXPLORATION';
-    badge.className = this.mode === 'nomove' ? 'noMoveBadge' : 'exploreBadge';
     $('travelPanel').classList.toggle('hidden', this.mode !== 'explore');
     this.updateTravelUI();
     this.updateCompass();
@@ -887,7 +910,7 @@ class GuessrGame {
       this.startPano = start.data.location.pano;
       this.startDescription = start.data.location.description || zone.name;
       this.rememberStart(start.pos);
-      const noMove = this.mode === 'nomove';
+      const noMove = this.mode === 'nomove' || this.mode === 'nmpz';
       this.panorama.setOptions({
         addressControl:false,
         clickToGo:!noMove,
@@ -908,6 +931,7 @@ class GuessrGame {
       this.panorama.setPov({heading:startHeading,pitch:0});
       this.panorama.setZoom(0);
       this.panorama.setVisible(true);
+      this.applyInteractionMode();
       this.updateCompass();
       this.updateTravelUI();
       setTimeout(() => {
@@ -915,7 +939,7 @@ class GuessrGame {
       }, 450);
     } catch (error) {
       if (token !== this.currentRoundToken) return;
-      $('loadingTitle').textContent = 'Pas de depart trouve';
+      $('loadingTitle').textContent = 'Pas de départ trouvé';
       $('loadingText').textContent = error.message;
       $('loadingSpinner').classList.add('hidden');
       $('loadingActions').classList.remove('hidden');
@@ -935,8 +959,8 @@ class GuessrGame {
     $('roundScoreLabel').textContent = points.toLocaleString('fr-FR');
     $('resultPlace').textContent = this.startDescription || zone.name;
     $('travelInfo').textContent = this.mode === 'explore'
-      ? `Exploration : ${this.moveCount} deplacement${this.moveCount === 1 ? '' : 's'}, jusqu'a ${formatDistance(this.maxTravel)} du depart - ${seconds} s`
-      : `No Move - ${seconds} s`;
+      ? `Exploration : ${this.moveCount} déplacement${this.moveCount === 1 ? '' : 's'}, jusqu'à ${formatDistance(this.maxTravel)} du départ - ${seconds} s`
+      : `${this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'No Move'} - ${seconds} s`;
     const source = new URL('https://www.google.com/maps/@');
     source.searchParams.set('api','1');
     source.searchParams.set('map_action','pano');
@@ -950,7 +974,7 @@ class GuessrGame {
     $('resultPanel').classList.remove('hidden');
     $('guessButton').disabled = true;
     this.answerMarker = new google.maps.Marker({
-      map:this.map, position:this.answer, title:'Lieu reel', zIndex:3,
+      map:this.map, position:this.answer, title:'Lieu réel', zIndex:3,
       label:{text:'R',color:'#ffffff',fontWeight:'900',fontSize:'12px'},
       icon:{path:google.maps.SymbolPath.CIRCLE,scale:11,fillColor:'#e53935',fillOpacity:1,strokeColor:'#ffffff',strokeOpacity:1,strokeWeight:3}
     });
@@ -958,13 +982,13 @@ class GuessrGame {
     const bounds = new google.maps.LatLngBounds();
     bounds.extend(this.guess); bounds.extend(this.answer);
     this.map.fitBounds(bounds, 65);
-    $('nextButton').textContent = this.round === 4 ? 'Voir le score final' : 'Manche suivante';
+    $('nextButton').textContent = this.round === (this.roundCount || 5) - 1 ? 'Voir le score final' : 'Manche suivante';
   }
 
   async nextRound() {
     if (this.results.length !== this.round + 1) return;
     this.round++;
-    if (this.round >= 5) this.endGame();
+    if (this.round >= (this.roundCount || 5)) this.endGame();
     else await this.loadRound();
   }
 
@@ -995,17 +1019,17 @@ class GuessrGame {
     }
 
     $('endScreen').classList.toggle('perfectGame', isPerfect);
-    $('endEyebrow').textContent = isPerfect ? 'PARTIE PARFAITE' : 'PARTIE TERMINEE';
+    $('endEyebrow').textContent = isPerfect ? 'PARTIE PARFAITE' : 'PARTIE TERMINÉE';
 
     let comment;
     if (isPerfect) {
-      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : 'Exploration'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${formatDistance(avg)}.`;
-      if (newPrecisionRecord && perfect.count > 1) comment += ' Nouveau record de precision sur un 25 000 !';
+      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${formatDistance(avg)}.`;
+      if (newPrecisionRecord && perfect.count > 1) comment += ' Nouveau record de précision sur un 25 000 !';
     } else {
-      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : 'Exploration'}. Distance moyenne : ${formatDistance(avg)}.`;
-      if (this.total >= 23000) comment += ' Tres grosse partie.';
+      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. Distance moyenne : ${formatDistance(avg)}.`;
+      if (this.total >= 23000) comment += ' Très grosse partie.';
       else if (this.total >= 19000) comment += ' Solide.';
-      else if (this.total >= 14000) comment += ' Tu commences a bien lire les lieux.';
+      else if (this.total >= 14000) comment += ' Tu commences à bien lire les lieux.';
       else comment += ' Il reste de la marge pour la revanche.';
     }
     $('finalComment').textContent = comment;
@@ -1017,7 +1041,7 @@ class GuessrGame {
       perfectStats.replaceChildren();
       const count = document.createElement('div');
       count.className = 'perfectStat';
-      count.innerHTML = `<small>25 000 sur cette selection</small><b>${stats.count}</b>`;
+      count.innerHTML = `<small>25 000 sur cette sélection</small><b>${stats.count}</b>`;
       const precision = document.createElement('div');
       precision.className = 'perfectStat';
       precision.innerHTML = `<small>Meilleure moyenne sur un 25 000</small><b>${formatDistance(stats.bestAvg)}</b>`;
@@ -1031,7 +1055,7 @@ class GuessrGame {
     this.results.forEach((r,i) => {
       const row = document.createElement('div');
       row.className = 'breakRow';
-      const extra = this.mode === 'explore' ? ` - ${r.moves || 0} depl.` : '';
+      const extra = this.mode === 'explore' ? ` - ${r.moves || 0} dépl.` : '';
       row.innerHTML = `<span class="roundNum">${i+1}</span><span><strong>${this.escapeHTML(r.description || zone.name)}</strong><small>${formatDistance(r.distance)} - ${r.seconds} s${extra}</small></span><b>${r.points.toLocaleString('fr-FR')} pts</b>`;
       $('breakdown').appendChild(row);
     });
@@ -1051,6 +1075,7 @@ class GuessrGame {
     $('toast')?.classList.add('hidden');
     $('gameScreen')?.classList.remove('has-result');
     if (this.panorama) this.panorama.setVisible(false);
+    $('panoInteractionLock')?.classList.add('hidden');
     $('gameScreen').classList.add('hidden');
     $('endScreen').classList.add('hidden');
     $('startScreen').classList.remove('hidden');
