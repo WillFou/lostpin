@@ -857,7 +857,7 @@ class GuessrGame {
     this.avoidPoint = null;
     this.lastAttemptPoint = null;
     this.round = 0;
-    this.roundCount = 5;
+    this.roundCount = this.challengeConfig?.roundCount || 5;
     this.total = 0;
     this.results = [];
     $('startScreen').classList.add('hidden');
@@ -904,12 +904,27 @@ class GuessrGame {
     this.updateCompass();
     this.configureGuessMap(zone);
     try {
-      const start = await this.findStart(zone, token);
+      let start;
+      let startHeading;
+      const challengeRound = this.challengeConfig?.rounds?.[this.round] || null;
+      if (challengeRound) {
+        $('loadingTitle').textContent = 'Chargement du challenge...';
+        $('loadingText').textContent = `Panorama ${this.round + 1}/${this.roundCount} · ${zone.name}`;
+        const response = await this.sv.getPanorama({pano:challengeRound.pano});
+        const data = response && response.data;
+        const loc = data && data.location;
+        if (!loc || !loc.latLng || !loc.pano) throw new Error('Ce panorama du challenge n’est plus disponible dans Google Street View.');
+        start = {data,pos:{lat:loc.latLng.lat(),lng:loc.latLng.lng()}};
+        startHeading = Number.isFinite(Number(challengeRound.heading)) ? Number(challengeRound.heading) : 0;
+      } else {
+        start = await this.findStart(zone, token);
+        startHeading = Math.floor(Math.random() * 360);
+      }
       if (token !== this.currentRoundToken) return;
       this.answer = start.pos;
       this.startPano = start.data.location.pano;
       this.startDescription = start.data.location.description || zone.name;
-      this.rememberStart(start.pos);
+      if (!challengeRound) this.rememberStart(start.pos);
       const noMove = this.mode === 'nomove' || this.mode === 'nmpz';
       this.panorama.setOptions({
         addressControl:false,
@@ -924,7 +939,6 @@ class GuessrGame {
         motionTracking:false,
         motionTrackingControl:false
       });
-      const startHeading = Math.floor(Math.random() * 360);
       this.startPov = {heading:startHeading,pitch:0,zoom:0};
       this.currentPano = this.startPano;
       this.panorama.setPano(this.startPano);
@@ -935,7 +949,10 @@ class GuessrGame {
       this.updateCompass();
       this.updateTravelUI();
       setTimeout(() => {
-        if (token === this.currentRoundToken) $('loadingPanel').classList.add('hidden');
+        if (token === this.currentRoundToken) {
+          $('loadingPanel').classList.add('hidden');
+          window.lostPinChallenges?.onRoundReady?.(this.round);
+        }
       }, 450);
     } catch (error) {
       if (token !== this.currentRoundToken) return;
@@ -985,6 +1002,38 @@ class GuessrGame {
     $('nextButton').textContent = this.round === (this.roundCount || 5) - 1 ? 'Voir le score final' : 'Manche suivante';
   }
 
+  submitChallengeTimeout() {
+    if (!this.answer || !$('resultPanel').classList.contains('hidden')) return;
+    const zone = ZONES[this.zoneId];
+    const seconds = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
+    this.results.push({distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true});
+    $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
+    $('distanceLabel').textContent = 'Aucune réponse';
+    $('roundScoreLabel').textContent = '0';
+    $('resultPlace').textContent = this.startDescription || zone.name;
+    $('travelInfo').textContent = 'Temps écoulé · aucune réponse validée.';
+    const source = new URL('https://www.google.com/maps/@');
+    source.searchParams.set('api','1');
+    source.searchParams.set('map_action','pano');
+    source.searchParams.set('pano',this.startPano || '');
+    if (this.startPov) source.searchParams.set('heading',String(Math.round(this.startPov.heading)));
+    $('streetViewLink').href = source.toString();
+    $('placeLink').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${this.answer.lat},${this.answer.lng}`)}`;
+    this.setBusy(false);
+    $('toast').classList.add('hidden');
+    $('gameScreen').classList.add('has-result');
+    $('resultPanel').classList.remove('hidden');
+    $('guessButton').disabled = true;
+    this.answerMarker = new google.maps.Marker({
+      map:this.map, position:this.answer, title:'Lieu réel', zIndex:3,
+      label:{text:'R',color:'#ffffff',fontWeight:'900',fontSize:'12px'},
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:11,fillColor:'#e53935',fillOpacity:1,strokeColor:'#ffffff',strokeOpacity:1,strokeWeight:3}
+    });
+    this.map.setCenter(this.answer);
+    this.map.setZoom(Math.max(5, zone.zoom || 10));
+    $('nextButton').textContent = this.round === (this.roundCount || 5) - 1 ? 'Voir le score final' : 'Manche suivante';
+  }
+
   async nextRound() {
     if (this.results.length !== this.round + 1) return;
     this.round++;
@@ -997,8 +1046,12 @@ class GuessrGame {
     $('gameScreen').classList.add('hidden');
     $('endScreen').classList.remove('hidden');
     $('finalScore').textContent = this.total.toLocaleString('fr-FR');
+    const maxScore = (this.roundCount || 5) * 5000;
+    if ($('finalMaxScore')) $('finalMaxScore').textContent = maxScore.toLocaleString('fr-FR');
     const zone = ZONES[this.zoneId];
-    const avg = this.results.reduce((s,x) => s + x.distance,0) / Math.max(1,this.results.length);
+    const validDistances = this.results.map(x => x.distance).filter(Number.isFinite);
+    const avg = validDistances.reduce((s,x) => s + x,0) / Math.max(1,validDistances.length);
+    const avgText = validDistances.length ? formatDistance(avg) : 'aucune réponse mesurée';
     const key = `${this.zoneId}:${this.mode}`;
     const isPerfect = this.total === 25000 && this.results.length === 5 && this.results.every(r => r.points === 5000);
 
@@ -1023,13 +1076,14 @@ class GuessrGame {
 
     let comment;
     if (isPerfect) {
-      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${formatDistance(avg)}.`;
+      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${avgText}.`;
       if (newPrecisionRecord && perfect.count > 1) comment += ' Nouveau record de précision sur un 25 000 !';
     } else {
-      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. Distance moyenne : ${formatDistance(avg)}.`;
-      if (this.total >= 23000) comment += ' Très grosse partie.';
-      else if (this.total >= 19000) comment += ' Solide.';
-      else if (this.total >= 14000) comment += ' Tu commences à bien lire les lieux.';
+      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. Distance moyenne : ${avgText}.`;
+      const ratio = maxScore > 0 ? this.total / maxScore : 0;
+      if (ratio >= .92) comment += ' Très grosse partie.';
+      else if (ratio >= .76) comment += ' Solide.';
+      else if (ratio >= .56) comment += ' Tu commences à bien lire les lieux.';
       else comment += ' Il reste de la marge pour la revanche.';
     }
     $('finalComment').textContent = comment;
@@ -1056,7 +1110,8 @@ class GuessrGame {
       const row = document.createElement('div');
       row.className = 'breakRow';
       const extra = this.mode === 'explore' ? ` - ${r.moves || 0} dépl.` : '';
-      row.innerHTML = `<span class="roundNum">${i+1}</span><span><strong>${this.escapeHTML(r.description || zone.name)}</strong><small>${formatDistance(r.distance)} - ${r.seconds} s${extra}</small></span><b>${r.points.toLocaleString('fr-FR')} pts</b>`;
+      const distanceText = r.timedOut ? 'Aucune réponse' : formatDistance(r.distance);
+      row.innerHTML = `<span class="roundNum">${i+1}</span><span><strong>${this.escapeHTML(r.description || zone.name)}</strong><small>${distanceText} - ${r.seconds} s${extra}</small></span><b>${r.points.toLocaleString('fr-FR')} pts</b>`;
       $('breakdown').appendChild(row);
     });
     const bests = readJSON(BEST_KEY, {});
@@ -1073,7 +1128,7 @@ class GuessrGame {
     this.setBusy(false);
     if (this.toastTimer) clearTimeout(this.toastTimer);
     $('toast')?.classList.add('hidden');
-    $('gameScreen')?.classList.remove('has-result');
+    $('gameScreen')?.classList.remove('has-result','challenge-active');
     if (this.panorama) this.panorama.setVisible(false);
     $('panoInteractionLock')?.classList.add('hidden');
     $('gameScreen').classList.add('hidden');

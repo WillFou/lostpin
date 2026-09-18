@@ -1,7 +1,7 @@
 LostPin
 =======
 
-Jeu de géolocalisation basé sur Google Street View, jouable en solo ou en multijoueur.
+Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multijoueur ou via des challenges asynchrones.
 
 VERSION
 -------
@@ -40,6 +40,35 @@ Modes disponibles :
 - No Move + No Pan/Zoom : panorama totalement figé ; aucun déplacement, aucune rotation et aucun zoom.
 
 Les déplacements se font avec les contrôles natifs de Google Street View. Les anciens boutons Avancer / Reculer / Demi-tour / Départ restent dans le code pour le futur mode Exploration mais sont masqués pendant les parties classiques.
+
+
+CHALLENGES (V5)
+---------------
+Les Challenges permettent à plusieurs joueurs de jouer la même partie à des moments différents.
+
+Un challenge mémorise :
+- les panoramas Street View exacts ;
+- leur ordre ;
+- la map ;
+- Move, No Move ou No Move + No Pan/Zoom ;
+- 3, 5 ou 10 manches ;
+- un timer facultatif de 15, 20, 30, 60, 120 ou 180 secondes.
+
+Créer un challenge :
+1. Choisis la map et le mode sur l'écran d'accueil.
+2. Clique sur Challenges.
+3. Choisis le timer et le nombre de manches.
+4. Clique sur Générer le challenge. LostPin recherche tous les panoramas à l'avance.
+5. Copie le code portable et envoie-le à ton ami.
+
+Rejoindre un challenge :
+1. Clique sur Challenges.
+2. Colle le code portable.
+3. Clique sur Lire le challenge puis Jouer ce challenge.
+
+Chaque challenge reçoit aussi un ID court de 5 caractères (par exemple K8P4Q) pour être identifié facilement. Cet ID seul ne permet pas encore de télécharger le challenge depuis un autre PC : LostPin n'utilise pas encore de registre central. Le code portable contient donc directement les IDs Street View et doit être partagé en entier.
+
+Comme les panoramas exacts sont stockés dans le code, le tirage ne dépend pas du hasard lors du rejeu. Si Google supprime définitivement un ancien panorama Street View, LostPin signalera que la manche correspondante n'est plus disponible.
 
 MULTIJOUEUR LOCAL
 -----------------
@@ -134,6 +163,7 @@ FICHIERS PRINCIPAUX
 index.html       Interface principale.
 app.js           Gameplay solo et intégration Street View / carte.
 multiplayer.js   Multijoueur local et en ligne.
+challenge.js     Création, import, timer et historique des challenges.
 hud-layout.js    Déplacement, ancrage et persistance du HUD.
 themes.css       Styles et thèmes.
 theme.js         Gestion de l'identité visuelle.

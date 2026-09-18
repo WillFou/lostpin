@@ -1,3 +1,16 @@
+# LostPin V5.0.0
+
+- Première version des Challenges asynchrones.
+- Génération d'une partie avec panoramas Street View exacts enregistrés dans un code portable.
+- Rejeu sur un autre PC avec la même map, le même mode, le même ordre et le même timer.
+- 3, 5 ou 10 manches ; timer facultatif 15/20/30/60/120/180 s.
+- ID court de 5 caractères pour identifier visuellement un challenge.
+- Historique local des derniers challenges.
+- Gestion d'une manche expirée sans réponse : 0 point.
+- `version.json` passe à 5.0.0.
+
+---
+
 # LostPin V4.4.14
 
 - En mode Duel, les PV sont maintenant affichés directement dans la carte de chaque joueur du bloc Joueurs / Réactions.

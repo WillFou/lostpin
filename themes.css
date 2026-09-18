@@ -1,4 +1,4 @@
-/* LostPin V4.4.14 */
+/* LostPin V5.0.0 - Challenges */
 
 body{
   --theme-card:rgba(9,25,40,.94);
@@ -1248,3 +1248,24 @@ body[data-theme="midnight"] .hudLayoutEditHint{border-radius:2px}
 @media(max-width:560px){
   #gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerName{font-size:14px}
 }
+
+/* V5.0.0 - Challenges asynchrones */
+.challengeModalCard{width:min(980px,100%)}
+.challengeColumns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.challengeBox{border:1px solid var(--line);background:var(--theme-card-soft);border-radius:16px;padding:16px;min-width:0}
+.challengeBox h3{margin:6px 0 7px}.challengeBox p{font-size:11px;margin:0 0 12px;color:var(--muted)}
+.challengeBox label{display:block;margin:10px 0 5px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+.challengeBox select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--theme-field);color:var(--theme-field-text)}
+.challengeCurrentSettings{padding:10px 11px;border:1px solid color-mix(in srgb,var(--good) 45%,var(--line));border-radius:11px;background:color-mix(in srgb,var(--good) 8%,transparent);font-weight:900;font-size:12px}
+.challengeWideButton{width:100%;margin-top:12px}
+.challengeStatus{min-height:18px;margin-top:8px;font-size:10px;color:var(--muted)}.challengeStatus.challengeError{color:#ff9d8d}
+.challengeResult{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.challengeIdLine{font-size:12px;color:var(--muted)}.challengeIdLine b{font-family:var(--heading-font);font-size:20px;letter-spacing:.12em;color:var(--good)}
+.challengeSummary{font-size:11px;font-weight:800;margin:4px 0 8px;color:var(--text)}
+.challengeCodeField{display:block;width:100%;min-height:64px;resize:vertical;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#02070d99;color:#cce5ee;font:10px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+input.challengeCodeField{min-height:0;height:34px;resize:none}
+.challengeHistory{display:grid;gap:6px;color:var(--muted);font-size:10px}.challengeHistoryItem{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;text-align:left;padding:7px 8px;border:1px solid var(--line);border-radius:9px;background:#ffffff06;color:var(--text)}.challengeHistoryItem b{color:var(--good);letter-spacing:.08em}.challengeHistoryItem span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:var(--muted)}
+.challengeTechnicalNote{margin-top:14px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:10px;line-height:1.55}
+.challengeEndSummary{display:grid;gap:4px;margin:10px 0 0;padding:10px 12px;border:1px solid color-mix(in srgb,var(--good) 42%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--good) 7%,transparent);max-width:580px}.challengeEndSummary .eyebrow b{color:var(--text)}.challengeEndSummary span:not(.eyebrow){font-size:10px;color:var(--muted)}.challengeEndSummary .challengeCodeField{height:32px;min-height:32px;padding:5px 8px;resize:none}
+#gameScreen.challenge-active #multiTimer{display:block}
+@media(max-width:760px){.challengeColumns{grid-template-columns:1fr}.challengeModalCard{padding:16px}}
