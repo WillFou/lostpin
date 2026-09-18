@@ -92,6 +92,8 @@ class MultiplayerController {
     this.onlineRoundCount = DEFAULT_ONLINE_ROUND_COUNT;
     this.onlineMovementMode = 'explore';
     this.onlineGameMode = DEFAULT_ONLINE_GAME_MODE;
+    this.onlineSelection = null;
+    this.localSelection = null;
     this.lastModeEvent = null;
     this.reconnectTimer = null;
     this.reconnectAttempts = 0;
@@ -243,7 +245,9 @@ class MultiplayerController {
     const me=this.myPlayer(); if (!me) return;
     const playerIndex=sortedPlayers.findIndex(p=>p.id===me.id || (p.token && p.token===this.clientToken)); if (playerIndex<0) return;
     const place=playerIndex+1;
-    const entry={date:new Date().toISOString(),zone:this.api.ZONES[this.game.zoneId]?.name||this.game.zoneId||'Map',mode:movementLabel(this.onlineMovementMode),gameMode:this.onlineGameMode,roundCount:this.getRoundCount(),timerSeconds:this.onlineRoundSeconds,playerCount:sortedPlayers.length,place,score:Number(me.total||0),opponents:sortedPlayers.filter(p=>p.id!==me.id).map(p=>p.name).slice(0,5)};
+    const selection=this.onlineSelection || this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
+    const selectionName=this.game.getSelectionName?.(selection) || this.api.ZONES[this.game.zoneId]?.name || this.game.zoneId || 'Map';
+    const entry={date:new Date().toISOString(),zone:selectionName,mode:movementLabel(this.onlineMovementMode),gameMode:this.onlineGameMode,roundCount:this.getRoundCount(),timerSeconds:this.onlineRoundSeconds,playerCount:sortedPlayers.length,place,score:Number(me.total||0),opponents:sortedPlayers.filter(p=>p.id!==me.id).map(p=>p.name).slice(0,5)};
     try { localStorage.setItem(ONLINE_HISTORY_KEY,JSON.stringify([entry,...this.readOnlineHistory()].slice(0,10))); } catch (_) {}
     this.gameHistoryRecorded=true; this.renderOnlineHistory();
   }
@@ -471,6 +475,8 @@ class MultiplayerController {
     this.cleanup(true);
     this.active=true; this.kind='local'; this.isHost=true; this.started=true; this.gameEnded=false; this.round=0; this.localPlayerIndex=0;
     this.game.roundCount=5;
+    this.localSelection=this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
+    this.game.roundZoneIds=this.game.buildRoundZoneSequence?.(5,this.localSelection) || Array.from({length:5},()=>this.game.zoneId);
     this.players = names.map((name,i) => ({id:`local-${i}`,name:sanitizeName(name,`Joueur ${i+1}`),avatar:PLAYER_AVATARS[i%PLAYER_AVATARS.length],color:COLORS[i%COLORS.length],total:0,rounds:[],connected:true,ready:true}));
     $('multiplayerModal')?.classList.add('hidden');
     await this.prepareShell();
@@ -478,6 +484,7 @@ class MultiplayerController {
   }
 
   async prepareShell() {
+    if ((this.kind==='local' || this.isHost) && this.game.roundZoneIds?.[this.round] && this.api.ZONES[this.game.roundZoneIds[this.round]]) this.game.zoneId=this.game.roundZoneIds[this.round];
     await this.game.prepareSelectedZone();
     this.game.ensureGoogleObjects();
     $('startScreen').classList.add('hidden'); $('endScreen').classList.add('hidden'); this.hideMultiEnd();
@@ -515,6 +522,7 @@ class MultiplayerController {
   }
 
   resetRoundView(player) {
+    if (this.roundInfo?.zoneId && this.api.ZONES[this.roundInfo.zoneId]) this.game.zoneId=this.roundInfo.zoneId;
     const zone = this.api.ZONES[this.game.zoneId];
     this.guessLocked=false;
     this.game.guess = null;
@@ -709,6 +717,7 @@ class MultiplayerController {
     this.onlineRoundCount=this.readOnlineRoundCount();
     this.onlineMovementMode=this.readOnlineMovementMode();
     this.onlineGameMode=this.readOnlineGameMode();
+    this.onlineSelection=this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
     this.cleanupPeer(); this.myName=sanitizeName($('onlineName').value,'Hôte'); this.persistOnlineIdentity(); this.code=roomCode(); this.isHost=true; this.kind='online'; this.started=false; this.gameEnded=false; this.rematchRequests.clear(); this.gameHistoryRecorded=false;
     const id=`${ROOM_NAMESPACE}-${this.code.toLowerCase()}`;
     this.peer=new Peer(id,{debug:1});
@@ -725,7 +734,7 @@ class MultiplayerController {
     try { this.ensurePeerAvailable(); } catch(e){ return this.setModalError(e.message); }
     const code=String($('onlineRoomCode').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5);
     if (code.length!==5) { this.setModalError('Entre un code de salle de 5 caractères.'); return; }
-    this.cleanupPeer(); this.myName=sanitizeName($('onlineName').value,'Joueur'); this.persistOnlineIdentity(); this.code=code; this.isHost=false; this.kind='online'; this.onlineGameMode=DEFAULT_ONLINE_GAME_MODE; this.started=false; this.gameEnded=false; this.rematchRequests.clear(); this.gameHistoryRecorded=false;
+    this.cleanupPeer(); this.myName=sanitizeName($('onlineName').value,'Joueur'); this.persistOnlineIdentity(); this.code=code; this.isHost=false; this.kind='online'; this.onlineGameMode=DEFAULT_ONLINE_GAME_MODE; this.onlineSelection=null; this.started=false; this.gameEnded=false; this.rematchRequests.clear(); this.gameHistoryRecorded=false;
     this.peer=new Peer(undefined,{debug:1}); this.setOnlineStatus('Connexion à la salle...');
     this.peer.on('open', peerId=>{
       this.myId=peerId;
@@ -908,6 +917,8 @@ class MultiplayerController {
     if (data.type==='error') { this.setModalError(data.message); return; }
     if (data.type==='lobby') {
       this.players=data.players||[];
+      if (data.selection) this.onlineSelection=this.game.normalizeSelection?.(data.selection) || data.selection;
+      else if (data.zoneId && this.api.ZONES[data.zoneId]) this.onlineSelection={type:'zone',zoneId:data.zoneId,name:this.api.ZONES[data.zoneId].name};
       if (data.zoneId && this.api.ZONES[data.zoneId]) this.game.zoneId=data.zoneId;
       if (ONLINE_ROUND_OPTIONS.has(Number(data.timerSeconds))) this.onlineRoundSeconds=Number(data.timerSeconds);
       if (ONLINE_ROUND_COUNT_OPTIONS.has(Number(data.roundCount))) this.onlineRoundCount=Number(data.roundCount);
@@ -933,7 +944,7 @@ class MultiplayerController {
     if (data.type==='game:end') { this.players=data.players||this.players; if (ONLINE_ROUND_COUNT_OPTIONS.has(Number(data.roundCount))) this.onlineRoundCount=Number(data.roundCount); if (ONLINE_GAME_MODE_OPTIONS.has(data.gameMode)) this.onlineGameMode=data.gameMode; this.gameEnded=true; this.showMultiEnd(); }
   }
 
-  broadcastLobby() { this.broadcast({type:'lobby',players:this.serializedPlayers(),code:this.code,zoneId:this.game.zoneId,movementMode:this.onlineMovementMode,gameMode:this.onlineGameMode,timerSeconds:this.onlineRoundSeconds,roundCount:this.onlineRoundCount,protocol:ONLINE_PROTOCOL_VERSION}); }
+  broadcastLobby() { const selection=this.onlineSelection || this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId}; this.broadcast({type:'lobby',players:this.serializedPlayers(),code:this.code,zoneId:selection.type==='zone'?selection.zoneId:(selection.zoneIds?.[0]||this.game.zoneId),selection,movementMode:this.onlineMovementMode,gameMode:this.onlineGameMode,timerSeconds:this.onlineRoundSeconds,roundCount:this.onlineRoundCount,protocol:ONLINE_PROTOCOL_VERSION}); }
   broadcast(data) { for (const conn of this.connections.values()) if (conn.open) { try{conn.send(data);}catch(_){}} }
   serializedPlayers(){ return this.players.map((p,i)=>({id:p.id,token:p.token||'',name:p.name,avatar:playerAvatar(p,i),color:playerColor(p,i),total:p.total||0,rounds:p.rounds||[],hp:p.hp==null?null:Number(p.hp),eliminated:!!p.eliminated,eliminatedRound:p.eliminatedRound==null?null:Number(p.eliminatedRound),host:!!p.host,ready:!!p.ready,connected:p.connected!==false,protocol:Number(p.protocol||ONLINE_PROTOCOL_VERSION)})); }
 
@@ -943,8 +954,10 @@ class MultiplayerController {
     if (!$('onlinePlayerList')) return;
     $('onlineRoomCodeDisplay').textContent=this.code||'-----';
     const settings=$('onlineRoomSettings');
-    const zoneName=this.api.ZONES[this.game.zoneId]?.name || this.game.zoneId || 'Map';
-    if (settings) settings.textContent=`${gameModeLabel(this.onlineGameMode)} · ${zoneName} · ${this.onlineRoundSeconds} s · ${this.onlineRoundCount} manches · ${movementLabel(this.onlineMovementMode)}`;
+    const selection=this.onlineSelection || this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
+    const zoneName=this.game.getSelectionName?.(selection) || this.api.ZONES[this.game.zoneId]?.name || this.game.zoneId || 'Map';
+    const selectionPrefix=selection.type==='playlist'?'Playlist · ':'';
+    if (settings) settings.textContent=`${gameModeLabel(this.onlineGameMode)} · ${selectionPrefix}${zoneName} · ${this.onlineRoundSeconds} s · ${this.onlineRoundCount} manches · ${movementLabel(this.onlineMovementMode)}`;
     const meta=$('onlineLobbyMeta'); if (meta) meta.innerHTML=`<span>${this.players.length}/6 joueurs</span><span>Code ${esc(this.code||'-----')}</span><span>Mode ${esc(gameModeLabel(this.onlineGameMode))}</span><span>Protocole V4.4</span>`;
     const box=$('onlinePlayerList'); box.replaceChildren();
     this.players.forEach((p,i)=>{
@@ -979,6 +992,8 @@ class MultiplayerController {
     const validation=this.onlineStartValidation();
     if (!this.isHost || !validation.ok) { if (validation.message) this.setOnlineStatus(validation.message); return; }
     this.active=true; this.started=true; this.gameEnded=false; this.round=0; this.game.mode=this.onlineMovementMode; this.game.roundCount=this.onlineRoundCount; this.gameHistoryRecorded=false; this.rematchRequests.clear();
+    this.onlineSelection=this.onlineSelection || this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
+    this.game.roundZoneIds=this.game.buildRoundZoneSequence?.(this.onlineRoundCount,this.onlineSelection) || Array.from({length:this.onlineRoundCount},()=>this.game.zoneId);
     this.initializeCompetitionState();
     $('multiplayerModal').classList.add('hidden'); await this.prepareShell(); this.broadcastLobby(); await this.loadHostRound();
   }
@@ -1191,7 +1206,8 @@ class MultiplayerController {
     this.game.panorama?.setVisible(false); this.game.applyInteractionMode?.();
     $('gameScreen')?.classList.add('hidden'); this.hideMultiEnd(); $('startScreen')?.classList.add('hidden');
     $('multiplayerModal')?.classList.remove('hidden'); this.showOnlineLobby(); this.renderOnlineLobby();
-    this.broadcast({type:'game:rematch',players:this.serializedPlayers(),timerSeconds:this.onlineRoundSeconds,roundCount:this.onlineRoundCount,movementMode:this.onlineMovementMode,gameMode:this.onlineGameMode,zoneId:this.game.zoneId});
+    const selection=this.onlineSelection || this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
+    this.broadcast({type:'game:rematch',players:this.serializedPlayers(),timerSeconds:this.onlineRoundSeconds,roundCount:this.onlineRoundCount,movementMode:this.onlineMovementMode,gameMode:this.onlineGameMode,zoneId:selection.type==='zone'?selection.zoneId:(selection.zoneIds?.[0]||this.game.zoneId),selection});
     this.broadcastLobby();
   }
 
@@ -1202,6 +1218,8 @@ class MultiplayerController {
     if (ONLINE_ROUND_COUNT_OPTIONS.has(Number(data.roundCount))) this.onlineRoundCount=Number(data.roundCount);
     if (ONLINE_MOVEMENT_OPTIONS.has(data.movementMode)) this.onlineMovementMode=data.movementMode;
     if (ONLINE_GAME_MODE_OPTIONS.has(data.gameMode)) this.onlineGameMode=data.gameMode;
+    if (data.selection) this.onlineSelection=this.game.normalizeSelection?.(data.selection) || data.selection;
+    else if (data.zoneId && this.api.ZONES[data.zoneId]) this.onlineSelection={type:'zone',zoneId:data.zoneId,name:this.api.ZONES[data.zoneId].name};
     if (data.zoneId && this.api.ZONES[data.zoneId]) this.game.zoneId=data.zoneId;
     this.game.panorama?.setVisible(false); this.game.applyInteractionMode?.();
     $('gameScreen')?.classList.add('hidden'); this.hideMultiEnd(); $('startScreen')?.classList.add('hidden');
@@ -1231,8 +1249,8 @@ class MultiplayerController {
     this.clearRoundTimer(); this.clearReconnectTimer(); this.clearMultiMarkers(); this.active=false; this.started=false; this.gameEnded=false; this.roundClosed=false; this.guessLocked=false; this.submittedIds.clear(); this.submissions.clear(); this.lastRoundResults=null; this.lastModeEvent=null; this.rematchRequests.clear();
     if (this.emoteHideTimer) clearTimeout(this.emoteHideTimer); this.emoteHideTimer=null;
     $('gameScreen')?.classList.remove('multiplayer-active'); $('multiHud')?.classList.add('hidden'); $('multiOnlineStatus')?.classList.add('hidden'); $('multiEmoteBar')?.classList.add('hidden'); $('multiEmoteToast')?.classList.add('hidden'); $('multiRoundPanel')?.classList.add('hidden'); $('multiTurnOverlay')?.classList.add('hidden'); $('multiWaiting')?.classList.add('hidden'); this.hideMultiEnd(); $('panoInteractionLock')?.classList.add('hidden');
-    this.game.roundCount=5;
-    if (closePeer) { this.cleanupPeer(); this.resetOnlineLobby(true); this.kind=null; }
+    this.game.roundCount=5; this.game.roundZoneIds=[]; this.localSelection=null;
+    if (closePeer) { this.cleanupPeer(); this.resetOnlineLobby(true); this.kind=null; this.onlineSelection=null; }
   }
 }
 

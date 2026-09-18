@@ -32,7 +32,7 @@ API nécessaire : Maps JavaScript API.
 
 SOLO
 ----
-Une partie classique comporte 5 manches pour un maximum de 25 000 points.
+Une partie classique comporte 5 manches pour un maximum de 25 000 points. Une playlist peut changer de map entre les manches.
 
 Modes disponibles :
 - Move : déplacement, rotation et zoom autorisés.
@@ -42,6 +42,33 @@ Modes disponibles :
 Les déplacements se font avec les contrôles natifs de Google Street View. Les anciens boutons Avancer / Reculer / Demi-tour / Départ restent dans le code pour le futur mode Exploration mais sont masqués pendant les parties classiques.
 
 
+PLAYLISTS / COLLECTIONS (V5.3)
+------------------------------
+LostPin peut maintenant mélanger plusieurs maps dans une même partie.
+
+Depuis l'écran d'accueil, clique sur « Playlists ». Quatre playlists sont fournies :
+- Paris sous toutes ses coutures ;
+- France · ville & campagne ;
+- Deux capitales ;
+- Grand Mix LostPin.
+
+Tu peux aussi créer jusqu'à 12 playlists personnelles à partir des maps disponibles.
+Elles sont stockées uniquement dans le localStorage du navigateur.
+
+Règle de tirage :
+- LostPin mélange les maps de la playlist ;
+- chaque map est utilisée une fois avant qu'une nouvelle boucle mélangée commence ;
+- lorsqu'une playlist contient au moins deux maps, LostPin évite de recommencer une boucle par la même map que celle qui vient d'être jouée ;
+- chaque manche conserve l'échelle de score de sa map réelle.
+
+Les playlists fonctionnent :
+- en solo ;
+- dans les Challenges ;
+- en multijoueur local ;
+- en multijoueur en ligne.
+
+Les Challenges créés à partir d'une playlist enregistrent aussi la map exacte de chaque manche. Les anciens codes LP5 de V5.0/V5.1 restent lisibles.
+
 CHALLENGES (V5)
 ---------------
 Les Challenges permettent à plusieurs joueurs de jouer la même partie à des moments différents.
@@ -49,13 +76,13 @@ Les Challenges permettent à plusieurs joueurs de jouer la même partie à des m
 Un challenge mémorise :
 - les panoramas Street View exacts ;
 - leur ordre ;
-- la map ;
+- la map ou playlist ;
 - Move, No Move ou No Move + No Pan/Zoom ;
 - 3, 5 ou 10 manches ;
 - un timer facultatif de 15, 20, 30, 60, 120 ou 180 secondes.
 
 Créer un challenge :
-1. Choisis la map et le mode sur l'écran d'accueil.
+1. Choisis la map ou playlist et le mode sur l'écran d'accueil.
 2. Clique sur Challenges.
 3. Choisis le timer et le nombre de manches.
 4. Clique sur Générer le challenge. LostPin recherche tous les panoramas à l'avance.
@@ -69,6 +96,19 @@ Rejoindre un challenge :
 Chaque challenge reçoit aussi un ID court de 5 caractères (par exemple K8P4Q) pour être identifié facilement. Cet ID seul ne permet pas encore de télécharger le challenge depuis un autre PC : LostPin n'utilise pas encore de registre central. Le code portable contient donc directement les IDs Street View et doit être partagé en entier.
 
 Comme les panoramas exacts sont stockés dans le code, le tirage ne dépend pas du hasard lors du rejeu. Si Google supprime définitivement un ancien panorama Street View, LostPin signalera que la manche correspondante n'est plus disponible.
+
+RÉSULTATS DE CHALLENGE (V5.1)
+------------------------------
+À la fin d'un challenge, LostPin génère un code résultat commençant par LPR1.
+Le bouton « Copier mon résultat » copie un résumé lisible avec :
+- l'ID du challenge ;
+- le pseudo ;
+- le score et le score maximal ;
+- le nombre de manches à 5 000 points ;
+- la distance moyenne ;
+- le code résultat portable.
+
+Un ami peut coller ce code dans Challenges > Comparer un résultat reçu. LostPin vérifie qu'il correspond au même challenge et le compare au meilleur résultat local enregistré sur ce challenge. Aucune donnée n'est envoyée à un serveur LostPin.
 
 MULTIJOUEUR LOCAL
 -----------------
@@ -177,3 +217,20 @@ MISE À JOUR / UPDATER
 ---------------------
 L'Updater doit lire version.json pour afficher et comparer la version.
 Ne remets pas de numéro de version en dur dans index.html ou dans le HUD.
+
+
+STATISTIQUES ET PROGRESSION (V5.2)
+----------------------------------
+Le bouton « Statistiques » de l'écran d'accueil ouvre la progression locale.
+LostPin mémorise, uniquement dans le navigateur :
+- parties solo et Challenges terminés ;
+- nombre de manches, de 5 000 et de 25 000 ;
+- distance moyenne ;
+- précision moyenne sur les 10 / 50 / 100 dernières manches ;
+- records sur 5 manches par map et par mode ;
+- série de jours joués ;
+- badges et historique récent.
+
+Les anciens meilleurs scores et les anciens compteurs de 25 000 sont importés quand ils existent déjà dans le localStorage. Les statistiques détaillées (historique des parties/manches) commencent à partir de la V5.2.
+
+Le bouton « Réinitialiser les statistiques » efface uniquement les données statistiques V5.2 ; les anciens records historiques restent gérés par LostPin et peuvent donc être réimportés.

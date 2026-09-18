@@ -1,3 +1,42 @@
+# LostPin V5.3.0
+
+- Nouveau système de Playlists / collections de maps.
+- Quatre playlists intégrées : Paris sous toutes ses coutures, France · ville & campagne, Deux capitales et Grand Mix LostPin.
+- Création de playlists personnelles (jusqu’à 12), stockées localement.
+- Tirage par « sac » : chaque map d’une playlist passe une fois avant le prochain mélange, avec limitation des répétitions entre deux boucles.
+- Le HUD affiche la map réellement jouée à chaque manche et le score utilise son échelle propre.
+- Les résultats finaux indiquent la map de chaque manche lorsqu’une playlist est utilisée.
+- Support des playlists dans les Challenges avec un format LP5 interne V2 ; les anciens Challenges V1 restent compatibles.
+- Support des playlists en multijoueur local et en ligne ; l’hôte partage la sélection de playlist avec le lobby.
+- Les statistiques distinguent désormais maps et playlists, avec un badge « Mixeur ».
+- Correction d’un bug latent de V5.1 : la comparaison d’un résultat de Challenge pouvait échouer faute de fonction d’échappement HTML.
+
+---
+
+# LostPin V5.2.0
+
+- Nouvel écran Statistiques depuis l’accueil.
+- Progression locale pour les parties solo et Challenges.
+- Vue d’ensemble : parties, manches, 5 000, 25 000, distance moyenne, série et Challenges terminés.
+- Précision moyenne sur les 10 / 50 / 100 dernières manches.
+- Records sur 5 manches par map et par mode.
+- Badges sobres liés aux performances réelles.
+- Historique local des 20 dernières parties suivies.
+- Import des anciens meilleurs scores et compteurs de parties parfaites quand ils existent.
+- Aucune donnée envoyée vers un serveur : tout reste dans le localStorage du navigateur.
+
+---
+
+# LostPin V5.1.0
+
+- Résultats de challenge partageables avec code portable `LPR1.…`.
+- Résumé de fin de challenge : score, nombre de 5 000 et distance moyenne.
+- Bouton « Copier mon résultat » et bouton pour recopier le challenge original.
+- Comparaison d’un résultat reçu avec le meilleur résultat local sur le même challenge.
+- Historique local des résultats de challenge, sans serveur central.
+
+---
+
 # LostPin V5.0.0
 
 - Première version des Challenges asynchrones.

@@ -196,6 +196,8 @@ const ZONES = {
 class GuessrGame {
   constructor() {
     this.zoneId = 'paris';
+    this.selection = {type:'zone',zoneId:'paris',name:ZONES.paris.name};
+    this.roundZoneIds = [];
     this.mode = 'explore';
     this.round = 0;
     this.roundCount = 5;
@@ -237,16 +239,14 @@ class GuessrGame {
     if (!COMPASS_STYLES.includes(this.compassStyle)) this.compassStyle = 'band';
     this.bindUI();
     this.setCompassStyle(this.compassStyle, false);
+    this.updateSelectionBanner();
     this.updateBest();
     this.loadGoogle();
   }
 
   bindUI() {
     document.querySelectorAll('.mapCard').forEach(card => card.addEventListener('click', () => {
-      document.querySelectorAll('.mapCard').forEach(x => x.classList.remove('selected'));
-      card.classList.add('selected');
-      this.zoneId = card.dataset.zone;
-      this.updateBest();
+      this.setSelection({type:'zone',zoneId:card.dataset.zone});
     }));
     document.querySelectorAll('.modeCard').forEach(card => card.addEventListener('click', () => {
       document.querySelectorAll('.modeCard').forEach(x => x.classList.remove('selected'));
@@ -441,15 +441,91 @@ class GuessrGame {
   }
 
   async prepareSelectedZone() {
-    const zone = ZONES[this.zoneId];
-    if (!zone?.officialParis) return;
-    await this.ensureOfficialParisContours();
+    await this.prepareZone(this.zoneId);
+  }
+
+  normalizeSelection(selection) {
+    const raw=selection && typeof selection==='object' ? selection : {};
+    if (raw.type==='playlist') {
+      const zoneIds=Array.from(new Set((Array.isArray(raw.zoneIds)?raw.zoneIds:[]).filter(id=>!!ZONES[id])));
+      if (zoneIds.length>=2) {
+        const id=String(raw.id||'playlist').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,40) || 'playlist';
+        const name=String(raw.name||'Playlist').trim().slice(0,48) || 'Playlist';
+        return {type:'playlist',id,name,zoneIds,builtIn:!!raw.builtIn};
+      }
+    }
+    const zoneId=ZONES[raw.zoneId] ? raw.zoneId : (ZONES[this.zoneId] ? this.zoneId : 'paris');
+    return {type:'zone',zoneId,name:ZONES[zoneId].name};
+  }
+
+  getSelectionDescriptor() {
+    return this.normalizeSelection(this.selection);
+  }
+
+  getSelectionName(selection=this.selection) {
+    const value=this.normalizeSelection(selection);
+    return value.type==='playlist' ? value.name : (ZONES[value.zoneId]?.name || value.zoneId || 'Map');
+  }
+
+  getSelectionKey(selection=this.selection) {
+    const value=this.normalizeSelection(selection);
+    return value.type==='playlist' ? `playlist-${value.id}` : value.zoneId;
+  }
+
+  setSelection(selection, notify=true) {
+    const normalized=this.normalizeSelection(selection);
+    this.selection=normalized;
+    this.roundZoneIds=[];
+    if (normalized.type==='zone') this.zoneId=normalized.zoneId;
+    else if (!normalized.zoneIds.includes(this.zoneId)) this.zoneId=normalized.zoneIds[0];
+    document.querySelectorAll('.mapCard').forEach(card=>card.classList.toggle('selected',normalized.type==='zone' && card.dataset.zone===normalized.zoneId));
+    this.updateSelectionBanner();
+    this.updateBest();
+    if (notify) document.dispatchEvent(new CustomEvent('lostpin:selection-change',{detail:this.getSelectionDescriptor()}));
+    return normalized;
+  }
+
+  updateSelectionBanner() {
+    const box=$('selectionBanner'); if (!box) return;
+    const selection=this.getSelectionDescriptor();
+    const type=$('selectionType'), name=$('selectionName'), detail=$('selectionDetail');
+    if (type) type.textContent=selection.type==='playlist'?'PLAYLIST':'MAP';
+    if (name) name.textContent=this.getSelectionName(selection);
+    if (detail) detail.textContent=selection.type==='playlist'
+      ? `${selection.zoneIds.length} maps · une map tirée par manche`
+      : '5 manches sur le même terrain';
+    box.classList.toggle('playlistActive',selection.type==='playlist');
+  }
+
+  buildRoundZoneSequence(roundCount=this.roundCount||5, selection=this.selection) {
+    const count=Math.max(1,Number(roundCount)||5);
+    const value=this.normalizeSelection(selection);
+    if (value.type!=='playlist') return Array.from({length:count},()=>value.zoneId);
+    const zones=value.zoneIds.slice();
+    const sequence=[];
+    let bag=[];
+    const refill=()=>{
+      bag=zones.slice();
+      for (let i=bag.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [bag[i],bag[j]]=[bag[j],bag[i]]; }
+      if (sequence.length && bag.length>1 && bag[0]===sequence[sequence.length-1]) [bag[0],bag[1]]=[bag[1],bag[0]];
+    };
+    while (sequence.length<count) {
+      if (!bag.length) refill();
+      sequence.push(bag.shift());
+    }
+    return sequence;
+  }
+
+  async prepareZone(zoneId) {
+    const zone=ZONES[zoneId];
+    if (!zone) throw new Error('Map inconnue.');
+    if (zone.officialParis && !this.parisContoursReady) await this.ensureOfficialParisContours();
   }
 
   updateBest() {
     const bests = readJSON(BEST_KEY, {});
     const perfects = readJSON(PERFECT_KEY, {});
-    const key = `${this.zoneId}:${this.mode}`;
+    const key = `${this.getSelectionKey()}:${this.mode}`;
     const score = bests[key] || 0;
     const perfect = perfects[key];
     const parts = [];
@@ -838,6 +914,12 @@ class GuessrGame {
   async startGame() {
     if (!this.apiReady) return;
     const startButtonText = $('startButton').textContent;
+    this.roundCount = this.challengeConfig?.roundCount || 5;
+    this.roundZoneIds = this.challengeConfig?.rounds?.length
+      ? this.challengeConfig.rounds.map(r=>ZONES[r?.zoneId] ? r.zoneId : null)
+      : this.buildRoundZoneSequence(this.roundCount);
+    const firstZoneId=this.roundZoneIds[0] || (this.getSelectionDescriptor().type==='zone' ? this.getSelectionDescriptor().zoneId : this.getSelectionDescriptor().zoneIds[0]);
+    if (firstZoneId && ZONES[firstZoneId]) this.zoneId=firstZoneId;
     try {
       if (ZONES[this.zoneId]?.officialParis && !this.parisContoursReady) {
         $('startButton').disabled = true;
@@ -857,7 +939,6 @@ class GuessrGame {
     this.avoidPoint = null;
     this.lastAttemptPoint = null;
     this.round = 0;
-    this.roundCount = this.challengeConfig?.roundCount || 5;
     this.total = 0;
     this.results = [];
     $('startScreen').classList.add('hidden');
@@ -868,6 +949,9 @@ class GuessrGame {
   }
 
   async loadRound() {
+    const challengeRound=this.challengeConfig?.rounds?.[this.round] || null;
+    const roundZoneId=(challengeRound?.zoneId && ZONES[challengeRound.zoneId]) ? challengeRound.zoneId : (this.roundZoneIds?.[this.round] && ZONES[this.roundZoneIds[this.round]] ? this.roundZoneIds[this.round] : this.zoneId);
+    if (roundZoneId && ZONES[roundZoneId]) this.zoneId=roundZoneId;
     const zone = ZONES[this.zoneId];
     const token = ++this.currentRoundToken;
     this.guess = null;
@@ -902,11 +986,11 @@ class GuessrGame {
     $('travelPanel').classList.toggle('hidden', this.mode !== 'explore');
     this.updateTravelUI();
     this.updateCompass();
-    this.configureGuessMap(zone);
     try {
       let start;
       let startHeading;
-      const challengeRound = this.challengeConfig?.rounds?.[this.round] || null;
+      await this.prepareZone(this.zoneId);
+      this.configureGuessMap(zone);
       if (challengeRound) {
         $('loadingTitle').textContent = 'Chargement du challenge...';
         $('loadingText').textContent = `Panorama ${this.round + 1}/${this.roundCount} · ${zone.name}`;
@@ -970,7 +1054,7 @@ class GuessrGame {
     const points = scoreFor(distance, zone.scale);
     this.total += points;
     const seconds = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
-    this.results.push({distance,points,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount});
+    this.results.push({distance,points,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,zoneId:this.zoneId,zoneName:zone.name});
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent = formatDistance(distance);
     $('roundScoreLabel').textContent = points.toLocaleString('fr-FR');
@@ -1006,7 +1090,7 @@ class GuessrGame {
     if (!this.answer || !$('resultPanel').classList.contains('hidden')) return;
     const zone = ZONES[this.zoneId];
     const seconds = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
-    this.results.push({distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true});
+    this.results.push({distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name});
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent = 'Aucune réponse';
     $('roundScoreLabel').textContent = '0';
@@ -1049,10 +1133,13 @@ class GuessrGame {
     const maxScore = (this.roundCount || 5) * 5000;
     if ($('finalMaxScore')) $('finalMaxScore').textContent = maxScore.toLocaleString('fr-FR');
     const zone = ZONES[this.zoneId];
+    const selection=this.getSelectionDescriptor();
+    const selectionName=this.getSelectionName(selection);
+    const selectionLabel=selection.type==='playlist'?'Playlist':'Map';
     const validDistances = this.results.map(x => x.distance).filter(Number.isFinite);
     const avg = validDistances.reduce((s,x) => s + x,0) / Math.max(1,validDistances.length);
     const avgText = validDistances.length ? formatDistance(avg) : 'aucune réponse mesurée';
-    const key = `${this.zoneId}:${this.mode}`;
+    const key = `${this.getSelectionKey(selection)}:${this.mode}`;
     const isPerfect = this.total === 25000 && this.results.length === 5 && this.results.every(r => r.points === 5000);
 
     const perfects = readJSON(PERFECT_KEY, {});
@@ -1076,10 +1163,10 @@ class GuessrGame {
 
     let comment;
     if (isPerfect) {
-      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${avgText}.`;
+      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${avgText}.`;
       if (newPrecisionRecord && perfect.count > 1) comment += ' Nouveau record de précision sur un 25 000 !';
     } else {
-      comment = `Map ${zone.name} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. Distance moyenne : ${avgText}.`;
+      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. Distance moyenne : ${avgText}.`;
       const ratio = maxScore > 0 ? this.total / maxScore : 0;
       if (ratio >= .92) comment += ' Très grosse partie.';
       else if (ratio >= .76) comment += ' Solide.';
@@ -1111,12 +1198,16 @@ class GuessrGame {
       row.className = 'breakRow';
       const extra = this.mode === 'explore' ? ` - ${r.moves || 0} dépl.` : '';
       const distanceText = r.timedOut ? 'Aucune réponse' : formatDistance(r.distance);
-      row.innerHTML = `<span class="roundNum">${i+1}</span><span><strong>${this.escapeHTML(r.description || zone.name)}</strong><small>${distanceText} - ${r.seconds} s${extra}</small></span><b>${r.points.toLocaleString('fr-FR')} pts</b>`;
+      const roundZoneName=r.zoneName || ZONES[r.zoneId]?.name || zone.name;
+      const placeLabel=selection.type==='playlist' ? `${roundZoneName} · ${r.description || roundZoneName}` : (r.description || roundZoneName);
+      row.innerHTML = `<span class="roundNum">${i+1}</span><span><strong>${this.escapeHTML(placeLabel)}</strong><small>${distanceText} - ${r.seconds} s${extra}</small></span><b>${r.points.toLocaleString('fr-FR')} pts</b>`;
       $('breakdown').appendChild(row);
     });
-    const bests = readJSON(BEST_KEY, {});
-    bests[key] = Math.max(bests[key] || 0, this.total);
-    writeJSON(BEST_KEY, bests);
+    if ((this.roundCount || 5) === 5) {
+      const bests = readJSON(BEST_KEY, {});
+      bests[key] = Math.max(bests[key] || 0, this.total);
+      writeJSON(BEST_KEY, bests);
+    }
   }
 
   escapeHTML(text) {
@@ -1134,6 +1225,9 @@ class GuessrGame {
     $('gameScreen').classList.add('hidden');
     $('endScreen').classList.add('hidden');
     $('startScreen').classList.remove('hidden');
+    const selection=this.getSelectionDescriptor();
+    if (selection.type==='zone') this.zoneId=selection.zoneId;
+    this.updateSelectionBanner();
     this.updateBest();
   }
 }
