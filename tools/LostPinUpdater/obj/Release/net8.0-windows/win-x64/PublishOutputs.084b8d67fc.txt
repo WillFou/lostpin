@@ -1,0 +1,2 @@
+D:\Web\LostPin\dist\updater\LostPinUpdater.pdb
+D:\Web\LostPin\dist\updater\LostPinUpdater.exe
