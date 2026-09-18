@@ -1,0 +1,95 @@
+<Window x:Class="LostPinUpdater.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LostPin Updater"
+        Width="680"
+        Height="470"
+        MinWidth="620"
+        MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        Background="#111827">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="LostPin" Foreground="White" FontSize="30" FontWeight="Bold"/>
+            <TextBlock Text="Mise a jour et lancement" Foreground="#9CA3AF" FontSize="15" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Margin="0,24,0,0" Padding="18" CornerRadius="10" Background="#1F2937">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Version installee" Foreground="#9CA3AF"/>
+                    <TextBlock x:Name="InstalledVersionText" Text="-" Foreground="White" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Derniere version" Foreground="#9CA3AF"/>
+                    <TextBlock x:Name="LatestVersionText" Text="Verification..." Foreground="White" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Margin="0,18,0,0">
+            <TextBlock x:Name="StatusText" Text="Verification des mises a jour..." Foreground="#D1D5DB"/>
+            <ProgressBar x:Name="ProgressBar" Height="10" Minimum="0" Maximum="100" Value="0" Margin="0,10,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="3" Margin="0,18,0,18" Padding="14" CornerRadius="8" Background="#0F172A">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="ReleaseNotesText"
+                           Text="Les notes de version apparaitront ici."
+                           Foreground="#CBD5E1"
+                           TextWrapping="Wrap"/>
+            </ScrollViewer>
+        </Border>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="ConfigureApiButton"
+                    Grid.Column="0"
+                    Content="Configurer la cle API"
+                    Padding="14,9"
+                    Margin="0,0,10,0"
+                    Click="ConfigureApiButton_Click"/>
+
+            <Button x:Name="RefreshButton"
+                    Grid.Column="2"
+                    Content="Reverifier"
+                    Padding="14,9"
+                    Margin="0,0,10,0"
+                    Click="RefreshButton_Click"/>
+
+            <Button x:Name="UpdateButton"
+                    Grid.Column="3"
+                    Content="Mettre a jour"
+                    Padding="18,9"
+                    Margin="0,0,10,0"
+                    IsEnabled="False"
+                    Click="UpdateButton_Click"/>
+
+            <Button x:Name="PlayButton"
+                    Grid.Column="4"
+                    Content="Jouer"
+                    Padding="22,9"
+                    IsDefault="True"
+                    Click="PlayButton_Click"/>
+        </Grid>
+    </Grid>
+</Window>

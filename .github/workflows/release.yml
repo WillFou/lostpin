@@ -1,0 +1,137 @@
+name: Build LostPin release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Build updater
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "updater"
+          dotnet publish tools/LostPinUpdater/LostPinUpdater.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -o $out
+
+      - name: Build LostPin package
+        id: package
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v', 'V')
+          $stage = Join-Path $env:RUNNER_TEMP "LostPin"
+          $game = Join-Path $stage "Game"
+          $zip = Join-Path $env:RUNNER_TEMP "LostPin-$tag.zip"
+
+          New-Item -ItemType Directory -Force -Path $game | Out-Null
+
+          $excludedPrefixes = @(
+            ".github/",
+            "tools/",
+            "dist/"
+          )
+
+          $excludedFiles = @(
+            ".gitignore",
+            ".gitattributes",
+            "build-updater.bat",
+            "publish-release.bat",
+            "setup-updater.bat",
+            "UPDATER.md"
+          )
+
+          $trackedFiles = git ls-files
+          foreach ($file in $trackedFiles) {
+            $normalized = $file.Replace('\', '/')
+            $skip = $false
+
+            foreach ($prefix in $excludedPrefixes) {
+              if ($normalized.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $skip = $true
+                break
+              }
+            }
+
+            if ($skip -or $excludedFiles -contains $normalized) {
+              continue
+            }
+
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+              continue
+            }
+
+            $destination = Join-Path $game $file
+            $parent = Split-Path -Parent $destination
+            if ($parent) {
+              New-Item -ItemType Directory -Force -Path $parent | Out-Null
+            }
+            Copy-Item -LiteralPath $file -Destination $destination -Force
+          }
+
+          $versionInfo = [ordered]@{
+            version = $version
+            tag = $tag
+            commit = "${{ github.sha }}"
+            releasedAtUtc = (Get-Date).ToUniversalTime().ToString("o")
+          }
+          $versionInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $game "version.json") -Encoding UTF8
+
+          $manifestFiles = Get-ChildItem -LiteralPath $game -File -Recurse | ForEach-Object {
+            [System.IO.Path]::GetRelativePath($game, $_.FullName).Replace('\', '/')
+          }
+          $manifestFiles += "release-manifest.json"
+          $manifestFiles = $manifestFiles | Sort-Object -Unique
+
+          $manifest = [ordered]@{
+            version = $version
+            files = @($manifestFiles)
+          }
+          $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $game "release-manifest.json") -Encoding UTF8
+
+          Copy-Item -LiteralPath (Join-Path $env:RUNNER_TEMP "updater\LostPinUpdater.exe") -Destination (Join-Path $stage "LostPinUpdater.exe") -Force
+
+          @"
+          LOSTPIN $version
+
+          1. Lance LostPinUpdater.exe.
+          2. Au premier lancement, clique sur "Configurer la cle API" si necessaire.
+          3. Ensuite, utilise simplement LostPinUpdater.exe : il verifiera les nouvelles versions tout seul.
+
+          Le jeu se trouve dans le dossier Game.
+          "@ | Set-Content -LiteralPath (Join-Path $stage "LISEZ-MOI.txt") -Encoding UTF8
+
+          Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zip -CompressionLevel Optimal
+
+          "zip=$zip" >> $env:GITHUB_OUTPUT
+          "asset=LostPin-$tag.zip" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" "${{ steps.package.outputs.zip }}" `
+            --title "LostPin ${{ github.ref_name }}" `
+            --generate-notes `
+            --verify-tag
