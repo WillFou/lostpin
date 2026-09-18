@@ -1,4 +1,4 @@
-/* LostPin V4.4.11 - anchored HUD width fix */
+/* LostPin V4.4.13 */
 
 body{
   --theme-card:rgba(9,25,40,.94);
@@ -1174,4 +1174,38 @@ body[data-theme="midnight"] #gameScreen #multiCompactPanel .multiEmoteButton{bor
 }
 @media(max-width:560px){
   #gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{width:min(342px,calc(100vw - 18px))!important}
+}
+
+/* V4.4.13 - stabilisation du HUD ancré */
+#gameScreen .hudDraggable.hudAnchored{
+  max-width:calc(100vw - 28px);
+  max-height:calc(100vh - 28px);
+}
+#gameScreen.hud-layout-editing .hudDraggable{
+  user-select:none;
+  -webkit-user-select:none;
+}
+.hudLayoutEditHint{
+  position:fixed;
+  z-index:85;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  max-width:calc(100vw - 28px);
+  padding:8px 13px;
+  border:1px solid color-mix(in srgb,var(--theme-accent-2,var(--good)) 58%,var(--line));
+  border-radius:999px;
+  background:var(--theme-glass-strong,#071522ef);
+  color:var(--text);
+  box-shadow:0 8px 28px #0008;
+  backdrop-filter:blur(12px);
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.02em;
+  pointer-events:none;
+  white-space:nowrap;
+}
+body[data-theme="midnight"] .hudLayoutEditHint{border-radius:2px}
+@media(max-width:700px){
+  .hudLayoutEditHint{white-space:normal;text-align:center;bottom:10px;font-size:9px}
 }

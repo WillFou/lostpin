@@ -1,3 +1,15 @@
+# LostPin V4.4.13
+
+- Stabilisation du HUD déplaçable : correction automatique des ancrages en double.
+- Repositionnement automatique des blocs lorsque la fenêtre est redimensionnée afin de limiter les superpositions et de garder les modules visibles.
+- Mode édition du HUD plus explicite avec aide visuelle.
+- README entièrement remis à jour.
+- Ajout de version.json comme source de vérité de la version.
+- L'onglet navigateur lit désormais version.json avec cache désactivé.
+- Suppression des numéros de version codés en dur dans index.html et du numéro affiché dans le logo/HUD.
+
+---
+
 # LostPin V4.4.11
 
 - Correction du panneau Joueurs / Réactions lorsqu’il est ancré : il conserve désormais sa largeur compacte au lieu de s’étirer sur toute la fenêtre.
