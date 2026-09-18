@@ -1,4 +1,4 @@
-/* LostPin V4.4.13 */
+/* LostPin V4.4.14 */
 
 body{
   --theme-card:rgba(9,25,40,.94);
@@ -1208,4 +1208,43 @@ body[data-theme="midnight"] #gameScreen #multiCompactPanel .multiEmoteButton{bor
 body[data-theme="midnight"] .hudLayoutEditHint{border-radius:2px}
 @media(max-width:700px){
   .hudLayoutEditHint{white-space:normal;text-align:center;bottom:10px;font-size:9px}
+}
+
+/* V4.4.14 - PV de tous les joueurs visibles dans les cartes Duel */
+#gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerIdentity{
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:2px;
+  line-height:1.05;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerName{
+  display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#f2f6fa;
+  font-size:16px;
+  font-weight:950;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerHp{
+  display:block;
+  color:var(--good);
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.02em;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+#gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerHp.low{color:#ffbf5d}
+#gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerHp.critical{color:#ff6c7b;text-shadow:0 0 8px #ff536666}
+@media(max-width:760px){
+  #gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerName{font-size:15px}
+  #gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerHp{font-size:9px}
+}
+@media(max-width:560px){
+  #gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerName{font-size:14px}
 }

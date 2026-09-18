@@ -1166,7 +1166,10 @@ class MultiplayerController {
       const eliminated=this.onlineGameMode==='elimination' && !!p.eliminated;
       const state=disconnected?'disconnected':eliminated?'eliminated':done?'submitted':'pending';
       const pill=document.createElement('span'); pill.className=`multiStatusPlayer ${state}${newlySubmitted.has(p.id)?' justSubmitted':''}`;
-      pill.innerHTML=`${this.playerAvatarHtml(p,i,true)}<span>${esc(p.name)}</span><b>${disconnected?'!':eliminated?'×':done?'✓':'•'}</b>`;
+      const duelHp=this.onlineGameMode==='duel' ? Math.max(0,Number(p.hp==null?DUEL_START_HP:p.hp)) : null;
+      const hpClass=duelHp==null?'':duelHp<=DUEL_START_HP*.25?' critical':duelHp<=DUEL_START_HP*.5?' low':'';
+      const hpMarkup=duelHp==null?'':`<span class="multiPlayerHp${hpClass}">${duelHp.toLocaleString('fr-FR')} PV</span>`;
+      pill.innerHTML=`${this.playerAvatarHtml(p,i,true)}<span class="multiPlayerIdentity"><span class="multiPlayerName">${esc(p.name)}</span>${hpMarkup}</span><b>${disconnected?'!':eliminated?'×':done?'✓':'•'}</b>`;
       el.appendChild(pill);
     });
 

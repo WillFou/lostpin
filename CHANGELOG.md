@@ -1,3 +1,11 @@
+# LostPin V4.4.14
+
+- En mode Duel, les PV sont maintenant affichés directement dans la carte de chaque joueur du bloc Joueurs / Réactions.
+- Les PV passent en orange puis en rouge lorsqu'ils deviennent faibles.
+- Aucun changement d'affichage pour les modes Classique et Élimination.
+
+---
+
 # LostPin V4.4.13
 
 - Stabilisation du HUD déplaçable : correction automatique des ancrages en double.
