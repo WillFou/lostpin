@@ -5,6 +5,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
+Version 5.3.1.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.
@@ -12,11 +13,13 @@ Le logo et le HUD n'affichent volontairement aucun numéro de version.
 
 LANCEMENT
 ---------
-1. Décompresse entièrement le ZIP.
-2. Double-clique sur start.bat.
-3. Au premier lancement, saisis ta clé Google Maps si le script la demande.
-4. LostPin s'ouvre sur http://127.0.0.1:8080/.
+Installation distribuée (recommandée) :
+1. Décompresse entièrement la release LostPin.
+2. Lance LostPinUpdater.exe situé à côté du dossier Game.
+3. Au premier lancement, utilise « Configurer la clé API » si nécessaire.
+4. L'Updater vérifie ensuite les nouvelles releases avant de lancer le jeu.
 
+Lancement développeur / direct depuis le dossier Game : double-clique sur start.bat.
 Ne lance pas directement index.html : LostPin utilise un petit serveur local pour charger correctement Google Maps, version.json et les autres ressources.
 
 CLÉ GOOGLE MAPS
@@ -32,7 +35,16 @@ API nécessaire : Maps JavaScript API.
 
 SOLO
 ----
-Une partie classique comporte 5 manches pour un maximum de 25 000 points. Une playlist peut changer de map entre les manches.
+Une partie classique comporte 5 manches pour un maximum de 25 000 points. Une playlist peut changer de terrain entre les manches.
+
+SÉLECTION GÉOGRAPHIQUE
+----------------------
+L'accueil classe désormais les terrains par niveau : Paris, Villes, Pays, Continents et Monde.
+- Paris conserve les limites officielles de la Ville de Paris.
+- France conserve son contour dédié (métropole + Corse).
+- Europe, Amérique du Nord, Amérique du Sud, Asie, Afrique et Océanie tirent dans les zones Google Street View prises en charge par LostPin.
+- Monde utilise l'ensemble du catalogue mondial de zones prises en charge.
+Ces terrains larges privilégient la jouabilité Street View et ne constituent pas des frontières administratives exhaustives.
 
 Modes disponibles :
 - Move : déplacement, rotation et zoom autorisés.
@@ -234,3 +246,15 @@ LostPin mémorise, uniquement dans le navigateur :
 Les anciens meilleurs scores et les anciens compteurs de 25 000 sont importés quand ils existent déjà dans le localStorage. Les statistiques détaillées (historique des parties/manches) commencent à partir de la V5.2.
 
 Le bouton « Réinitialiser les statistiques » efface uniquement les données statistiques V5.2 ; les anciens records historiques restent gérés par LostPin et peuvent donc être réimportés.
+
+
+CATALOGUE GEOGRAPHIQUE (V5.3.2)
+---------------------------------
+Le choix des terrains est maintenant hierarchique. Dans Villes, on choisit d'abord
+le continent, puis le pays, puis la ville. Dans Pays, on choisit le continent puis
+le pays. La recherche est globale et accepte aussi des termes de contexte comme
+une region, un departement ou un alias (ex. Aube, Etats-Unis, Ile-de-France).
+
+Les IDs historiques des maps ne changent pas : les anciens Challenges, playlists
+et statistiques restent compatibles. Bagneux-la-Fosse reste une map officielle
+integree a LostPin.

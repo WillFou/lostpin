@@ -1,3 +1,30 @@
+# LostPin V5.3.2
+
+- Refonte du catalogue géographique autour d'une structure hiérarchique réutilisable.
+- Nouvelle navigation des villes : continent → pays → ville.
+- Nouvelle navigation des pays : continent → pays.
+- Recherche globale par map, ville, pays, continent, région, département ou alias.
+- Les maps existantes ont été migrées dans le catalogue sans changer leurs IDs persistés, afin de préserver Challenges, playlists, statistiques et multijoueur.
+- Bagneux-la-Fosse reste une map officielle intégrée à LostPin et est classée Europe → France → Grand Est → Aube.
+- L'éditeur de playlists utilise désormais le même catalogue géographique au lieu d'une liste de groupes codée séparément.
+- Ajout de `geography.js`, qui sépare l'organisation du catalogue des géométries de jeu conservées dans `app.js`.
+- Le sélecteur affiche des fils d'Ariane et des chemins géographiques pour préparer l'enrichissement massif prévu en V5.3.3.
+
+---
+
+# LostPin V5.3.1
+
+- Nouveau sélecteur géographique organisé par niveaux : Paris, Villes, Pays, Continents et Monde.
+- Six nouveaux terrains continentaux : Europe, Amérique du Nord, Amérique du Sud, Asie, Afrique et Océanie.
+- Les terrains continentaux utilisent uniquement le catalogue de zones Google Street View prises en charge par LostPin ; les maps Paris et France conservent leurs règles dédiées.
+- Les IDs historiques des Challenges sont conservés et les nouveaux terrains sont ajoutés en fin de table pour garder la compatibilité avec les codes LP5 existants.
+- Playlists intégrées revues avec « Tour des continents » et un Grand Mix enrichi.
+- Les playlists personnelles sont désormais modifiables (nom + terrains) sans devoir les supprimer puis les recréer.
+- Le sélecteur de terrains dans l’éditeur de playlist est regroupé par niveau géographique.
+- Packaging de distribution rétabli autour de LostPinUpdater.exe + dossier Game/ + release-manifest.json.
+
+---
+
 # LostPin V5.3.0
 
 - Nouveau système de Playlists / collections de maps.

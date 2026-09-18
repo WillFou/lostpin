@@ -182,6 +182,20 @@ const WORLD_AREAS = [
   ['South Africa',18.0,-34.5,31.0,-25.0],['Botswana',22.0,-25.5,28.0,-18.0],['Lesotho Eswatini',27.0,-31.0,32.0,-25.5],['Ghana',-2.5,5.0,0.8,10.5],['Uganda',30.0,-1.2,34.0,3.8]
 ].map(([name,west,south,east,north]) => ({name,west,south,east,north}));
 
+const areasNamed = (...names) => {
+  const wanted = new Set(names);
+  return WORLD_AREAS.filter(area => wanted.has(area.name));
+};
+
+const CONTINENT_AREAS = {
+  europe: areasNamed('Ireland','Great Britain','Iberia','France','Benelux','Germany','Denmark','Sweden South','Norway South','Finland South','Italy','Central Europe','Balkans','Greece'),
+  northAmerica: areasNamed('US Northeast','US Southeast','US Midwest','Texas','US Mountain','US West Coast','Ontario Quebec','British Columbia','Mexico Central','Yucatan'),
+  southAmerica: areasNamed('Colombia','Peru','Chile Central','Argentina Pampas','Uruguay','Brazil Southeast','Brazil South'),
+  asia: areasNamed('Japan Honshu','Japan Kyushu','South Korea','Taiwan','Thailand','Malaysia','Java','Singapore'),
+  africa: areasNamed('South Africa','Botswana','Lesotho Eswatini','Ghana','Uganda'),
+  oceania: areasNamed('Australia Southeast','Australia East','Australia Southwest','New Zealand North','New Zealand South')
+};
+
 const ZONES = {
   // Paris polygons are hydrated from the official City of Paris dataset before play.
   paris: {name:'Paris', center:{lat:48.8566,lng:2.3522}, zoom:12, polygons:[], radius:300, attempts:30, scale:4200, recent:900, requireLinks:true, officialParis:true},
@@ -190,7 +204,13 @@ const ZONES = {
   bagneux: {name:'Bagneux-la-Fosse', center:{lat:47.9933,lng:4.2986}, zoom:15, polygons:[BAGNEUX_PLAY], radius:300, attempts:38, scale:1800, recent:180, requireLinks:true, strictCandidate:true},
   washington: {name:'Washington DC', center:{lat:38.9072,lng:-77.0369}, zoom:12, polygons:[DC], radius:450, attempts:24, scale:5200, recent:900, requireLinks:true},
   france: {name:'France', center:{lat:46.5,lng:2.3}, zoom:6, polygons:[FRANCE_MAIN,CORSICA], radius:3500, attempts:34, scale:390000, recent:30000, requireLinks:true},
-  world: {name:'Monde', center:{lat:18,lng:10}, zoom:2, areas:WORLD_AREAS, radius:5000, attempts:38, scale:2200000, recent:250000, requireLinks:true}
+  world: {name:'Monde', center:{lat:18,lng:10}, zoom:2, areas:WORLD_AREAS, radius:5000, attempts:38, scale:2200000, recent:250000, requireLinks:true},
+  europe: {name:'Europe', center:{lat:50,lng:12}, zoom:4, areas:CONTINENT_AREAS.europe, radius:5000, attempts:40, scale:900000, recent:90000, requireLinks:true},
+  northAmerica: {name:'Amérique du Nord', center:{lat:39,lng:-99}, zoom:3, areas:CONTINENT_AREAS.northAmerica, radius:6000, attempts:42, scale:1500000, recent:150000, requireLinks:true},
+  southAmerica: {name:'Amérique du Sud', center:{lat:-18,lng:-60}, zoom:3, areas:CONTINENT_AREAS.southAmerica, radius:6000, attempts:42, scale:1400000, recent:150000, requireLinks:true},
+  asia: {name:'Asie', center:{lat:25,lng:108}, zoom:3, areas:CONTINENT_AREAS.asia, radius:6000, attempts:42, scale:1500000, recent:150000, requireLinks:true},
+  africa: {name:'Afrique', center:{lat:0,lng:22}, zoom:3, areas:CONTINENT_AREAS.africa, radius:6000, attempts:42, scale:1400000, recent:150000, requireLinks:true},
+  oceania: {name:'Océanie', center:{lat:-27,lng:145}, zoom:3, areas:CONTINENT_AREAS.oceania, radius:6000, attempts:42, scale:1400000, recent:150000, requireLinks:true}
 };
 
 class GuessrGame {
@@ -237,6 +257,8 @@ class GuessrGame {
     this.parisContoursSource = '';
     this.compassStyle = readJSON(COMPASS_STYLE_KEY, 'band');
     if (!COMPASS_STYLES.includes(this.compassStyle)) this.compassStyle = 'band';
+    this.geo = window.LOSTPIN_GEOGRAPHY || null;
+    this.geoState = {filter:'paris', continentId:null, countryId:null, query:''};
     this.bindUI();
     this.setCompassStyle(this.compassStyle, false);
     this.updateSelectionBanner();
@@ -245,9 +267,7 @@ class GuessrGame {
   }
 
   bindUI() {
-    document.querySelectorAll('.mapCard').forEach(card => card.addEventListener('click', () => {
-      this.setSelection({type:'zone',zoneId:card.dataset.zone});
-    }));
+    this.bindGeographyUI();
     document.querySelectorAll('.modeCard').forEach(card => card.addEventListener('click', () => {
       document.querySelectorAll('.modeCard').forEach(x => x.classList.remove('selected'));
       card.classList.add('selected');
@@ -296,6 +316,162 @@ class GuessrGame {
       else if (key === 'ArrowDown' && this.mode === 'explore') { e.preventDefault(); this.goBack(); }
       else if (key === 'Home' && this.mode === 'explore') { e.preventDefault(); this.goHome(); }
     });
+  }
+
+  bindGeographyUI() {
+    const allowed = new Set(['paris','city','country','continent','world','all']);
+    document.querySelectorAll('[data-zone-filter]').forEach(button => button.addEventListener('click', () => {
+      const filter=allowed.has(button.dataset.zoneFilter) ? button.dataset.zoneFilter : 'paris';
+      this.applyZoneFilter(filter);
+    }));
+    const search=$('zoneSearch');
+    search?.addEventListener('input',()=>{
+      this.geoState.query=String(search.value||'');
+      this.renderGeographySelector();
+    });
+    $('zoneSearchClear')?.addEventListener('click',()=>{
+      if (search) search.value='';
+      this.geoState.query='';
+      search?.focus();
+      this.renderGeographySelector();
+    });
+    this.renderGeographySelector();
+  }
+
+  applyZoneFilter(filter, options={}) {
+    const allowed = new Set(['paris','city','country','continent','world','all']);
+    const value=allowed.has(filter) ? filter : 'paris';
+    this.geoState.filter=value;
+    if (!options.keepHierarchy) {
+      this.geoState.continentId=null;
+      this.geoState.countryId=null;
+    }
+    if (!options.keepSearch) {
+      this.geoState.query='';
+      const search=$('zoneSearch'); if (search) search.value='';
+    }
+    this.renderGeographySelector();
+  }
+
+  showZoneInCatalog(zoneId) {
+    const meta=this.geo?.getMap?.(zoneId);
+    if (!meta) return;
+    const filter=this.geo.categoryForZone(zoneId);
+    this.geoState.filter=filter;
+    this.geoState.query='';
+    this.geoState.continentId=filter==='city' || filter==='country' ? (meta.continentId||null) : null;
+    this.geoState.countryId=filter==='city' ? (meta.countryId||null) : null;
+    const search=$('zoneSearch'); if (search) search.value='';
+    this.renderGeographySelector();
+  }
+
+  createGeoNode(level, node, count) {
+    const button=document.createElement('button');
+    button.type='button'; button.className='zoneNode';
+    button.dataset.geoLevel=level; button.dataset.geoId=node.id;
+    const levelName=level==='continent'?'Continent':'Pays';
+    button.innerHTML=`<span>${levelName}</span><b>${this.escapeHTML(node.name)}</b><small>${count} ${count>1?'terrains disponibles':'terrain disponible'}</small>`;
+    button.addEventListener('click',()=>{
+      if (level==='continent') { this.geoState.continentId=node.id; this.geoState.countryId=null; }
+      else if (level==='country') this.geoState.countryId=node.id;
+      this.renderGeographySelector();
+    });
+    return button;
+  }
+
+  createGeoMapCard(meta, searching=false) {
+    const button=document.createElement('button');
+    button.type='button'; button.className='mapCard'; button.dataset.zone=meta.zoneId;
+    button.classList.toggle('selected',this.selection?.type==='zone' && this.selection.zoneId===meta.zoneId);
+    const path=this.geo?.pathLabel?.(meta,{includeRegion:searching,includeDepartment:searching}) || '';
+    const kind=this.geo?.KIND_LABELS?.[meta.kind] || 'Map';
+    const icon=document.createElement('span'); icon.className='lpIcon'; icon.dataset.lpIcon=meta.icon||'world'; button.appendChild(icon);
+    const strong=document.createElement('strong'); strong.textContent=meta.name; button.appendChild(strong);
+    const small=document.createElement('small'); small.textContent=meta.description||''; button.appendChild(small);
+    if (path) { const pathEl=document.createElement('span'); pathEl.className='zonePath'; pathEl.textContent=path; button.appendChild(pathEl); }
+    const badge=document.createElement('span'); badge.className='zoneKind'; badge.textContent=kind; button.appendChild(badge);
+    button.addEventListener('click',()=>{
+      this.setSelection({type:'zone',zoneId:meta.zoneId});
+    });
+    return button;
+  }
+
+  renderGeoBreadcrumbs(parts=[]) {
+    const box=$('zoneBreadcrumbs'); if (!box) return;
+    box.replaceChildren();
+    parts.forEach((part,index)=>{
+      if (index) { const sep=document.createElement('i'); sep.textContent='›'; box.appendChild(sep); }
+      if (part.action) {
+        const button=document.createElement('button'); button.type='button'; button.textContent=part.label;
+        button.addEventListener('click',part.action); box.appendChild(button);
+      } else {
+        const label=document.createElement('b'); label.textContent=part.label; box.appendChild(label);
+      }
+    });
+  }
+
+  renderGeographySelector() {
+    const geo=this.geo, grid=$('zoneGrid'), hierarchy=$('zoneHierarchy'), empty=$('zoneEmpty');
+    if (!geo || !grid || !hierarchy) return;
+    const filter=this.geoState.filter || 'paris';
+    document.querySelectorAll('[data-zone-filter]').forEach(button=>button.classList.toggle('selected',button.dataset.zoneFilter===filter));
+    grid.replaceChildren(); hierarchy.replaceChildren(); empty?.classList.add('hidden');
+    const query=String(this.geoState.query||'').trim();
+    const clear=$('zoneSearchClear'); clear?.classList.toggle('hidden',!query);
+    if (query) {
+      const results=geo.search(query);
+      this.renderGeoBreadcrumbs([{label:'Recherche globale'},{label:`${results.length} résultat${results.length>1?'s':''}`}]);
+      if (!results.length) empty?.classList.remove('hidden');
+      results.forEach(meta=>grid.appendChild(this.createGeoMapCard(meta,true)));
+      window.LostPinTheme?.refreshIcons?.();
+      return;
+    }
+
+    let maps=[];
+    if (filter==='city') {
+      const continentId=this.geoState.continentId, countryId=this.geoState.countryId;
+      if (!continentId) {
+        this.renderGeoBreadcrumbs([{label:'Villes'},{label:'Choisir un continent'}]);
+        geo.continentsFor('city').forEach(node=>hierarchy.appendChild(this.createGeoNode('continent',node,geo.mapsFor('city',{continentId:node.id}).length)));
+      } else if (!countryId) {
+        const continent=geo.getContinent(continentId);
+        this.renderGeoBreadcrumbs([
+          {label:'Villes',action:()=>this.applyZoneFilter('city')},
+          {label:continent?.name||continentId},
+          {label:'Choisir un pays'}
+        ]);
+        geo.countriesFor('city',continentId).forEach(node=>hierarchy.appendChild(this.createGeoNode('country',node,geo.mapsFor('city',{continentId,countryId:node.id}).length)));
+      } else {
+        const continent=geo.getContinent(continentId), country=geo.getCountry(countryId);
+        this.renderGeoBreadcrumbs([
+          {label:'Villes',action:()=>this.applyZoneFilter('city')},
+          {label:continent?.name||continentId,action:()=>{this.geoState.countryId=null;this.renderGeographySelector();}},
+          {label:country?.name||countryId}
+        ]);
+        maps=geo.mapsFor('city',{continentId,countryId});
+      }
+    } else if (filter==='country') {
+      const continentId=this.geoState.continentId;
+      if (!continentId) {
+        this.renderGeoBreadcrumbs([{label:'Pays'},{label:'Choisir un continent'}]);
+        geo.continentsFor('country').forEach(node=>hierarchy.appendChild(this.createGeoNode('continent',node,geo.mapsFor('country',{continentId:node.id}).length)));
+      } else {
+        const continent=geo.getContinent(continentId);
+        this.renderGeoBreadcrumbs([
+          {label:'Pays',action:()=>this.applyZoneFilter('country')},
+          {label:continent?.name||continentId}
+        ]);
+        maps=geo.mapsFor('country',{continentId});
+      }
+    } else {
+      const labels={paris:'Paris',continent:'Continents',world:'Monde',all:'Tous les terrains'};
+      this.renderGeoBreadcrumbs([{label:labels[filter]||'Terrains'}]);
+      maps=geo.mapsFor(filter);
+    }
+
+    if (!maps.length && !hierarchy.children.length) empty?.classList.remove('hidden');
+    maps.forEach(meta=>grid.appendChild(this.createGeoMapCard(meta,false)));
+    window.LostPinTheme?.refreshIcons?.();
   }
 
   setApiStatus(text, kind = '') {
@@ -478,7 +654,8 @@ class GuessrGame {
     this.roundZoneIds=[];
     if (normalized.type==='zone') this.zoneId=normalized.zoneId;
     else if (!normalized.zoneIds.includes(this.zoneId)) this.zoneId=normalized.zoneIds[0];
-    document.querySelectorAll('.mapCard').forEach(card=>card.classList.toggle('selected',normalized.type==='zone' && card.dataset.zone===normalized.zoneId));
+    if (normalized.type==='zone') this.showZoneInCatalog(normalized.zoneId);
+    else this.renderGeographySelector();
     this.updateSelectionBanner();
     this.updateBest();
     if (notify) document.dispatchEvent(new CustomEvent('lostpin:selection-change',{detail:this.getSelectionDescriptor()}));
@@ -1232,6 +1409,6 @@ class GuessrGame {
   }
 }
 
-window.GUESSR_INTERNALS = { ZONES, haversine, scoreFor, formatDistance, normalizeHeading };
+window.GUESSR_INTERNALS = { ZONES, GEOGRAPHY:window.LOSTPIN_GEOGRAPHY, haversine, scoreFor, formatDistance, normalizeHeading };
 window.guessrGame = new GuessrGame();
 })();

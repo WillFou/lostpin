@@ -2,7 +2,7 @@
 'use strict';
 
 const $ = id => document.getElementById(id);
-const ZONE_IDS = ['paris','paris13','parisGroup','bagneux','washington','france','world'];
+const ZONE_IDS = ['paris','paris13','parisGroup','bagneux','washington','france','world','europe','northAmerica','southAmerica','asia','africa','oceania'];
 const MODE_IDS = ['explore','nomove','nmpz'];
 const TIMER_VALUES = [0,15,20,30,60,120,180];
 const ROUND_VALUES = [3,5,10];

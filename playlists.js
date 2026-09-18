@@ -13,8 +13,14 @@ const BUILT_INS = [
     zoneIds:['paris','paris13','parisGroup']
   },
   {
+    id:'tour-continents',
+    name:'Tour des continents',
+    description:'Un tour du monde équilibré entre les six grands terrains continentaux.',
+    zoneIds:['europe','northAmerica','southAmerica','asia','africa','oceania']
+  },
+  {
     id:'france-mix',
-    name:'France · ville & campagne',
+    name:'France · du local au national',
     description:'Paris, Bagneux-la-Fosse et la France entière.',
     zoneIds:['paris','bagneux','france']
   },
@@ -27,8 +33,8 @@ const BUILT_INS = [
   {
     id:'grand-mix',
     name:'Grand Mix LostPin',
-    description:'Toutes les maps disponibles dans une seule partie.',
-    zoneIds:['paris','paris13','parisGroup','bagneux','washington','france','world']
+    description:'Villes, France, continents et monde dans une seule collection.',
+    zoneIds:['paris','washington','france','europe','northAmerica','southAmerica','asia','africa','oceania','world']
   }
 ];
 
@@ -44,7 +50,9 @@ class PlaylistController {
   constructor(game,api){
     this.game=game;
     this.api=api;
+    this.geo=api.GEOGRAPHY || window.LOSTPIN_GEOGRAPHY || null;
     this.custom=this.loadCustom();
+    this.editingId=null;
     this.bindUI();
     this.renderZoneChoices();
     this.render();
@@ -63,14 +71,15 @@ class PlaylistController {
     if(zoneIds.length<2) return null;
     const id=String(item.id||makeId()).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,40) || makeId();
     const name=String(item.name||'Ma playlist').trim().slice(0,32) || 'Ma playlist';
-    return {id,name,description:`${zoneIds.length} maps personnalisées`,zoneIds};
+    return {id,name,description:`${zoneIds.length} terrains personnalisés`,zoneIds};
   }
 
   bindUI(){
     $('playlistButton')?.addEventListener('click',()=>this.open());
     $('closePlaylist')?.addEventListener('click',()=>this.close());
     $('playlistModal')?.addEventListener('click',e=>{ if(e.target===$('playlistModal')) this.close(); });
-    $('saveCustomPlaylist')?.addEventListener('click',()=>this.createCustom());
+    $('saveCustomPlaylist')?.addEventListener('click',()=>this.saveCustom());
+    $('cancelPlaylistEdit')?.addEventListener('click',()=>this.cancelEdit());
     window.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('playlistModal')?.classList.contains('hidden')) this.close(); });
   }
 
@@ -82,19 +91,29 @@ class PlaylistController {
   renderZoneChoices(){
     const box=$('customPlaylistZones'); if(!box) return;
     box.replaceChildren();
-    Object.entries(this.api.ZONES).forEach(([zoneId,zone])=>{
-      const label=document.createElement('label'); label.className='playlistZoneChoice';
-      label.innerHTML=`<input type="checkbox" value="${esc(zoneId)}"><span><b>${esc(zone.name)}</b><small>${esc(this.zoneHint(zoneId))}</small></span>`;
-      box.appendChild(label);
+    const zoneIds=Object.keys(this.api.ZONES);
+    const sections=this.geo?.playlistSections?.(zoneIds) || [['Terrains',zoneIds.map(id=>({zoneId:id,name:this.api.ZONES[id]?.name||id}))]];
+    sections.forEach(([title,items])=>{
+      const heading=document.createElement('div'); heading.className='playlistZoneGroupTitle'; heading.textContent=title; box.appendChild(heading);
+      items.forEach(item=>{
+        const zoneId=item.zoneId;
+        if(!this.api.ZONES[zoneId]) return;
+        const zone=this.api.ZONES[zoneId];
+        const label=document.createElement('label'); label.className='playlistZoneChoice';
+        label.innerHTML=`<input type="checkbox" value="${esc(zoneId)}"><span><b>${esc(zone.name)}</b><small>${esc(this.zoneHint(zoneId))}</small></span>`;
+        box.appendChild(label);
+      });
     });
   }
 
   zoneHint(zoneId){
-    const hints={
-      paris:'Paris entier',paris13:'13e arrondissement',parisGroup:'5e / 6e / 7e / 13e',bagneux:'Village et proches alentours',
-      washington:'District of Columbia',france:'Métropole et Corse',world:'Zones Street View mondiales'
-    };
-    return hints[zoneId] || 'Map LostPin';
+    const meta=this.geo?.getMap?.(zoneId);
+    if(meta){
+      const path=this.geo.pathLabel(meta,{includeRegion:true,includeDepartment:false});
+      const kind=this.geo.KIND_LABELS?.[meta.kind] || 'Terrain';
+      return path ? `${path} · ${kind}` : kind;
+    }
+    return 'Terrain LostPin';
   }
 
   render(){
@@ -128,8 +147,9 @@ class PlaylistController {
   card(item,builtIn){
     const article=document.createElement('article'); article.className='playlistCard'; article.dataset.playlistId=item.id;
     const names=item.zoneIds.map(id=>this.api.ZONES[id]?.name||id);
-    article.innerHTML=`<div class="playlistCardTop"><div><b>${esc(item.name)}</b><small>${esc(item.description||'')}</small></div><span>${item.zoneIds.length} maps</span></div><div class="playlistMapChips">${names.map(name=>`<i>${esc(name)}</i>`).join('')}</div><div class="playlistCardActions"><button type="button" class="primary">Utiliser</button>${builtIn?'':`<button type="button" class="secondary playlistDelete">Supprimer</button>`}</div>`;
+    article.innerHTML=`<div class="playlistCardTop"><div><b>${esc(item.name)}</b><small>${esc(item.description||'')}</small></div><span>${item.zoneIds.length} terrains</span></div><div class="playlistMapChips">${names.map(name=>`<i>${esc(name)}</i>`).join('')}</div><div class="playlistCardActions"><button type="button" class="primary">Utiliser</button>${builtIn?'':`<button type="button" class="secondary playlistEdit">Modifier</button><button type="button" class="secondary playlistDelete">Supprimer</button>`}</div>`;
     article.querySelector('.primary')?.addEventListener('click',()=>this.use(item,builtIn));
+    article.querySelector('.playlistEdit')?.addEventListener('click',()=>this.beginEdit(item.id));
     article.querySelector('.playlistDelete')?.addEventListener('click',()=>this.removeCustom(item.id));
     return article;
   }
@@ -145,17 +165,48 @@ class PlaylistController {
     return Array.from(document.querySelectorAll('#customPlaylistZones input[type="checkbox"]:checked')).map(x=>x.value).filter(id=>!!this.api.ZONES[id]);
   }
 
-  createCustom(){
+  beginEdit(id){
+    const item=this.custom.find(x=>x.id===id); if(!item) return;
+    this.editingId=id;
+    if($('customPlaylistName')) $('customPlaylistName').value=item.name;
+    const selected=new Set(item.zoneIds);
+    document.querySelectorAll('#customPlaylistZones input[type="checkbox"]').forEach(x=>x.checked=selected.has(x.value));
+    $('playlistEditNotice')?.classList.remove('hidden');
+    if($('playlistEditName')) $('playlistEditName').textContent=item.name;
+    if($('saveCustomPlaylist')) $('saveCustomPlaylist').textContent='Enregistrer et sélectionner';
+    $('cancelPlaylistEdit')?.classList.remove('hidden');
+    this.clearError();
+  }
+
+  cancelEdit(){
+    this.editingId=null;
+    if($('customPlaylistName')) $('customPlaylistName').value='';
+    document.querySelectorAll('#customPlaylistZones input[type="checkbox"]').forEach(x=>x.checked=false);
+    $('playlistEditNotice')?.classList.add('hidden');
+    if($('playlistEditName')) $('playlistEditName').textContent='—';
+    if($('saveCustomPlaylist')) $('saveCustomPlaylist').textContent='Créer et sélectionner';
+    $('cancelPlaylistEdit')?.classList.add('hidden');
+    this.clearError();
+  }
+
+  saveCustom(){
     this.clearError();
     const name=String($('customPlaylistName')?.value||'').trim().replace(/\s+/g,' ').slice(0,32);
     const zoneIds=uniqueZones(this.selectedZoneIds(),this.api.ZONES);
     if(!name){ this.showError('Donne un nom à la playlist.'); return; }
-    if(zoneIds.length<2){ this.showError('Choisis au moins deux maps.'); return; }
-    const item={id:makeId(),name,description:`${zoneIds.length} maps personnalisées`,zoneIds};
-    this.custom=[item,...this.custom].slice(0,MAX_CUSTOM);
+    if(zoneIds.length<2){ this.showError('Choisis au moins deux terrains.'); return; }
+    let item;
+    if(this.editingId){
+      const index=this.custom.findIndex(x=>x.id===this.editingId);
+      if(index<0){ this.cancelEdit(); return; }
+      item={...this.custom[index],name,description:`${zoneIds.length} terrains personnalisés`,zoneIds};
+      this.custom[index]=item;
+    } else {
+      item={id:makeId(),name,description:`${zoneIds.length} terrains personnalisés`,zoneIds};
+      this.custom=[item,...this.custom].slice(0,MAX_CUSTOM);
+    }
     writeJSON(STORAGE_KEY,this.custom);
-    if($('customPlaylistName')) $('customPlaylistName').value='';
-    document.querySelectorAll('#customPlaylistZones input[type="checkbox"]').forEach(x=>x.checked=false);
+    this.cancelEdit();
     this.render();
     this.use(item,false);
   }
@@ -164,6 +215,7 @@ class PlaylistController {
     const item=this.custom.find(x=>x.id===id); if(!item) return;
     if(!window.confirm(`Supprimer la playlist « ${item.name} » ?`)) return;
     this.custom=this.custom.filter(x=>x.id!==id); writeJSON(STORAGE_KEY,this.custom);
+    if(this.editingId===id) this.cancelEdit();
     const current=this.selection();
     if(current.type==='playlist' && current.id===id) this.game.setSelection({type:'zone',zoneId:'paris'});
     this.render();
