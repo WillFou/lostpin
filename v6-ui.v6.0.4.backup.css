@@ -734,7 +734,7 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
     linear-gradient(180deg,#06111f06 55%,#06111fef 100%),
     url('assets/v6/hero-game.jpg');
   background-size:cover;
-  background-position:center 34%;
+  background-position:center 50%;
 }
 .v6HeroBackdrop::after{display:none!important}
 
@@ -865,7 +865,44 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
 #gameScreen .quitGameCross{font-size:19px;line-height:1}
 
 /* Mode identity now lives in the top game bar. Keep the legacy node hidden for JS compatibility. */
+#gameScreen .gameModeCard{display:none!important}
 
+/* Mode identity card. It is useful context, not another menu. */
+#gameScreen .gameModeCard{
+  position:absolute;
+  z-index:24;
+  top:calc(var(--game-bar-h) + 18px);
+  left:20px;
+  width:min(300px,calc(100vw - 40px));
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:14px 15px;
+  border:1px solid #80acd04a;
+  border-radius:16px;
+  background:linear-gradient(145deg,#071726eb,#0a1d2fed);
+  box-shadow:0 18px 42px #0006,inset 0 0 0 1px #ffffff05;
+  backdrop-filter:blur(15px) saturate(135%);
+  pointer-events:none;
+}
+#gameScreen .gameModeGlyph{
+  width:39px;height:39px;flex:0 0 39px;
+  display:grid;place-items:center;
+  border-radius:12px;
+  border:1px solid #ff4d8870;
+  background:#ff2d6818;
+  color:#ff6e96;
+  font-size:21px;font-weight:950;
+}
+#gameScreen .gameModeCard>span:last-child{display:grid;min-width:0}
+#gameScreen .gameModeCard small{font-size:8px;letter-spacing:.16em;color:#6fdfff;font-weight:950}
+#gameScreen .gameModeCard strong{margin-top:2px;font-size:17px;line-height:1.15;color:#fff;font-weight:950}
+#gameScreen .gameModeCard em{margin-top:4px;font-style:normal;font-size:11px;line-height:1.35;color:#b9cada;font-weight:700}
+#gameScreen .gameModeCard[data-mode="nomove"] .gameModeGlyph,
+#gameScreen .gameModeCard[data-mode="nmpz"] .gameModeGlyph{border-color:#a66fff73;background:#8a46ff18;color:#c39bff}
+#gameScreen .gameModeCard[data-variant="blitz"] .gameModeGlyph{border-color:#ffbf5f73;background:#ffac3318;color:#ffd06f}
+#gameScreen .gameModeCard[data-mode="exploration"] .gameModeGlyph{border-color:#55e4ce70;background:#55e4ce18;color:#7ef0db}
+#gameScreen.multiplayer-active .gameModeCard{display:none}
 
 /* Timer remains movable but visually belongs to the top bar. */
 #gameScreen #multiTimer{
@@ -882,6 +919,7 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
 #gameScreen #multiTimerValue{font-size:29px;line-height:1;color:#fff;font-weight:950;font-variant-numeric:tabular-nums}
 #gameScreen #multiTimer.urgent{border-color:#ffb24d99;background:#23190ef2}
 #gameScreen #multiTimer.critical{border-color:#ff4e6da8;background:#2a0e18f2}
+#gameScreen #multiTimer.hudAnchored,#gameScreen #compass.hudAnchored,#gameScreen #multiCompactPanel.hudAnchored{z-index:64!important}
 
 /* Response map: large enough to play, compact enough to preserve Street View. */
 #gameScreen #mapPanel{
@@ -1004,6 +1042,8 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
   box-shadow:0 20px 52px #0008;
 }
 
+/* HUD editor should still clearly show movable pieces. */
+#gameScreen.hud-layout-editing .gameModeCard{opacity:.42}
 
 @media(max-width:1280px){
   #gameScreen .modeHud{min-width:112px}
@@ -1031,7 +1071,9 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
   #gameScreen .hudBlock b{font-size:18px}
   #gameScreen .scoreHud{min-width:82px}
   #gameScreen .topActions .icon{width:39px;height:39px}
-  #gameScreen #musicGameButton{display:none!important}
+  #gameScreen #musicGameButton,#gameScreen #hudLayoutResetButton{display:none!important}
+  #gameScreen .gameModeCard{top:calc(var(--game-bar-h) + 12px);left:12px;width:255px;padding:11px 12px}
+  #gameScreen .gameModeCard em{font-size:10px}
   #gameScreen #mapPanel{right:12px;bottom:12px;width:330px;height:330px}
   #gameScreen.exploration-mission #travelPanel:not(.hidden){left:12px;bottom:12px;width:250px}
 }
@@ -1048,9 +1090,12 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
   #gameScreen .roundHud{min-width:48px}
   #gameScreen .roundHud small{font-size:7px}
   #gameScreen .roundHud b{font-size:16px}
-  #gameScreen .topActions #compassGameButton{display:none}
+  #gameScreen .topActions #compassGameButton,#gameScreen .topActions #hudLayoutLockButton{display:none}
   #gameScreen .topActions .icon{width:36px;height:36px;border-radius:10px}
+  #gameScreen .gameModeCard{top:calc(var(--game-bar-h) + 8px);left:8px;width:215px;padding:9px 10px}
   #gameScreen .gameModeGlyph{width:32px;height:32px;flex-basis:32px;font-size:17px}
+  #gameScreen .gameModeCard strong{font-size:14px}
+  #gameScreen .gameModeCard em{display:none}
   #gameScreen #mapPanel:not(.expanded){right:8px;bottom:8px;width:calc(100vw - 16px);height:40vh;min-height:285px}
   #gameScreen #mapPanel.expanded{right:8px;bottom:8px;width:calc(100vw - 16px);height:calc(100vh - 78px)}
   #gameScreen.exploration-mission #travelPanel:not(.hidden){display:none!important}
@@ -1066,253 +1111,3 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
 @media(max-width:1280px){#gameScreen #mapHud.hudContext{min-width:150px;flex-basis:210px}#gameScreen #mapHud .hudContextCopy{min-width:105px}}
 @media(max-width:980px){#gameScreen #mapHud.hudContext{min-width:120px;flex-basis:160px}#gameScreen #mapHud .hudContextCopy{min-width:95px}}
 @media(max-width:700px){#gameScreen #mapHud.hudContext{display:none}}
-
-/* ========================================================================== */
-/* LostPin V6.0.5 - HUD simplification / compass                             */
-/* ========================================================================== */
-
-/* The compass belongs to the panorama, not to another card. Default position:
-   centered directly below the fixed game bar. */
-#gameScreen #compass,
-#gameScreen #compass[data-style="band"],
-#gameScreen #compass[data-style="pano"],
-#gameScreen #compass[data-style="circle"],
-#gameScreen #compass[data-style="minimal"],
-#gameScreen #compass[data-style="rose"],
-#gameScreen #compass[data-style="hybrid"],
-#gameScreen #compass[data-style="real"],
-#gameScreen #compass[data-style="vintage"]{
-  left:50%;
-  right:auto;
-  top:calc(var(--game-bar-h) + 8px);
-  bottom:auto;
-  transform:translateX(-50%);
-  border:0;
-  background:transparent;
-  box-shadow:none;
-  backdrop-filter:none;
-  filter:drop-shadow(0 2px 5px #000b);
-}
-
-/* The horizontal compass is the default V6 presentation: no dark capsule. */
-#gameScreen #compass[data-style="band"] .compassPanel,
-#gameScreen #compass[data-style="pano"] .compassPanel,
-#gameScreen #compass[data-style="minimal"] .compassPanel{
-  border-color:transparent;
-  background:transparent;
-  box-shadow:none;
-  backdrop-filter:none;
-}
-#gameScreen #compass .compassBand{
-  padding:3px 10px 2px;
-  text-shadow:0 2px 5px #000,0 0 8px #000b;
-}
-#gameScreen #compass .compassBandViewport{height:22px}
-#gameScreen #compass .compassTrack span{color:#d6e0e8;text-shadow:0 2px 5px #000}
-#gameScreen #compass .compassTrack span.major{color:#fff}
-#gameScreen #compass .compassDegrees{color:#f0f5f8;text-shadow:0 2px 5px #000;font-size:10px}
-#gameScreen #compass .compassPanoViewport{background:transparent}
-#gameScreen #compass .panoDegree{background:transparent;text-shadow:0 2px 5px #000}
-
-
-@media(max-width:760px){
-  #gameScreen #compass,
-  #gameScreen #compass[data-style="band"],
-  #gameScreen #compass[data-style="pano"],
-  #gameScreen #compass[data-style="circle"],
-  #gameScreen #compass[data-style="minimal"],
-  #gameScreen #compass[data-style="rose"],
-  #gameScreen #compass[data-style="hybrid"],
-  #gameScreen #compass[data-style="real"],
-  #gameScreen #compass[data-style="vintage"]{
-    top:calc(var(--game-bar-h) + 6px);
-  }
-}
-
-/* ========================================================================== */
-/* LostPin V6.0.5 - fixed, deliberate in-game HUD layout                     */
-/* ========================================================================== */
-
-/* No draggable/anchor system in V6: every element has one intentional home. */
-#gameScreen .topHudLeft{width:auto!important;min-width:0;display:flex;align-items:center}
-#gameScreen .hud{min-width:0}
-
-/* Timers belong to the top bar, between round and score. */
-#gameScreen #multiTimer{
-  position:static!important;
-  inset:auto!important;
-  transform:none!important;
-  flex:0 0 auto;
-  min-width:104px;
-  min-height:0;
-  margin:0;
-  padding:0 0 0 18px;
-  border:0;
-  border-left:1px solid #86a9c72e;
-  border-radius:0;
-  background:transparent;
-  box-shadow:none;
-  backdrop-filter:none;
-  text-align:left;
-}
-#gameScreen #multiTimer small{font-size:9px;letter-spacing:.13em;color:#7f9db6;margin:0 0 3px}
-#gameScreen #multiTimerValue{font-size:22px;line-height:1;color:#fff}
-#gameScreen #multiTimer.urgent,#gameScreen #multiTimer.critical{background:transparent;border-color:#86a9c72e}
-#gameScreen #multiTimer.urgent #multiTimerValue{color:#ffd06f}
-#gameScreen #multiTimer.critical #multiTimerValue{color:#ff6e8d}
-
-/* Multiplayer status is a compact left rail below the game bar. */
-#gameScreen.multiplayer-active #multiCompactPanel{
-  position:absolute!important;
-  z-index:31!important;
-  left:20px!important;
-  top:calc(var(--game-bar-h) + 14px)!important;
-  right:auto!important;
-  bottom:auto!important;
-  transform:none!important;
-  width:min(440px,calc(100vw - 40px))!important;
-  margin:0!important;
-  max-height:calc(100vh - var(--game-bar-h) - 34px);
-}
-
-/* Compass floats on Street View: transparent and centered below the top bar. */
-#gameScreen #compass,
-#gameScreen #compass[data-style="band"],
-#gameScreen #compass[data-style="pano"],
-#gameScreen #compass[data-style="circle"],
-#gameScreen #compass[data-style="minimal"],
-#gameScreen #compass[data-style="rose"],
-#gameScreen #compass[data-style="hybrid"],
-#gameScreen #compass[data-style="real"],
-#gameScreen #compass[data-style="vintage"]{
-  position:absolute!important;
-  z-index:30!important;
-  left:50%!important;
-  right:auto!important;
-  top:calc(var(--game-bar-h) + 8px)!important;
-  bottom:auto!important;
-  transform:translateX(-50%)!important;
-  margin:0!important;
-  border:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  backdrop-filter:none!important;
-  pointer-events:none;
-}
-#gameScreen #compass .compassPanel,
-#gameScreen #compass .compassBand,
-#gameScreen #compass .compassPano,
-#gameScreen #compass .compassMinimal,
-#gameScreen #compass .compassHybrid,
-#gameScreen #compass .circleReadout,
-#gameScreen #compass .realReadout,
-#gameScreen #compass .vintageReadout{
-  background:transparent!important;
-  box-shadow:none!important;
-  backdrop-filter:none!important;
-  border-color:transparent!important;
-}
-#gameScreen #compass .compassCircle,
-#gameScreen #compass .compassRose,
-#gameScreen #compass .compassReal,
-#gameScreen #compass .compassVintage{
-  background:transparent!important;
-  box-shadow:none!important;
-}
-
-/* Ordinary geolocation uses native Street View navigation only. */
-#gameScreen #travelPanel{display:none!important}
-#gameScreen.exploration-mission #travelPanel:not(.hidden){display:block!important}
-
-/* Central notices stay below the compass so nothing overlaps. */
-#gameScreen #busyBadge{top:calc(var(--game-bar-h) + 52px)}
-#gameScreen .toast{top:calc(var(--game-bar-h) + 94px)}
-
-@media(max-width:1280px){
-  #gameScreen #multiTimer{min-width:86px;padding-left:12px}
-  #gameScreen #multiTimerValue{font-size:19px}
-  #gameScreen.multiplayer-active #multiCompactPanel{left:12px!important;width:min(390px,calc(100vw - 24px))!important}
-}
-@media(max-width:980px){
-  #gameScreen #multiTimer{min-width:70px;padding-left:10px}
-  #gameScreen #multiTimer small{display:none}
-  #gameScreen #multiTimerValue{font-size:18px}
-  #gameScreen.multiplayer-active #multiCompactPanel{top:calc(var(--game-bar-h) + 10px)!important}
-}
-@media(max-width:700px){
-  #gameScreen #multiTimer{min-width:54px;padding-left:8px}
-  #gameScreen #multiTimerValue{font-size:16px}
-  #gameScreen.multiplayer-active #multiCompactPanel{left:8px!important;top:calc(var(--game-bar-h) + 8px)!important;width:min(342px,calc(100vw - 16px))!important}
-  #gameScreen #compass,#gameScreen #compass[data-style]{top:calc(var(--game-bar-h) + 5px)!important}
-  #gameScreen #busyBadge{top:calc(var(--game-bar-h) + 46px)}
-  #gameScreen .toast{top:calc(var(--game-bar-h) + 84px)}
-}
-
-
-/* ========================================================================== */
-/* LostPin V6.0.6 - readable compass + movable multiplayer J/R panel          */
-/* ========================================================================== */
-
-/* The outer compass layer stays transparent. Only the compass itself keeps a
-   compact translucent backing so it remains readable over bright Street View. */
-#gameScreen #compass{
-  background:transparent!important;
-  border:0!important;
-  box-shadow:none!important;
-  backdrop-filter:none!important;
-}
-#gameScreen #compass[data-style="band"] .compassBand,
-#gameScreen #compass[data-style="minimal"] .compassMinimal,
-#gameScreen #compass[data-style="hybrid"] .compassHybrid{
-  background:rgba(6,18,30,.80)!important;
-  border:1px solid rgba(157,195,219,.30)!important;
-  box-shadow:0 6px 20px rgba(0,0,0,.40)!important;
-  backdrop-filter:blur(8px) saturate(120%)!important;
-}
-#gameScreen #compass[data-style="pano"] .compassPanoViewport{
-  background:linear-gradient(90deg,rgba(6,18,30,.12),rgba(6,18,30,.82) 18%,rgba(6,18,30,.82) 82%,rgba(6,18,30,.12))!important;
-  border:1px solid rgba(157,195,219,.18)!important;
-  box-shadow:0 5px 18px rgba(0,0,0,.32)!important;
-  backdrop-filter:blur(6px)!important;
-}
-#gameScreen #compass[data-style="pano"] .panoDegree,
-#gameScreen #compass .circleReadout,
-#gameScreen #compass .realReadout,
-#gameScreen #compass .vintageReadout{
-  background:rgba(6,18,30,.86)!important;
-  border:1px solid rgba(157,195,219,.28)!important;
-  box-shadow:0 4px 14px rgba(0,0,0,.36)!important;
-  backdrop-filter:blur(8px)!important;
-}
-#gameScreen #compass .compassCircle,
-#gameScreen #compass .compassRose,
-#gameScreen #compass .compassReal{
-  background-color:rgba(6,18,30,.88)!important;
-  box-shadow:inset 0 0 18px rgba(0,0,0,.52),0 6px 20px rgba(0,0,0,.42)!important;
-  backdrop-filter:blur(8px)!important;
-}
-/* Keep the detailed dials instead of flattening their original artwork. */
-#gameScreen #compass .compassReal{
-  background:radial-gradient(circle at 38% 32%,rgba(38,52,66,.96) 0 14%,rgba(17,27,37,.96) 38%,rgba(7,16,25,.97) 73%,rgba(3,7,11,.98) 100%)!important;
-}
-#gameScreen #compass .compassVintage{
-  background:radial-gradient(circle,#f2e2b6 0 58%,#d6b66e 59% 62%,#5d431d 63% 70%,#b98b42 71% 77%,#3b2a13 78% 100%)!important;
-  box-shadow:inset 0 0 13px #5c3e1caa,0 6px 20px rgba(0,0,0,.46)!important;
-}
-
-/* J/R is the one movable gameplay panel. This is deliberately independent of
-   the removed anchor system: drag its first header, and the pixel position is
-   saved by multiplayer.js. */
-#gameScreen #multiCompactPanel .multiCompactDragHandle{
-  cursor:grab;
-  user-select:none;
-  touch-action:none;
-}
-#gameScreen #multiCompactPanel.is-dragging .multiCompactDragHandle{cursor:grabbing}
-#gameScreen.multiplayer-active #multiCompactPanel.is-user-positioned{
-  left:var(--multi-panel-left)!important;
-  top:var(--multi-panel-top)!important;
-  right:auto!important;
-  bottom:auto!important;
-  transform:none!important;
-}

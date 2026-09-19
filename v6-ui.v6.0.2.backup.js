@@ -67,9 +67,9 @@ function bindNavigation() {
   $('v6NavProfile')?.addEventListener('click', () => clickExisting('statsButton'));
   $('v6HeroProfile')?.addEventListener('click', () => clickExisting('statsButton'));
   $('v6HeroChallenge')?.addEventListener('click', () => clickExisting('challengeButton'));
+  $('v6HeroBlitz')?.addEventListener('click', () => applyPreset('blitz'));
   $('v6SearchNav')?.addEventListener('click', () => { scrollToSection('v6Catalog'); setTimeout(() => $('zoneSearch')?.focus(), 420); });
   $('v6ModeMultiplayer')?.addEventListener('click', () => clickExisting('multiplayerButton'));
-  $('v6ModeChallenge')?.addEventListener('click', () => clickExisting('challengeButton'));
   $('v6CommunityMulti')?.addEventListener('click', () => clickExisting('multiplayerButton'));
   $('v6CommunityChallenge')?.addEventListener('click', () => clickExisting('challengeButton'));
   $('v6CommunityStats')?.addEventListener('click', () => clickExisting('statsButton'));
@@ -112,12 +112,7 @@ function addVersionClass() {
   document.documentElement.classList.add('lostpin-v6');
 }
 
-function clearLegacyHudLayout() {
-  try { localStorage.removeItem('lostpin-hud-layout-v2'); } catch (_) {}
-}
-
 addVersionClass();
-clearLegacyHudLayout();
 bindNavigation();
 bindScrollSpy();
 mirrorLaunchState();

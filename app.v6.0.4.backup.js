@@ -396,12 +396,41 @@ class GuessrGame {
   updateGameHudMode() {
     const mission=this.playType==='exploration';
     let title='Classique';
-    if (mission) title='Exploration';
-    else if (this.mode==='nmpz') title='NMPZ';
-    else if (this.mode==='nomove') title='No Move';
-    if (!mission && this.gameVariant==='blitz') title += ` · Blitz`;
-    else if (!mission && this.gameVariant==='precision') title += ' · Précision';
+    let text='Déplacement libre · observe, explore et place ton repère.';
+    let glyph='◎';
+    if (mission) {
+      title='Exploration';
+      text='Rejoins physiquement la cible dans Street View.';
+      glyph='⌖';
+    } else if (this.mode==='nmpz') {
+      title='NMPZ';
+      text='Aucun déplacement, aucune rotation, aucun zoom.';
+      glyph='◉';
+    } else if (this.mode==='nomove') {
+      title='No Move';
+      text='Pas de déplacement · tout se joue depuis le point de départ.';
+      glyph='⊘';
+    }
+    if (!mission && this.gameVariant==='blitz') {
+      title += ` · Blitz`;
+      text = `${this.blitzSeconds} secondes pour trouver et valider ta position.`;
+      glyph='⚡';
+    } else if (!mission && this.gameVariant==='precision') {
+      title += ' · Précision';
+      text = this.mode==='explore'
+        ? 'Déplacement libre · chaque mètre compte davantage.'
+        : `${text} Chaque mètre compte davantage.`;
+    }
     if ($('gameModeLabel')) $('gameModeLabel').textContent=title;
+    if ($('gameModeCardTitle')) $('gameModeCardTitle').textContent=title;
+    if ($('gameModeCardText')) $('gameModeCardText').textContent=text;
+    const card=$('gameModeCard');
+    if (card) {
+      card.dataset.mode=mission?'exploration':this.mode;
+      card.dataset.variant=this.gameVariant;
+      const icon=card.querySelector('.gameModeGlyph');
+      if (icon) icon.textContent=glyph;
+    }
   }
 
   variantRecordKey(selection=this.getSelectionDescriptor()) {
@@ -1536,7 +1565,7 @@ class GuessrGame {
     if ($('placeLink')) $('placeLink').textContent=mission?'Voir la cible dans Google Maps':"Voir l'endroit dans Google Maps";
     const mapHeader=$('mapPanel')?.querySelector('.mapHeader span');
     if (mapHeader) mapHeader.textContent=mission?'REJOINS LA CIBLE':'PLACE TON MARQUEUR';
-    $('travelPanel').classList.toggle('hidden', !mission);
+    $('travelPanel').classList.toggle('hidden', this.mode !== 'explore');
     this.updateTravelUI();
     this.updateCompass();
     try {

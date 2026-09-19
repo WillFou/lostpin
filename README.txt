@@ -5,7 +5,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
-Version 6.0.3.
+Version 6.0.6.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.
@@ -261,7 +261,6 @@ index.html       Interface principale.
 app.js           Gameplay solo et intégration Street View / carte.
 multiplayer.js   Multijoueur en ligne (pair-à-pair).
 challenge.js     Création, import, timer et historique des challenges.
-hud-layout.js    Déplacement, ancrage et persistance du HUD.
 themes.css       Styles et thèmes.
 theme.js         Gestion de l'identité visuelle.
 music.js         Ambiance audio.

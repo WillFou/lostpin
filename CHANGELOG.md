@@ -1,3 +1,37 @@
+# LostPin V6.0.6
+
+- Boussole : le conteneur global reste transparent, mais le cadran et le petit badge de cap retrouvent chacun un fond propre semi-transparent pour rester lisibles sur Street View.
+- Les styles circulaires/réalistes conservent leur cadran détaillé au lieu d’être aplatis par le thème V6.
+- Le panneau multijoueur Joueurs / Réactions devient déplaçable librement en le faisant glisser par son en-tête.
+- La position J/R est mémorisée localement, limitée à la zone visible et réajustée lors d’un redimensionnement de fenêtre.
+- Double-clic sur l’en-tête J/R : retour à sa position par défaut sous le bandeau, à gauche.
+- Aucun retour du système d’ancrage général : tous les autres éléments du HUD restent placés volontairement.
+
+# LostPin V6.0.5
+
+- Suppression complète du système d’ancrage/déplacement du HUD et des boutons cadenas/réinitialisation associés.
+- Placement fixe des éléments : bandeau supérieur pour le contexte et le timer, boussole centrée sous le bandeau, panneau multijoueur sous le bandeau à gauche, carte en bas à droite.
+- HUD de partie : le mode de jeu est maintenant affiché directement dans le bandeau supérieur, à côté du terrain, de la manche et du score.
+- Suppression du panneau flottant redondant « Mode de jeu ».
+- Restauration du comportement V5 pour les commandes de déplacement : aucun bloc de déplacement en partie de géolocalisation classique.
+- Le panneau de déplacement reste disponible uniquement pour les missions Exploration, où Avancer / Reculer / Demi-tour / Départ sont nécessaires.
+- Boussole replacée par défaut en haut au centre, juste sous le bandeau de jeu.
+- Suppression du fond sombre de la boussole bandeau/panoramique afin qu’elle se superpose directement à Street View.
+
+# LostPin V6.0.4
+
+- Refonte du véritable écran de jeu / HUD V6 en prenant la maquette gameplay validée comme référence.
+- Nouvelle barre supérieure pleine largeur : marque LostPin, collection, mode, manche, score et actions regroupés dans une hiérarchie beaucoup plus lisible.
+- Ajout d'une carte de contexte de mode dynamique (Classique, No Move, NMPZ, Exploration, Blitz, Précision) sans modifier le moteur de jeu.
+- Carte de réponse redessinée : dimensions plus jouables, en-tête clair, CTA « Valider ma position », indice de placement et mode agrandi conservé.
+- Retour des contrôles de déplacement sous forme de panneau compact en bas à gauche pour le mode classique ; ils restent masqués lorsque le déplacement est interdit.
+- Nouveau traitement du timer Blitz/multijoueur afin qu'il s'intègre visuellement à la barre de jeu.
+- Street View redevient visuellement dominant : gradients plus légers et panneaux limités aux bords de l'écran.
+- Responsive revu pour 1920/2048 px, tablettes et petits écrans ; la carte passe en largeur mobile sans rendre le HUD illisible.
+- Aucun changement du scoring, des recherches Street View, des Challenges, du protocole multijoueur ou de la logique des modes.
+
+---
+
 # LostPin V6.0.3
 
 - Homepage reconstruite en prenant la maquette gaming validée comme référence directe de composition.
@@ -389,3 +423,9 @@
 - Rebranding de Guessr360 en LostPin.
 - Ajout des identités visuelles sélectionnables.
 - Conservation de la musique, du multijoueur local et du multijoueur en ligne bêta de la V3.9.
+
+## 6.0.7 - Ajustements UX ciblés
+- écran de résultat solo recentré, agrandi et rendu bien plus lisible
+- bouton "Manche suivante" renforcé visuellement pour clarifier l’action principale
+- métriques (distance / points) et liens d’exploration agrandis
+- visuel hero V6 recadré plus haut pour mieux montrer les panneaux de direction et éviter l’effet "écran à venir"

@@ -734,7 +734,7 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
     linear-gradient(180deg,#06111f06 55%,#06111fef 100%),
     url('assets/v6/hero-game.jpg');
   background-size:cover;
-  background-position:center 34%;
+  background-position:center 50%;
 }
 .v6HeroBackdrop::after{display:none!important}
 

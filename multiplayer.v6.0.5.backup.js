@@ -28,7 +28,6 @@ const PHOTO_FINISH_POINTS_PER_ROUND = 25;
 const PHOTO_FINISH_METERS = 25;
 const RECONNECT_MAX_ATTEMPTS = 4;
 const MULTI_PANEL_COLLAPSED_KEY = 'lostpin-multi-panel-collapsed';
-const MULTI_PANEL_POSITION_KEY = 'lostpin-multi-panel-position-v1';
 
 function esc(text) {
   return String(text ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -103,8 +102,6 @@ class MultiplayerController {
     this.reconnectAttempts = 0;
     this.closingPeer = false;
     this.multiCompactCollapsed = false;
-    this.multiCompactPosition = null;
-    this.multiCompactDrag = null;
     this.originalSubmit = game.submitGuess.bind(game);
     this.originalShowMenu = game.showMenu.bind(game);
     this.originalSetGuess = game.setGuess.bind(game);
@@ -143,7 +140,6 @@ class MultiplayerController {
     $('multiCompactToggle')?.addEventListener('click', () => this.toggleMultiCompactPanel());
     this.loadMultiCompactPanelState();
     this.applyMultiCompactPanelState();
-    this.initializeMultiCompactPanelDrag();
   }
 
   loadMultiCompactPanelState() {
@@ -165,88 +161,6 @@ class MultiplayerController {
     this.multiCompactCollapsed = typeof force === 'boolean' ? force : !this.multiCompactCollapsed;
     try { localStorage.setItem(MULTI_PANEL_COLLAPSED_KEY, this.multiCompactCollapsed ? '1' : '0'); } catch (_) {}
     this.applyMultiCompactPanelState();
-  }
-
-  initializeMultiCompactPanelDrag() {
-    const panel = $('multiCompactPanel');
-    const handle = panel?.querySelector('.multiCompactSectionHeader:first-child');
-    if (!panel || !handle) return;
-
-    try {
-      const saved = JSON.parse(localStorage.getItem(MULTI_PANEL_POSITION_KEY) || 'null');
-      if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) this.multiCompactPosition = { x:saved.x, y:saved.y };
-    } catch (_) { this.multiCompactPosition = null; }
-
-    handle.classList.add('multiCompactDragHandle');
-    handle.title = 'Faire glisser pour déplacer · double-cliquer pour remettre à gauche';
-
-    const getBarHeight = () => {
-      const raw = getComputedStyle($('gameScreen') || document.documentElement).getPropertyValue('--game-bar-h');
-      const value = parseFloat(raw);
-      return Number.isFinite(value) ? value : 64;
-    };
-    const clampPosition = (x, y) => {
-      const rect = panel.getBoundingClientRect();
-      const width = rect.width || panel.offsetWidth || 420;
-      const height = rect.height || panel.offsetHeight || 180;
-      const minX = 8;
-      const minY = getBarHeight() + 8;
-      const maxX = Math.max(minX, window.innerWidth - width - 8);
-      const maxY = Math.max(minY, window.innerHeight - height - 8);
-      return { x:Math.min(maxX, Math.max(minX, x)), y:Math.min(maxY, Math.max(minY, y)) };
-    };
-    const applyPosition = (position=this.multiCompactPosition, persist=false) => {
-      if (!position) {
-        panel.classList.remove('is-user-positioned');
-        panel.style.removeProperty('--multi-panel-left');
-        panel.style.removeProperty('--multi-panel-top');
-        return;
-      }
-      const clamped = clampPosition(position.x, position.y);
-      this.multiCompactPosition = clamped;
-      panel.classList.add('is-user-positioned');
-      panel.style.setProperty('--multi-panel-left', `${Math.round(clamped.x)}px`);
-      panel.style.setProperty('--multi-panel-top', `${Math.round(clamped.y)}px`);
-      if (persist) {
-        try { localStorage.setItem(MULTI_PANEL_POSITION_KEY, JSON.stringify(clamped)); } catch (_) {}
-      }
-    };
-    this.applyMultiCompactPanelPosition = applyPosition;
-
-    handle.addEventListener('pointerdown', e => {
-      if (e.button !== 0 || e.target.closest('button')) return;
-      const rect = panel.getBoundingClientRect();
-      this.multiCompactDrag = { pointerId:e.pointerId, dx:e.clientX - rect.left, dy:e.clientY - rect.top };
-      panel.classList.add('is-dragging');
-      handle.setPointerCapture?.(e.pointerId);
-      e.preventDefault();
-    });
-    handle.addEventListener('pointermove', e => {
-      if (!this.multiCompactDrag || this.multiCompactDrag.pointerId !== e.pointerId) return;
-      const next = clampPosition(e.clientX - this.multiCompactDrag.dx, e.clientY - this.multiCompactDrag.dy);
-      applyPosition(next, false);
-      e.preventDefault();
-    });
-    const finishDrag = e => {
-      if (!this.multiCompactDrag || (e?.pointerId != null && this.multiCompactDrag.pointerId !== e.pointerId)) return;
-      this.multiCompactDrag = null;
-      panel.classList.remove('is-dragging');
-      if (this.multiCompactPosition) applyPosition(this.multiCompactPosition, true);
-    };
-    handle.addEventListener('pointerup', finishDrag);
-    handle.addEventListener('pointercancel', finishDrag);
-    handle.addEventListener('dblclick', e => {
-      if (e.target.closest('button')) return;
-      this.multiCompactPosition = null;
-      try { localStorage.removeItem(MULTI_PANEL_POSITION_KEY); } catch (_) {}
-      applyPosition(null, false);
-    });
-    window.addEventListener('resize', () => {
-      if (!this.multiCompactPosition) return;
-      requestAnimationFrame(() => applyPosition(this.multiCompactPosition, true));
-    });
-
-    applyPosition(this.multiCompactPosition, false);
   }
 
   initializeOnlineIdentity() {
@@ -560,7 +474,6 @@ class MultiplayerController {
     $('startScreen').classList.add('hidden'); $('endScreen').classList.add('hidden'); this.hideMultiEnd();
     $('gameScreen').classList.remove('hidden'); $('gameScreen').classList.add('multiplayer-active'); this.game.panorama.setVisible(true);
     $('multiHud')?.classList.remove('hidden');
-    requestAnimationFrame(() => this.applyMultiCompactPanelPosition?.(this.multiCompactPosition, false));
   }
 
   async loadHostRound() {

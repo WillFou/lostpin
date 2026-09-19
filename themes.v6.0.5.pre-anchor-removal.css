@@ -1116,6 +1116,100 @@ body[data-theme="midnight"] #gameScreen #multiCompactPanel .multiEmoteButton{bor
   #gameScreen #multiCompactPanel .multiStatusPlayer>span:not(.playerAvatar){font-size:14px}
 }
 
+/* V4.4.10 - HUD déplaçable avec ancrages */
+#gameScreen #travelPanel{display:none!important}
+#gameScreen .hudLayoutButton.active{outline:2px solid var(--theme-accent-2,var(--good));box-shadow:0 0 18px color-mix(in srgb,var(--theme-accent-2,var(--good)) 38%,transparent)}
+#gameScreen .hudDraggable.hudAnchored{
+  position:fixed!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  margin:0!important;
+  z-index:56!important;
+  justify-self:auto!important;
+  grid-column:auto!important;
+}
+#gameScreen.hud-layout-editing .hudDraggable{
+  outline:2px dashed color-mix(in srgb,var(--theme-accent-2,var(--good)) 78%,white 8%);
+  outline-offset:3px;
+  cursor:grab;
+  touch-action:none;
+}
+#gameScreen.hud-layout-editing .hudDraggable.hudDragging{
+  cursor:grabbing;
+  opacity:.94;
+  z-index:80!important;
+  box-shadow:0 14px 38px #0009,0 0 0 2px color-mix(in srgb,var(--theme-accent-2,var(--good)) 75%,transparent)!important;
+}
+#gameScreen.hud-layout-editing #multiCompactPanel .multiCompactSectionHeader:first-child{cursor:grab}
+.hudAnchorOverlay{position:fixed;inset:0;z-index:54;pointer-events:none}
+.hudAnchorOverlay>span{
+  position:absolute;
+  width:54px;height:30px;
+  display:grid;place-items:center;
+  border:1px dashed color-mix(in srgb,var(--theme-accent-2,var(--good)) 65%,transparent);
+  border-radius:9px;
+  background:#06131fc4;
+  color:#aeeff1;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.08em;
+  box-shadow:0 4px 15px #0006;
+  opacity:.56;
+  transition:.12s;
+}
+.hudAnchorOverlay>span.active{opacity:1;transform:scale(1.12);background:color-mix(in srgb,var(--theme-accent-2,var(--good)) 24%,#06131f);border-style:solid;box-shadow:0 0 18px color-mix(in srgb,var(--theme-accent-2,var(--good)) 38%,transparent)}
+#gameScreen.hud-layout-editing .hudDraggable{pointer-events:auto!important}
+
+/* V4.4.11 - un panneau ancré garde sa largeur compacte au lieu de prendre 100vw */
+#gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{
+  width:min(472px,calc(100vw - 28px))!important;
+  max-width:calc(100vw - 28px)!important;
+}
+@media(max-width:900px){
+  #gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{width:min(438px,calc(100vw - 24px))!important}
+}
+@media(max-width:760px){
+  #gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{width:min(392px,calc(100vw - 18px))!important}
+}
+@media(max-width:560px){
+  #gameScreen.multiplayer-active #multiCompactPanel.hudAnchored{width:min(342px,calc(100vw - 18px))!important}
+}
+
+/* V4.4.13 - stabilisation du HUD ancré */
+#gameScreen .hudDraggable.hudAnchored{
+  max-width:calc(100vw - 28px);
+  max-height:calc(100vh - 28px);
+}
+#gameScreen.hud-layout-editing .hudDraggable{
+  user-select:none;
+  -webkit-user-select:none;
+}
+.hudLayoutEditHint{
+  position:fixed;
+  z-index:85;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  max-width:calc(100vw - 28px);
+  padding:8px 13px;
+  border:1px solid color-mix(in srgb,var(--theme-accent-2,var(--good)) 58%,var(--line));
+  border-radius:999px;
+  background:var(--theme-glass-strong,#071522ef);
+  color:var(--text);
+  box-shadow:0 8px 28px #0008;
+  backdrop-filter:blur(12px);
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.02em;
+  pointer-events:none;
+  white-space:nowrap;
+}
+body[data-theme="midnight"] .hudLayoutEditHint{border-radius:2px}
+@media(max-width:700px){
+  .hudLayoutEditHint{white-space:normal;text-align:center;bottom:10px;font-size:9px}
+}
+
 /* V4.4.14 - PV de tous les joueurs visibles dans les cartes Duel */
 #gameScreen #multiCompactPanel .multiStatusPlayer .multiPlayerIdentity{
   flex:1 1 auto;

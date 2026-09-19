@@ -393,17 +393,6 @@ class GuessrGame {
     if ($('blitzSeconds')) $('blitzSeconds').value=String(this.blitzSeconds);
   }
 
-  updateGameHudMode() {
-    const mission=this.playType==='exploration';
-    let title='Classique';
-    if (mission) title='Exploration';
-    else if (this.mode==='nmpz') title='NMPZ';
-    else if (this.mode==='nomove') title='No Move';
-    if (!mission && this.gameVariant==='blitz') title += ` · Blitz`;
-    else if (!mission && this.gameVariant==='precision') title += ' · Précision';
-    if ($('gameModeLabel')) $('gameModeLabel').textContent=title;
-  }
-
   variantRecordKey(selection=this.getSelectionDescriptor()) {
     const base=`${this.getSelectionKey(selection)}:${this.mode}`;
     return this.gameVariant==='classic' ? base : `${base}:${this.gameVariant}`;
@@ -1250,7 +1239,7 @@ class GuessrGame {
       });
     } else this.guessMarker.setPosition(pos);
     $('guessButton').disabled = false;
-    $('guessButton').textContent = 'Valider ma position';
+    $('guessButton').textContent = 'Valider ma réponse';
   }
 
   randomCandidate(zone) {
@@ -1525,9 +1514,8 @@ class GuessrGame {
     $('roundLabel').textContent = `${this.round + 1} / ${this.roundCount || (mission?3:5)}`;
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('zoneLabel').textContent = zone.name;
-    this.updateGameHudMode();
     $('guessButton').disabled = true;
-    $('guessButton').textContent = 'Valider ma position';
+    $('guessButton').textContent = 'Place ton marqueur';
     if ($('resultTitle')) $('resultTitle').textContent='Résultat';
     if ($('distanceStatLabel')) $('distanceStatLabel').textContent='Distance';
     if ($('scoreStatLabel')) $('scoreStatLabel').textContent='Points';
@@ -1536,7 +1524,7 @@ class GuessrGame {
     if ($('placeLink')) $('placeLink').textContent=mission?'Voir la cible dans Google Maps':"Voir l'endroit dans Google Maps";
     const mapHeader=$('mapPanel')?.querySelector('.mapHeader span');
     if (mapHeader) mapHeader.textContent=mission?'REJOINS LA CIBLE':'PLACE TON MARQUEUR';
-    $('travelPanel').classList.toggle('hidden', !mission);
+    $('travelPanel').classList.toggle('hidden', this.mode !== 'explore');
     this.updateTravelUI();
     this.updateCompass();
     try {

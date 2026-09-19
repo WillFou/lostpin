@@ -734,7 +734,7 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
     linear-gradient(180deg,#06111f06 55%,#06111fef 100%),
     url('assets/v6/hero-game.jpg');
   background-size:cover;
-  background-position:center 34%;
+  background-position:center 50%;
 }
 .v6HeroBackdrop::after{display:none!important}
 
@@ -1248,71 +1248,3 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
   #gameScreen .toast{top:calc(var(--game-bar-h) + 84px)}
 }
 
-
-/* ========================================================================== */
-/* LostPin V6.0.6 - readable compass + movable multiplayer J/R panel          */
-/* ========================================================================== */
-
-/* The outer compass layer stays transparent. Only the compass itself keeps a
-   compact translucent backing so it remains readable over bright Street View. */
-#gameScreen #compass{
-  background:transparent!important;
-  border:0!important;
-  box-shadow:none!important;
-  backdrop-filter:none!important;
-}
-#gameScreen #compass[data-style="band"] .compassBand,
-#gameScreen #compass[data-style="minimal"] .compassMinimal,
-#gameScreen #compass[data-style="hybrid"] .compassHybrid{
-  background:rgba(6,18,30,.80)!important;
-  border:1px solid rgba(157,195,219,.30)!important;
-  box-shadow:0 6px 20px rgba(0,0,0,.40)!important;
-  backdrop-filter:blur(8px) saturate(120%)!important;
-}
-#gameScreen #compass[data-style="pano"] .compassPanoViewport{
-  background:linear-gradient(90deg,rgba(6,18,30,.12),rgba(6,18,30,.82) 18%,rgba(6,18,30,.82) 82%,rgba(6,18,30,.12))!important;
-  border:1px solid rgba(157,195,219,.18)!important;
-  box-shadow:0 5px 18px rgba(0,0,0,.32)!important;
-  backdrop-filter:blur(6px)!important;
-}
-#gameScreen #compass[data-style="pano"] .panoDegree,
-#gameScreen #compass .circleReadout,
-#gameScreen #compass .realReadout,
-#gameScreen #compass .vintageReadout{
-  background:rgba(6,18,30,.86)!important;
-  border:1px solid rgba(157,195,219,.28)!important;
-  box-shadow:0 4px 14px rgba(0,0,0,.36)!important;
-  backdrop-filter:blur(8px)!important;
-}
-#gameScreen #compass .compassCircle,
-#gameScreen #compass .compassRose,
-#gameScreen #compass .compassReal{
-  background-color:rgba(6,18,30,.88)!important;
-  box-shadow:inset 0 0 18px rgba(0,0,0,.52),0 6px 20px rgba(0,0,0,.42)!important;
-  backdrop-filter:blur(8px)!important;
-}
-/* Keep the detailed dials instead of flattening their original artwork. */
-#gameScreen #compass .compassReal{
-  background:radial-gradient(circle at 38% 32%,rgba(38,52,66,.96) 0 14%,rgba(17,27,37,.96) 38%,rgba(7,16,25,.97) 73%,rgba(3,7,11,.98) 100%)!important;
-}
-#gameScreen #compass .compassVintage{
-  background:radial-gradient(circle,#f2e2b6 0 58%,#d6b66e 59% 62%,#5d431d 63% 70%,#b98b42 71% 77%,#3b2a13 78% 100%)!important;
-  box-shadow:inset 0 0 13px #5c3e1caa,0 6px 20px rgba(0,0,0,.46)!important;
-}
-
-/* J/R is the one movable gameplay panel. This is deliberately independent of
-   the removed anchor system: drag its first header, and the pixel position is
-   saved by multiplayer.js. */
-#gameScreen #multiCompactPanel .multiCompactDragHandle{
-  cursor:grab;
-  user-select:none;
-  touch-action:none;
-}
-#gameScreen #multiCompactPanel.is-dragging .multiCompactDragHandle{cursor:grabbing}
-#gameScreen.multiplayer-active #multiCompactPanel.is-user-positioned{
-  left:var(--multi-panel-left)!important;
-  top:var(--multi-panel-top)!important;
-  right:auto!important;
-  bottom:auto!important;
-  transform:none!important;
-}
