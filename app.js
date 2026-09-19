@@ -78,6 +78,31 @@ function scoreFor(distanceMeters, scaleMeters) {
   return clamp(Math.round(5000 * Math.exp(-(distanceMeters - 25) / scaleMeters)), 0, 5000);
 }
 
+function offsetPoint(origin, distanceMeters, bearingDegrees) {
+  const angular = Math.max(0, Number(distanceMeters) || 0) / EARTH;
+  const bearing = rad(bearingDegrees);
+  const lat1 = rad(origin.lat), lng1 = rad(origin.lng);
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(angular) + Math.cos(lat1) * Math.sin(angular) * Math.cos(bearing));
+  const lng2 = lng1 + Math.atan2(Math.sin(bearing) * Math.sin(angular) * Math.cos(lat1), Math.cos(angular) - Math.sin(lat1) * Math.sin(lat2));
+  return {lat:lat2 * 180 / Math.PI,lng:((lng2 * 180 / Math.PI + 540) % 360) - 180};
+}
+
+function formatClock(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const mins = Math.floor(total / 60), secs = total % 60;
+  return `${mins}:${String(secs).padStart(2,'0')}`;
+}
+
+function explorationScore(seconds, moves, directDistance, routeDistance) {
+  const safeDirect = Math.max(1, Number(directDistance) || 1);
+  const safeRoute = Math.max(safeDirect, Number(routeDistance) || safeDirect);
+  const detourRatio = Math.max(0, safeRoute / safeDirect - 1);
+  const timePenalty = Math.min(1500, Math.round(Math.max(0, seconds) * 3));
+  const movePenalty = Math.min(1500, Math.round(Math.max(0, moves) * 8));
+  const detourPenalty = Math.min(1500, Math.round(detourRatio * 800));
+  return clamp(5000 - timePenalty - movePenalty - detourPenalty, 500, 5000);
+}
+
 function readJSON(key, fallback) {
   try { const x = JSON.parse(localStorage.getItem(key)); return x ?? fallback; } catch (_) { return fallback; }
 }
@@ -210,6 +235,8 @@ class GuessrGame {
     this.selection = {type:'zone',zoneId:'paris',name:ZONES.paris.name};
     this.roundZoneIds = [];
     this.mode = 'explore';
+    this.lastGuessMode = 'explore';
+    this.playType = 'guess';
     this.round = 0;
     this.roundCount = 5;
     this.total = 0;
@@ -233,6 +260,16 @@ class GuessrGame {
     this.startPositionForTravel = null;
     this.maxTravel = 0;
     this.currentTravel = 0;
+    this.travelDistance = 0;
+    this.lastTravelPosition = null;
+    this.explorationTarget = null;
+    this.explorationTargetPano = null;
+    this.explorationTargetDescription = '';
+    this.explorationDirectDistance = 0;
+    this.explorationSuccessRadius = 40;
+    this.explorationCompleting = false;
+    this.explorationClock = null;
+    this.targetCircle = null;
     this.currentPano = null;
     this.navHistory = [];
     this.moveCount = 0;
@@ -251,6 +288,7 @@ class GuessrGame {
     this.geo = window.LOSTPIN_GEOGRAPHY || null;
     this.geoState = {filter:'paris', continentId:null, countryId:null, query:''};
     this.bindUI();
+    this.refreshPlayTypeUI();
     this.setCompassStyle(this.compassStyle, false);
     this.updateSelectionBanner();
     this.updateBest();
@@ -259,10 +297,13 @@ class GuessrGame {
 
   bindUI() {
     this.bindGeographyUI();
+    document.querySelectorAll('.playTypeCard').forEach(card => card.addEventListener('click', () => this.setPlayType(card.dataset.playType)));
     document.querySelectorAll('.modeCard').forEach(card => card.addEventListener('click', () => {
+      if (this.playType === 'exploration') return;
       document.querySelectorAll('.modeCard').forEach(x => x.classList.remove('selected'));
       card.classList.add('selected');
       this.mode = card.dataset.mode;
+      this.lastGuessMode = this.mode;
       this.updateBest();
     }));
     for (const id of ['compassStartButton','compassGameButton']) $(id)?.addEventListener('click', () => this.openCompassPicker());
@@ -307,6 +348,35 @@ class GuessrGame {
       else if (key === 'ArrowDown' && this.mode === 'explore') { e.preventDefault(); this.goBack(); }
       else if (key === 'Home' && this.mode === 'explore') { e.preventDefault(); this.goHome(); }
     });
+  }
+
+  setPlayType(type, options={}) {
+    const next = type === 'exploration' ? 'exploration' : 'guess';
+    if (next === this.playType && !options.force) { this.refreshPlayTypeUI(); return; }
+    if (next === 'exploration' && this.playType === 'guess') this.lastGuessMode=this.mode;
+    this.playType = next;
+    if (next === 'exploration') this.mode = 'explore';
+    else this.mode = ['explore','nomove','nmpz'].includes(this.lastGuessMode) ? this.lastGuessMode : 'explore';
+    document.querySelectorAll('.modeCard').forEach(card => card.classList.toggle('selected', card.dataset.mode === this.mode));
+    this.refreshPlayTypeUI();
+    this.updateSelectionBanner();
+    this.updateBest();
+    if (!options.silent) document.dispatchEvent(new CustomEvent('lostpin:play-type-change',{detail:{playType:this.playType}}));
+  }
+
+  refreshPlayTypeUI() {
+    const exploration = this.playType === 'exploration';
+    document.querySelectorAll('.playTypeCard').forEach(card => card.classList.toggle('selected',card.dataset.playType === this.playType));
+    $('movementModeSection')?.classList.toggle('playTypeDisabled',exploration);
+    for (const id of ['multiplayerButton','challengeButton']) {
+      const button=$(id); if (!button) continue;
+      button.disabled=exploration;
+      button.title=exploration ? 'Disponible en Géolocalisation. Exploration multijoueur arrivera plus tard.' : '';
+    }
+    if ($('soloRulesText')) $('soloRulesText').innerHTML = exploration
+      ? '<b>3 missions &middot; 15 000 points.</b> Rejoins physiquement chaque cible dans Street View. Chrono, déplacements et distance parcourue sont mesurés.'
+      : `<b>5 manches &middot; 25 000 points.</b> Les panoramas proviennent de Google Street View. Le jeu n'est affilié ni à Google ni à GeoGuessr. Ta clé API reste uniquement dans le dossier local sur ton PC.`;
+    if (this.apiReady && $('startButton')) $('startButton').textContent = exploration ? `Lancer l'exploration` : 'Lancer la partie';
   }
 
   bindGeographyUI() {
@@ -524,7 +594,7 @@ class GuessrGame {
       this.apiReady = true;
       this.setApiStatus('Google Maps prêt', 'ready');
       $('startButton').disabled = false;
-      $('startButton').textContent = 'Lancer la partie';
+      this.refreshPlayTypeUI();
       // Preload official Paris boundaries without blocking non-Paris maps.
       this.ensureOfficialParisContours().catch(() => {});
     } catch (error) {
@@ -660,9 +730,9 @@ class GuessrGame {
     const type=$('selectionType'), name=$('selectionName'), detail=$('selectionDetail');
     if (type) type.textContent=selection.type==='playlist'?'PLAYLIST':'MAP';
     if (name) name.textContent=this.getSelectionName(selection);
-    if (detail) detail.textContent=selection.type==='playlist'
-      ? `${selection.zoneIds.length} maps · une map tirée par manche`
-      : '5 manches sur le même terrain';
+    if (detail) detail.textContent=this.playType==='exploration'
+      ? (selection.type==='playlist' ? `${selection.zoneIds.length} maps · 3 missions · une map tirée par mission` : '3 missions sur ce terrain')
+      : (selection.type==='playlist' ? `${selection.zoneIds.length} maps · une map tirée par manche` : '5 manches sur le même terrain');
     box.classList.toggle('playlistActive',selection.type==='playlist');
   }
 
@@ -692,6 +762,11 @@ class GuessrGame {
   }
 
   updateBest() {
+    if (this.playType === 'exploration') {
+      const best=Number(readJSON(BEST_KEY,{})[`${this.getSelectionKey()}:exploration`])||0;
+      if ($('bestLabel')) $('bestLabel').textContent = best ? `Meilleure exploration : ${best.toLocaleString('fr-FR')} / 15 000` : 'Exploration · 3 missions · chrono + déplacements + trajet';
+      return;
+    }
     const bests = readJSON(BEST_KEY, {});
     const perfects = readJSON(PERFECT_KEY, {});
     const key = `${this.getSelectionKey()}:${this.mode}`;
@@ -736,14 +811,31 @@ class GuessrGame {
         setTimeout(() => { this.restoringNoMove = false; this.pendingNavReason = null; }, 250);
         return;
       }
-      if (this.mode === 'explore' && this.startPano) this.handlePanoChanged(panoId);
-      else this.currentPano = panoId;
+      if (this.mode === 'explore' && this.startPano) {
+        this.handlePanoChanged(panoId);
+        if (this.playType === 'exploration' && this.explorationTargetPano && panoId === this.explorationTargetPano) setTimeout(()=>this.finishExplorationRound(),80);
+      } else this.currentPano = panoId;
     });
     this.panorama.addListener('position_changed', () => {
-      if (!this.answer || this.mode !== 'explore') return;
-      const pos = this.panorama.getPosition();
-      if (!pos) return;
-      const d = haversine(this.answer, {lat:pos.lat(),lng:pos.lng()});
+      if (this.mode !== 'explore') return;
+      const raw = this.panorama.getPosition();
+      if (!raw) return;
+      const pos = {lat:raw.lat(),lng:raw.lng()};
+      if (this.playType === 'exploration' && this.explorationTarget) {
+        if (this.lastTravelPosition) {
+          const step = haversine(this.lastTravelPosition,pos);
+          if (step > 1 && step < 1000) this.travelDistance += step;
+        }
+        this.lastTravelPosition = pos;
+        const remaining = haversine(this.explorationTarget,pos);
+        this.currentTravel = remaining;
+        this.updateTravelUI();
+        this.setBusy(false);
+        if (remaining <= this.explorationSuccessRadius) this.finishExplorationRound();
+        return;
+      }
+      if (!this.answer) return;
+      const d = haversine(this.answer, pos);
       this.currentTravel = d;
       this.maxTravel = Math.max(this.maxTravel, d);
       this.updateTravelUI();
@@ -783,6 +875,7 @@ class GuessrGame {
       ]
     });
     this.map.addListener('click', e => {
+      if (this.playType === 'exploration') return;
       if (!e.latLng || !$('resultPanel').classList.contains('hidden')) return;
       this.setGuess({lat:e.latLng.lat(),lng:e.latLng.lng()});
     });
@@ -855,15 +948,40 @@ class GuessrGame {
 
   updateTravelUI() {
     if (!$('travelPanel')) return;
-    const explore = this.mode === 'explore';
-    $('travelPanel').classList.toggle('hidden', !explore);
-    if (!explore) return;
+    const movable = this.mode === 'explore';
+    const mission = movable && this.playType === 'exploration';
+    $('travelPanel').classList.toggle('hidden', !movable);
+    if (!movable) return;
     const count = this.moveCount;
-    $('travelStats').textContent = `${count} déplacement${count === 1 ? '' : 's'} · ${formatDistance(this.currentTravel)} du départ`;
+    if (mission) {
+      $('explorationObjective')?.classList.remove('hidden');
+      if ($('explorationTargetName')) $('explorationTargetName').textContent = this.explorationTargetDescription || ZONES[this.zoneId]?.name || 'Cible Street View';
+      if ($('travelHint')) $('travelHint').textContent = `Atteins C sur la carte. Validation automatique à ${this.explorationSuccessRadius} m.`;
+      const seconds = this.startTime ? Math.max(0, Math.floor((Date.now() - this.startTime) / 1000)) : 0;
+      const remaining = Number.isFinite(this.currentTravel) ? formatDistance(this.currentTravel) : '—';
+      $('travelStats').textContent = `Cible ${remaining} · ${count} déplacement${count===1?'':'s'} · ${formatDistance(this.travelDistance)} parcourus · ${formatClock(seconds)}`;
+    } else {
+      $('explorationObjective')?.classList.add('hidden');
+      if ($('travelHint')) $('travelHint').textContent = 'Explore librement puis place ta réponse sur la carte.';
+      $('travelStats').textContent = `${count} déplacement${count === 1 ? '' : 's'} · ${formatDistance(this.currentTravel)} du départ`;
+    }
     const links = this.panorama?.getLinks?.() || [];
     $('forwardButton').disabled = !this.startPano || !links.length;
     $('backButton').disabled = !this.navHistory.length;
     $('homeButton').disabled = !this.startPano || !this.currentPano || this.currentPano === this.startPano;
+  }
+
+  startExplorationClock() {
+    this.stopExplorationClock();
+    this.explorationClock=setInterval(()=>{
+      if (this.playType !== 'exploration' || !$('resultPanel')?.classList.contains('hidden')) return;
+      this.updateTravelUI();
+    },500);
+  }
+
+  stopExplorationClock() {
+    if (this.explorationClock) clearInterval(this.explorationClock);
+    this.explorationClock=null;
   }
 
   setBusy(show, text = 'Chargement de la vue suivante...') {
@@ -949,12 +1067,14 @@ class GuessrGame {
     this.navHistory = [];
     if (this.currentPano === this.startPano) {
       if (this.startPov) { this.panorama.setPov({heading:this.startPov.heading,pitch:this.startPov.pitch}); this.panorama.setZoom(this.startPov.zoom); }
-      this.currentTravel = 0;
+      this.currentTravel = this.playType==='exploration' ? this.explorationDirectDistance : 0;
+      if (this.playType==='exploration' && this.startPositionForTravel) this.lastTravelPosition={...this.startPositionForTravel};
       this.updateTravelUI();
       return;
     }
     this.pendingNavReason = 'home';
     this.pendingPovAfterNav = this.startPov ? {...this.startPov} : null;
+    if (this.playType==='exploration' && this.startPositionForTravel) this.lastTravelPosition={...this.startPositionForTravel};
     this.setBusy(true, 'Retour au point de départ...');
     this.panorama.setPano(this.startPano);
   }
@@ -963,6 +1083,7 @@ class GuessrGame {
     if (this.guessMarker) { this.guessMarker.setMap(null); this.guessMarker = null; }
     if (this.answerMarker) { this.answerMarker.setMap(null); this.answerMarker = null; }
     if (this.line) { this.line.setMap(null); this.line = null; }
+    if (this.targetCircle) { this.targetCircle.setMap(null); this.targetCircle = null; }
     this.zoneOverlays.forEach(x => x.setMap(null));
     this.zoneOverlays = [];
   }
@@ -1020,8 +1141,9 @@ class GuessrGame {
   }
 
   containsZone(zone, pos) {
-    if (!zone.polygons) return true;
-    return zone.polygons.some(poly => pointInPolygon(pos, poly));
+    if (zone.polygons?.length) return zone.polygons.some(poly => pointInPolygon(pos, poly));
+    if (zone.areas?.length) return zone.areas.some(area => pos.lng>=area.west && pos.lng<=area.east && pos.lat>=area.south && pos.lat<=area.north);
+    return true;
   }
 
   isTooRecent(pos, zone, relax = false) {
@@ -1080,10 +1202,114 @@ class GuessrGame {
     throw new Error(`Aucun départ jouable trouvé dans ${zone.name}. Réessaie : le tirage est aléatoire et la couverture peut varier.${suffix}`);
   }
 
+  async findExplorationTarget(zone, token) {
+    let lastError=null;
+    for (let i=0;i<8;i++) {
+      if (token !== this.currentRoundToken) throw new Error('Recherche annulée.');
+      try {
+        const target=await this.findStart(zone,token);
+        if ((target?.data?.links||[]).some(link=>link?.pano)) return target;
+      } catch (error) {
+        lastError=error;
+      }
+    }
+    const suffix=lastError?.message?` (${lastError.message})`:'';
+    throw new Error(`Impossible de trouver une cible Street View reliée au réseau dans ${zone.name}. Réessaie pour générer une nouvelle mission.${suffix}`);
+  }
+
+  async findExplorationStart(zone, target, token) {
+    const maxDistance = clamp((Number(zone.scale) || 3000) * .22, 500, 1400);
+    const minDistance = Math.max(180, maxDistance * .42);
+    const searchRadius = clamp(Number(zone.radius) || 180, 100, 300);
+    const targetLinks=(target?.data?.links||[]).filter(link=>Number.isFinite(Number(link?.heading)));
+    let lastError=null;
+    for (let i=0;i<30;i++) {
+      if (token !== this.currentRoundToken) throw new Error('Recherche annulée.');
+      const desired=minDistance + Math.random()*(maxDistance-minDistance);
+      const baseBearing=targetLinks.length?Number(targetLinks[Math.floor(Math.random()*targetLinks.length)].heading):Math.random()*360;
+      const candidate=offsetPoint(target.pos,desired,baseBearing+(Math.random()-.5)*50);
+      if (!this.containsZone(zone,candidate)) continue;
+      $('loadingText').textContent=`Mission ${this.round+1}/${this.roundCount} · recherche d'un départ à ${formatDistance(desired)} de la cible dans ${zone.name}.`;
+      try {
+        const response=await this.sv.getPanorama({
+          location:candidate,
+          radius:searchRadius,
+          preference:google.maps.StreetViewPreference.NEAREST,
+          sources:[google.maps.StreetViewSource.GOOGLE]
+        });
+        const data=response?.data, loc=data?.location;
+        if (!loc?.latLng || !loc?.pano || loc.pano===target.data.location.pano) continue;
+        const pos={lat:loc.latLng.lat(),lng:loc.latLng.lng()};
+        if (!this.containsZone(zone,pos)) continue;
+        const distance=haversine(target.pos,pos);
+        if (distance < minDistance*.55 || distance > maxDistance*1.35) continue;
+        if (!data.links || data.links.length<1) continue;
+        return {data,pos,distance};
+      } catch (error) { lastError=error; }
+    }
+    const suffix=lastError?.message?` (${lastError.message})`:'';
+    throw new Error(`Impossible de créer une mission Exploration jouable dans ${zone.name}. Réessaie pour générer un autre couple départ/cible.${suffix}`);
+  }
+
+  setupExplorationMap(start, target) {
+    this.clearMapObjects();
+    const startPos=start.pos, targetPos=target.pos;
+    this.guessMarker=new google.maps.Marker({
+      map:this.map,position:startPos,title:'Départ',zIndex:2,
+      label:{text:'D',color:'#ffffff',fontWeight:'900',fontSize:'12px'},
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:11,fillColor:'#2f80ed',fillOpacity:1,strokeColor:'#ffffff',strokeOpacity:1,strokeWeight:3}
+    });
+    this.answerMarker=new google.maps.Marker({
+      map:this.map,position:targetPos,title:'Cible',zIndex:3,
+      label:{text:'C',color:'#ffffff',fontWeight:'900',fontSize:'12px'},
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:12,fillColor:'#e53935',fillOpacity:1,strokeColor:'#ffffff',strokeOpacity:1,strokeWeight:3}
+    });
+    this.targetCircle=new google.maps.Circle({
+      map:this.map,center:targetPos,radius:this.explorationSuccessRadius,
+      strokeColor:'#e53935',strokeOpacity:.9,strokeWeight:2,fillColor:'#e53935',fillOpacity:.12,clickable:false
+    });
+    const bounds=new google.maps.LatLngBounds(); bounds.extend(startPos); bounds.extend(targetPos);
+    this.map.fitBounds(bounds,70);
+    $('mapZoneTitle').textContent=ZONES[this.zoneId]?.name || 'Exploration';
+  }
+
+  finishExplorationRound() {
+    if (this.playType!=='exploration' || this.explorationCompleting || !$('resultPanel')?.classList.contains('hidden') || !this.explorationTarget) return;
+    this.explorationCompleting=true;
+    this.stopExplorationClock();
+    this.panorama?.setOptions?.({clickToGo:false,linksControl:false});
+    const seconds=Math.max(1,Math.round((Date.now()-this.startTime)/1000));
+    const points=explorationScore(seconds,this.moveCount,this.explorationDirectDistance,this.travelDistance);
+    this.total+=points;
+    const zone=ZONES[this.zoneId];
+    this.results.push({
+      distance:null,points,description:this.explorationTargetDescription||'Cible Street View',seconds,
+      travel:this.travelDistance,moves:this.moveCount,missionDistance:this.explorationDirectDistance,
+      zoneId:this.zoneId,zoneName:zone.name,exploration:true
+    });
+    $('scoreLabel').textContent=this.total.toLocaleString('fr-FR');
+    if ($('resultTitle')) $('resultTitle').textContent='CIBLE ATTEINTE';
+    if ($('distanceStatLabel')) $('distanceStatLabel').textContent='Trajet';
+    if ($('scoreStatLabel')) $('scoreStatLabel').textContent='Points';
+    $('distanceLabel').textContent=formatDistance(this.travelDistance);
+    $('roundScoreLabel').textContent=points.toLocaleString('fr-FR');
+    $('resultPlace').textContent=this.explorationTargetDescription || `${zone.name} · cible atteinte`;
+    $('travelInfo').textContent=`${formatClock(seconds)} · ${this.moveCount} déplacement${this.moveCount===1?'':'s'} · distance directe ${formatDistance(this.explorationDirectDistance)}.`;
+    if ($('resultLegend')) $('resultLegend').innerHTML='<span class="legendItem"><span class="legendDot guess"></span><b>D</b> = départ</span><span class="legendItem"><span class="legendDot answer"></span><b>C</b> = cible</span>';
+    const source=new URL('https://www.google.com/maps/@'); source.searchParams.set('api','1'); source.searchParams.set('map_action','pano'); source.searchParams.set('pano',this.startPano||'');
+    if (this.startPov) source.searchParams.set('heading',String(Math.round(this.startPov.heading)));
+    $('streetViewLink').href=source.toString(); $('streetViewLink').textContent='Voir le Street View de départ';
+    $('placeLink').href=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${this.explorationTarget.lat},${this.explorationTarget.lng}`)}`;
+    $('placeLink').textContent='Voir la cible dans Google Maps';
+    this.setBusy(false); $('toast').classList.add('hidden'); $('gameScreen').classList.add('has-result'); $('resultPanel').classList.remove('hidden');
+    $('nextButton').textContent=this.round===(this.roundCount||3)-1?'Voir le bilan de l’exploration':'Mission suivante';
+  }
+
   async startGame() {
     if (!this.apiReady) return;
+    if (this.challengeConfig && this.playType === 'exploration') this.setPlayType('guess',{silent:true});
     const startButtonText = $('startButton').textContent;
-    this.roundCount = this.challengeConfig?.roundCount || 5;
+    this.roundCount = this.challengeConfig?.roundCount || (this.playType === 'exploration' ? 3 : 5);
     this.roundZoneIds = this.challengeConfig?.rounds?.length
       ? this.challengeConfig.rounds.map(r=>ZONES[r?.zoneId] ? r.zoneId : null)
       : this.buildRoundZoneSequence(this.roundCount);
@@ -1113,7 +1339,9 @@ class GuessrGame {
     $('startScreen').classList.add('hidden');
     $('endScreen').classList.add('hidden');
     $('gameScreen').classList.remove('hidden');
+    $('gameScreen').classList.toggle('exploration-mission',this.playType==='exploration');
     $('mapPanel').classList.remove('expanded');
+    if ($('restartButton')) $('restartButton').textContent=this.playType==='exploration' ? 'Rejouer l’exploration' : 'Rejouer la même map';
     await this.loadRound();
   }
 
@@ -1127,8 +1355,16 @@ class GuessrGame {
     this.answer = null;
     this.startPano = null;
     this.startDescription = '';
+    this.stopExplorationClock();
     this.maxTravel = 0;
     this.currentTravel = 0;
+    this.travelDistance = 0;
+    this.lastTravelPosition = null;
+    this.explorationTarget = null;
+    this.explorationTargetPano = null;
+    this.explorationTargetDescription = '';
+    this.explorationDirectDistance = 0;
+    this.explorationCompleting = false;
     this.currentPano = null;
     this.navHistory = [];
     this.moveCount = 0;
@@ -1143,15 +1379,25 @@ class GuessrGame {
     $('loadingActions').classList.add('hidden');
     this.setBusy(false);
     $('toast').classList.add('hidden');
-    $('loadingTitle').textContent = 'Recherche d\'un panorama...';
-    $('loadingText').textContent = zone.officialParis
-      ? `Google Street View cherche un départ dans les limites officielles de ${zone.name}.`
-      : `Google Street View cherche un départ dans ${zone.name}.`;
-    $('roundLabel').textContent = `${this.round + 1} / ${this.roundCount || 5}`;
+    const mission=this.playType==='exploration';
+    $('gameScreen').classList.toggle('exploration-mission',mission);
+    $('loadingTitle').textContent = mission ? 'Préparation de la mission...' : 'Recherche d\'un panorama...';
+    $('loadingText').textContent = mission
+      ? `LostPin cherche une cible et un départ Street View jouables dans ${zone.name}.`
+      : (zone.officialParis ? `Google Street View cherche un départ dans les limites officielles de ${zone.name}.` : `Google Street View cherche un départ dans ${zone.name}.`);
+    $('roundLabel').textContent = `${this.round + 1} / ${this.roundCount || (mission?3:5)}`;
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('zoneLabel').textContent = zone.name;
     $('guessButton').disabled = true;
     $('guessButton').textContent = 'Place ton marqueur';
+    if ($('resultTitle')) $('resultTitle').textContent='Résultat';
+    if ($('distanceStatLabel')) $('distanceStatLabel').textContent='Distance';
+    if ($('scoreStatLabel')) $('scoreStatLabel').textContent='Points';
+    if ($('resultLegend')) $('resultLegend').innerHTML='<span class="legendItem"><span class="legendDot guess"></span><b>T</b> = ta réponse</span><span class="legendItem"><span class="legendDot answer"></span><b>R</b> = lieu réel</span>';
+    if ($('streetViewLink')) $('streetViewLink').textContent='Voir le Street View de départ';
+    if ($('placeLink')) $('placeLink').textContent=mission?'Voir la cible dans Google Maps':"Voir l'endroit dans Google Maps";
+    const mapHeader=$('mapPanel')?.querySelector('.mapHeader span');
+    if (mapHeader) mapHeader.textContent=mission?'REJOINS LA CIBLE':'PLACE TON MARQUEUR';
     $('travelPanel').classList.toggle('hidden', this.mode !== 'explore');
     this.updateTravelUI();
     this.updateCompass();
@@ -1160,7 +1406,27 @@ class GuessrGame {
       let startHeading;
       await this.prepareZone(this.zoneId);
       this.configureGuessMap(zone);
-      if (challengeRound) {
+      if (mission) {
+        $('loadingTitle').textContent='Création de la mission...';
+        $('loadingText').textContent=`Recherche de la cible ${this.round+1}/${this.roundCount} dans ${zone.name}.`;
+        const target=await this.findExplorationTarget(zone,token);
+        if (token !== this.currentRoundToken) return;
+        start=await this.findExplorationStart(zone,target,token);
+        startHeading=Math.floor(Math.random()*360);
+        if (token !== this.currentRoundToken) return;
+        this.answer=target.pos;
+        this.explorationTarget=target.pos;
+        this.explorationTargetPano=target.data.location.pano;
+        this.explorationTargetDescription=target.data.location.description || `Cible dans ${zone.name}`;
+        this.explorationDirectDistance=haversine(start.pos,target.pos);
+        this.currentTravel=this.explorationDirectDistance;
+        this.startPositionForTravel=start.pos;
+        this.lastTravelPosition=start.pos;
+        this.startPano=start.data.location.pano;
+        this.startDescription=start.data.location.description || zone.name;
+        this.rememberStart(start.pos);
+        this.setupExplorationMap(start,target);
+      } else if (challengeRound) {
         $('loadingTitle').textContent = 'Chargement du challenge...';
         $('loadingText').textContent = `Panorama ${this.round + 1}/${this.roundCount} · ${zone.name}`;
         const response = await this.sv.getPanorama({pano:challengeRound.pano});
@@ -1169,16 +1435,20 @@ class GuessrGame {
         if (!loc || !loc.latLng || !loc.pano) throw new Error('Ce panorama du challenge n’est plus disponible dans Google Street View.');
         start = {data,pos:{lat:loc.latLng.lat(),lng:loc.latLng.lng()}};
         startHeading = Number.isFinite(Number(challengeRound.heading)) ? Number(challengeRound.heading) : 0;
+        this.answer = start.pos;
+        this.startPano = start.data.location.pano;
+        this.startDescription = start.data.location.description || zone.name;
       } else {
         start = await this.findStart(zone, token);
         startHeading = Math.floor(Math.random() * 360);
+        if (token !== this.currentRoundToken) return;
+        this.answer = start.pos;
+        this.startPano = start.data.location.pano;
+        this.startDescription = start.data.location.description || zone.name;
+        this.rememberStart(start.pos);
       }
       if (token !== this.currentRoundToken) return;
-      this.answer = start.pos;
-      this.startPano = start.data.location.pano;
-      this.startDescription = start.data.location.description || zone.name;
-      if (!challengeRound) this.rememberStart(start.pos);
-      const noMove = this.mode === 'nomove' || this.mode === 'nmpz';
+      const noMove = !mission && (this.mode === 'nomove' || this.mode === 'nmpz');
       this.panorama.setOptions({
         addressControl:false,
         clickToGo:!noMove,
@@ -1200,11 +1470,17 @@ class GuessrGame {
       this.panorama.setVisible(true);
       this.applyInteractionMode();
       this.updateCompass();
+      if (mission) {
+        this.startTime=Date.now();
+        this.currentTravel=this.explorationDirectDistance;
+        this.lastTravelPosition=start.pos;
+        this.startExplorationClock();
+      }
       this.updateTravelUI();
       setTimeout(() => {
         if (token === this.currentRoundToken) {
           $('loadingPanel').classList.add('hidden');
-          window.lostPinChallenges?.onRoundReady?.(this.round);
+          if (!mission) window.lostPinChallenges?.onRoundReady?.(this.round);
         }
       }, 450);
     } catch (error) {
@@ -1217,6 +1493,7 @@ class GuessrGame {
   }
 
   submitGuess() {
+    if (this.playType === 'exploration') return;
     if (!this.guess || !this.answer || !$('resultPanel').classList.contains('hidden')) return;
     const zone = ZONES[this.zoneId];
     const distance = haversine(this.guess, this.answer);
@@ -1229,7 +1506,7 @@ class GuessrGame {
     $('roundScoreLabel').textContent = points.toLocaleString('fr-FR');
     $('resultPlace').textContent = this.startDescription || zone.name;
     $('travelInfo').textContent = this.mode === 'explore'
-      ? `Exploration : ${this.moveCount} déplacement${this.moveCount === 1 ? '' : 's'}, jusqu'à ${formatDistance(this.maxTravel)} du départ - ${seconds} s`
+      ? `Move : ${this.moveCount} déplacement${this.moveCount === 1 ? '' : 's'}, jusqu'à ${formatDistance(this.maxTravel)} du départ - ${seconds} s`
       : `${this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'No Move'} - ${seconds} s`;
     const source = new URL('https://www.google.com/maps/@');
     source.searchParams.set('api','1');
@@ -1290,11 +1567,45 @@ class GuessrGame {
   async nextRound() {
     if (this.results.length !== this.round + 1) return;
     this.round++;
-    if (this.round >= (this.roundCount || 5)) this.endGame();
+    if (this.round >= (this.roundCount || (this.playType==='exploration'?3:5))) this.endGame();
     else await this.loadRound();
   }
 
+  endExplorationGame() {
+    this.stopExplorationClock();
+    this.currentRoundToken++;
+    $('gameScreen').classList.add('hidden');
+    $('endScreen').classList.remove('hidden');
+    $('endScreen').classList.remove('perfectGame');
+    $('finalScore').textContent=this.total.toLocaleString('fr-FR');
+    const maxScore=(this.roundCount||3)*5000;
+    if ($('finalMaxScore')) $('finalMaxScore').textContent=maxScore.toLocaleString('fr-FR');
+    $('endEyebrow').textContent='EXPLORATION TERMINÉE';
+    const totalSeconds=this.results.reduce((sum,r)=>sum+(Number(r.seconds)||0),0);
+    const totalMoves=this.results.reduce((sum,r)=>sum+(Number(r.moves)||0),0);
+    const totalTravel=this.results.reduce((sum,r)=>sum+(Number(r.travel)||0),0);
+    const totalDirect=this.results.reduce((sum,r)=>sum+(Number(r.missionDistance)||0),0);
+    const selection=this.getSelectionDescriptor();
+    const selectionName=this.getSelectionName(selection);
+    $('finalComment').textContent=`${selectionName} · ${this.results.length} cible${this.results.length>1?'s':''} atteinte${this.results.length>1?'s':''} en ${formatClock(totalSeconds)} · ${totalMoves} déplacements · ${formatDistance(totalTravel)} parcourus pour ${formatDistance(totalDirect)} en ligne directe.`;
+    $('perfectStats').classList.add('hidden'); $('perfectStats').replaceChildren();
+    $('breakdown').replaceChildren();
+    this.results.forEach((r,i)=>{
+      const row=document.createElement('div'); row.className='breakRow';
+      const zoneName=r.zoneName||ZONES[r.zoneId]?.name||'Map';
+      const label=selection.type==='playlist'?`${zoneName} · ${r.description||'Cible'}`:(r.description||`${zoneName} · cible`);
+      row.innerHTML=`<span class="roundNum">${i+1}</span><span><strong>${this.escapeHTML(label)}</strong><small>${formatClock(r.seconds)} · ${r.moves||0} dépl. · ${formatDistance(r.travel||0)} parcourus · direct ${formatDistance(r.missionDistance||0)}</small></span><b>${Number(r.points||0).toLocaleString('fr-FR')} pts</b>`;
+      $('breakdown').appendChild(row);
+    });
+    if ((this.roundCount||3)===3) {
+      const bests=readJSON(BEST_KEY,{}), key=`${this.getSelectionKey(selection)}:exploration`;
+      bests[key]=Math.max(Number(bests[key])||0,this.total); writeJSON(BEST_KEY,bests);
+    }
+    if ($('restartButton')) $('restartButton').textContent='Rejouer l’exploration';
+  }
+
   endGame() {
+    if (this.playType === 'exploration') return this.endExplorationGame();
     this.currentRoundToken++;
     $('gameScreen').classList.add('hidden');
     $('endScreen').classList.remove('hidden');
@@ -1332,10 +1643,10 @@ class GuessrGame {
 
     let comment;
     if (isPerfect) {
-      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${avgText}.`;
+      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${avgText}.`;
       if (newPrecisionRecord && perfect.count > 1) comment += ' Nouveau record de précision sur un 25 000 !';
     } else {
-      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Exploration'}. Distance moyenne : ${avgText}.`;
+      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move'}. Distance moyenne : ${avgText}.`;
       const ratio = maxScore > 0 ? this.total / maxScore : 0;
       if (ratio >= .92) comment += ' Très grosse partie.';
       else if (ratio >= .76) comment += ' Solide.';
@@ -1385,10 +1696,11 @@ class GuessrGame {
 
   showMenu() {
     this.currentRoundToken++;
+    this.stopExplorationClock();
     this.setBusy(false);
     if (this.toastTimer) clearTimeout(this.toastTimer);
     $('toast')?.classList.add('hidden');
-    $('gameScreen')?.classList.remove('has-result','challenge-active');
+    $('gameScreen')?.classList.remove('has-result','challenge-active','exploration-mission');
     if (this.panorama) this.panorama.setVisible(false);
     $('panoInteractionLock')?.classList.add('hidden');
     $('gameScreen').classList.add('hidden');
@@ -1396,6 +1708,7 @@ class GuessrGame {
     $('startScreen').classList.remove('hidden');
     const selection=this.getSelectionDescriptor();
     if (selection.type==='zone') this.zoneId=selection.zoneId;
+    this.refreshPlayTypeUI();
     this.updateSelectionBanner();
     this.updateBest();
   }

@@ -1,3 +1,17 @@
+# LostPin V5.4.0
+
+- Nouveau type de partie **Exploration** en solo : au lieu de retrouver le point de départ sur la carte, il faut rejoindre physiquement une cible en se déplaçant dans Google Street View.
+- Une partie Exploration comporte 3 missions. LostPin choisit une cible Street View dans la map ou la playlist sélectionnée puis cherche un départ jouable à proximité.
+- La carte d’Exploration affiche le départ et la cible, tandis que le HUD suit la distance restante, le chrono, le nombre de déplacements et la distance réellement parcourue.
+- La manche se termine automatiquement lorsque le joueur atteint le panorama cible ou s’en approche à moins de 40 m.
+- Nouveau score Exploration sur 5 000 points par mission, basé sur le temps, le nombre de déplacements et les détours par rapport à la distance directe.
+- Les anciens boutons Avancer / Reculer / Demi-tour / Départ, conservés depuis V4, sont désormais utilisés par ce nouveau mode ; les contrôles natifs Street View restent disponibles.
+- Le mode de géolocalisation historique est maintenant nommé **Move** dans l’interface afin de réserver le nom Exploration au nouveau gameplay.
+- Challenges et multijoueur restent pour l’instant réservés à la géolocalisation classique (Move / No Move / NMPZ).
+- Les statistiques distinguent les parties Exploration des parties Move afin de ne pas mélanger leurs records.
+
+---
+
 # LostPin V5.3.5
 
 - Le sélecteur géographique utilise désormais une largeur stable : son gabarit ne dépend plus du nombre de pays, villes ou résultats affichés.

@@ -274,6 +274,7 @@ class ChallengeController {
     this.current=descriptor;
     this.game.challengeConfig={...descriptor,selection:{...(descriptor.selection||{})},rounds:descriptor.rounds.map(x=>({...x}))};
     if (descriptor.selection) this.game.setSelection?.(descriptor.selection);
+    this.game.setPlayType?.('guess',{silent:true});
     this.game.zoneId=descriptor.rounds?.[0]?.zoneId || descriptor.zoneId;
     this.game.mode=descriptor.mode;
     document.querySelectorAll('.modeCard').forEach(x=>x.classList.toggle('selected',x.dataset.mode===descriptor.mode));

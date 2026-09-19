@@ -4,7 +4,7 @@
 // LostPin geographic catalogue V5.3.3.
 // Stable IDs are persisted by Challenges, playlists, statistics and multiplayer.
 // The catalogue is intentionally separated from app.js so it can migrate later
-// to the ASP.NET catalogue planned for LostPin V6.
+// to the ASP.NET catalogue planned for LostPin V7.
 
 const CONTINENTS = Object.freeze({
   europe:{id:'europe',name:'Europe',aliases:['europe']},

@@ -5,7 +5,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
-Version 5.3.3.
+Version 5.4.0.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.
@@ -35,7 +35,11 @@ API nécessaire : Maps JavaScript API.
 
 SOLO
 ----
-Une partie classique comporte 5 manches pour un maximum de 25 000 points. Une playlist peut changer de terrain entre les manches.
+LostPin propose désormais deux types de parties solo :
+- Géolocalisation : 5 manches, jusqu’à 25 000 points, il faut retrouver le point de départ sur la carte.
+- Exploration : 3 missions, jusqu’à 15 000 points, il faut rejoindre physiquement une cible dans Street View.
+
+Une playlist peut changer de terrain entre les manches ou les missions.
 
 SÉLECTION GÉOGRAPHIQUE
 ----------------------
@@ -56,12 +60,28 @@ Précision des zones :
 
 Les nouvelles zones ne constituent donc pas encore des frontières administratives exactes. Leur découpe pourra être affinée progressivement sans changer les IDs des maps.
 
-Modes disponibles :
+Modes de déplacement pour la géolocalisation :
 - Move : déplacement, rotation et zoom autorisés.
 - No Move : déplacement interdit ; rotation et zoom autorisés.
 - No Move + No Pan/Zoom : panorama totalement figé ; aucun déplacement, aucune rotation et aucun zoom.
 
-Les déplacements se font avec les contrôles natifs de Google Street View. Les anciens boutons Avancer / Reculer / Demi-tour / Départ restent dans le code pour le futur mode Exploration mais sont masqués pendant les parties classiques.
+Les déplacements se font avec les contrôles natifs de Google Street View.
+
+EXPLORATION (V5.4)
+-------------------
+Exploration est un type de partie distinct de la géolocalisation classique. LostPin choisit une cible Street View dans la map sélectionnée, puis cherche un départ proche et jouable.
+
+Objectif : rejoindre réellement la cible en avançant dans Street View.
+- 3 missions par partie ;
+- cible et départ visibles sur la carte ;
+- arrivée validée automatiquement à moins de 40 m ou sur le panorama cible ;
+- chrono sans limite de temps ;
+- nombre de déplacements ;
+- distance parcourue ;
+- distance restante ;
+- score sur 5 000 par mission, pénalisé par le temps, les déplacements et les détours.
+
+Les boutons Avancer / Reculer / Demi-tour / Départ sont visibles dans ce mode, en complément des contrôles Street View natifs. Exploration fonctionne avec une map ou une playlist. En V5.4, Challenges et multijoueur restent réservés au mode de géolocalisation classique.
 
 
 PLAYLISTS / COLLECTIONS (V5.3)
