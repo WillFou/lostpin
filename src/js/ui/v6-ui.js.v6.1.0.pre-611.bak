@@ -153,6 +153,7 @@ function bindNavigation(){
   $('v6NavProfile')?.addEventListener('click',()=>openFeatureRoute('profile','statsButton'));
   $('v6HeroProfile')?.addEventListener('click',()=>openFeatureRoute('profile','statsButton'));
   $('v6HeroChallenge')?.addEventListener('click',()=>openFeatureRoute('challenges','challengeButton'));
+  $('v6SearchNav')?.addEventListener('click',()=>{showHome('v6Catalog',true);setTimeout(()=>$('zoneSearch')?.focus(),420);});
   $('v6ModeMultiplayer')?.addEventListener('click',()=>openFeatureRoute('multiplayer','multiplayerButton'));
   $('v6ModeChallenge')?.addEventListener('click',()=>openFeatureRoute('challenges','challengeButton'));
   $('v6CommunityMulti')?.addEventListener('click',()=>openFeatureRoute('multiplayer','multiplayerButton'));

@@ -508,3 +508,9 @@
 - conserve les modales uniquement pour les actions ponctuelles (aide, audio, confirmations, erreurs)
 - la navigation Accueil / Jouer / Collections / Multijoueur / Défis / Classements / Profil reste visible et active sur ces pages
 - corrige le retour au lobby de revanche multijoueur avec la nouvelle architecture de pages
+
+## 6.1.1 - Multijoueur & navigation
+- en multijoueur Classique, la première réponse ne raccourcit plus le chrono à 20 secondes : le timer continue normalement jusqu'à expiration ou jusqu'à ce que tous les joueurs aient répondu
+- compatibilité renforcée : un client 6.1.1 ignore aussi un ancien paquet `first-submit` reçu dans une salle Classique
+- notifications multijoueur déplacées dans une zone dédiée sous le bandeau, à droite, afin de ne jamais recouvrir la boussole
+- bouton loupe inactif retiré temporairement de la navbar ; une recherche globale pourra revenir lors d'un chantier dédié

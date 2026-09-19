@@ -120,6 +120,7 @@
 <button id="v6NavProfile" type="button">Profil</button>
 </nav>
 <div class="v6HeaderActions">
+<button aria-label="Rechercher un terrain" class="v6SearchButton" id="v6SearchNav" title="Rechercher un terrain" type="button"><span aria-hidden="true">🔍</span><span>Rechercher</span></button>
 <span class="v6LanguagePill">🇫🇷 <b>FR</b></span>
 <div class="statusPill" id="apiStatus">Google Maps...</div>
 <button aria-label="Musique chill" class="v6IconButton" id="musicStartButton" title="Musique chill"><span class="lpIcon" data-lp-icon="music"></span></button>
@@ -353,7 +354,6 @@
 <div class="hidden" id="multiHud"><span class="multiHudDot"></span><span id="multiHudName">Multijoueur</span><span id="multiHudScore">0 pts</span><span id="multiHudExtra"></span></div>
 </section>
 <div class="multiEmoteToast hidden" id="multiEmoteToast" role="status"><span class="emoji">🔥</span><span><b>Joueur</b><small>réagit</small></span></div>
-<div class="multiNoticeStack hidden" id="multiNoticeStack" aria-live="polite" aria-atomic="false"></div>
 <div aria-label="Boussole" data-style="circle" id="compass">
 <div class="compassStyle compassStyle-circle"><div class="compassCircleWrap"><div class="compassCircle"><span class="cardinal n">N</span><span class="cardinal e">E</span><span class="cardinal s">S</span><span class="cardinal o">O</span><span class="circleNeedle" id="compassCircleNeedle"></span><span class="circleHub"></span></div></div></div>
 <div class="compassStyle compassStyle-pano"><div class="compassPano"><div class="compassPanoViewport"><div class="compassTrack" id="compassPanoTrack"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span class="panoPointer">▲</span></div></div></div>
