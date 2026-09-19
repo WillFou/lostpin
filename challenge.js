@@ -4,6 +4,7 @@
 const $ = id => document.getElementById(id);
 const LEGACY_ZONE_IDS = ['paris','paris13','parisGroup','bagneux','washington','france','world','europe','northAmerica','southAmerica','asia','africa','oceania'];
 const MODE_IDS = ['explore','nomove','nmpz'];
+const VARIANT_IDS = ['classic','blitz','precision'];
 const TIMER_VALUES = [0,15,20,30,60,120,180];
 const ROUND_VALUES = [3,5,10];
 const SHARE_PREFIX = 'LP5.';
@@ -15,6 +16,7 @@ const SHORT_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 function modeLabel(mode) {
   return mode === 'nomove' ? 'No Move' : mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move';
 }
+function variantLabel(variant) { return variant==='blitz'?'Blitz':variant==='precision'?'Précision':'Classique'; }
 function timerLabel(seconds) { return Number(seconds) > 0 ? `${Number(seconds)} s` : 'sans limite'; }
 function esc(text) { return String(text ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function bytesToBase64Url(text) {
@@ -108,14 +110,17 @@ class ChallengeController {
     const selection=this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
     const selectionName=this.game.getSelectionName?.(selection) || this.api.ZONES[this.game.zoneId]?.name || this.game.zoneId;
     const box=$('challengeCurrentSettings');
-    if (box) box.textContent=`${selection.type==='playlist'?'Playlist · ':''}${selectionName} · ${modeLabel(this.game.mode)}`;
+    if (box) box.textContent=`${selection.type==='playlist'?'Playlist · ':''}${selectionName} · ${modeLabel(this.game.mode)} · ${variantLabel(this.game.gameVariant||'classic')}`;
+    if ((this.game.gameVariant||'classic')==='blitz' && $('challengeTimer')) $('challengeTimer').value=String([15,20,30].includes(Number(this.game.blitzSeconds))?Number(this.game.blitzSeconds):20);
   }
 
   async create() {
     if (this.generating || !this.game.apiReady) return;
     const selection=this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
     const mode=this.game.mode;
-    const timerSeconds=Number($('challengeTimer')?.value||0);
+    const variant=VARIANT_IDS.includes(this.game.gameVariant)?this.game.gameVariant:'classic';
+    let timerSeconds=Number($('challengeTimer')?.value||0);
+    if (variant==='blitz' && ![15,20,30].includes(timerSeconds)) timerSeconds=[15,20,30].includes(Number(this.game.blitzSeconds))?Number(this.game.blitzSeconds):20;
     const roundCount=Number($('challengeRounds')?.value||5);
     if (!TIMER_VALUES.includes(timerSeconds) || !ROUND_VALUES.includes(roundCount)) return;
     this.generating=true;
@@ -156,9 +161,9 @@ class ChallengeController {
       const selectionPayload=selection.type==='playlist'
         ? ['p',String(selection.id||'playlist'),String(selection.name||'Playlist').slice(0,48),selection.zoneIds.slice()]
         : ['z',selection.zoneId];
-      // V3 stores stable textual zone IDs instead of indexes. This keeps new
-      // Challenges valid when the geographic catalogue grows in later releases.
-      const payload={v:3,s:selectionPayload,m:MODE_IDS.indexOf(mode),t:timerSeconds,n:roundCount,r:rounds.map(x=>[x.zoneId,x.pano,x.heading])};
+      // V4 keeps the stable textual zone IDs introduced in V3 and adds the game format.
+      // This keeps Challenges valid while the catalogue continues to grow.
+      const payload={v:4,s:selectionPayload,m:MODE_IDS.indexOf(mode),g:VARIANT_IDS.indexOf(variant),t:timerSeconds,n:roundCount,r:rounds.map(x=>[x.zoneId,x.pano,x.heading])};
       const tokenValue=SHARE_PREFIX+bytesToBase64Url(JSON.stringify(payload));
       const descriptor=this.decode(tokenValue);
       this.generated=descriptor;
@@ -182,7 +187,9 @@ class ChallengeController {
     try { data=JSON.parse(base64UrlToText(code.slice(SHARE_PREFIX.length))); }
     catch (_) { throw new Error('Code de challenge invalide ou incomplet.'); }
     const mode=MODE_IDS[Number(data?.m)], timerSeconds=Number(data?.t), roundCount=Number(data?.n);
-    if (!mode || !TIMER_VALUES.includes(timerSeconds) || !ROUND_VALUES.includes(roundCount)) throw new Error('Réglages du challenge invalides.');
+    const variant=data?.v>=4 ? VARIANT_IDS[Number(data?.g)] : 'classic';
+    if (!mode || !variant || !TIMER_VALUES.includes(timerSeconds) || !ROUND_VALUES.includes(roundCount)) throw new Error('Réglages du challenge invalides.');
+    if (variant==='blitz' && ![15,20,30].includes(timerSeconds)) throw new Error('Un challenge Blitz doit utiliser 15, 20 ou 30 secondes.');
 
     if (data?.v===1) {
       const zoneId=LEGACY_ZONE_IDS[Number(data.z)];
@@ -191,10 +198,10 @@ class ChallengeController {
       const rounds=data.r.map(item=>({zoneId,pano:String(item?.[0]||''),heading:Number(item?.[1])}));
       if (rounds.some(x=>!x.pano || !Number.isFinite(x.heading))) throw new Error('Panoramas du challenge invalides.');
       const selection={type:'zone',zoneId,name:this.api.ZONES[zoneId].name};
-      return {code,id:fingerprint(code),selection,zoneId,mode,timerSeconds,roundCount,rounds};
+      return {code,id:fingerprint(code),selection,zoneId,mode,variant,timerSeconds,roundCount,rounds};
     }
 
-    if (data?.v===3) {
+    if (data?.v===3 || data?.v===4) {
       if (!Array.isArray(data.s) || !Array.isArray(data.r) || data.r.length!==roundCount) throw new Error('Données du challenge incomplètes.');
       let selection;
       if (data.s[0]==='z') {
@@ -211,7 +218,7 @@ class ChallengeController {
       if (selection.type==='zone' && rounds.some(x=>x.zoneId!==selection.zoneId)) throw new Error('Maps du challenge incohérentes.');
       if (selection.type==='playlist' && rounds.some(x=>!selection.zoneIds.includes(x.zoneId))) throw new Error('Une manche ne fait pas partie de la playlist annoncée.');
       const zoneId=rounds[0].zoneId;
-      return {code,id:fingerprint(code),selection,zoneId,mode,timerSeconds,roundCount,rounds};
+      return {code,id:fingerprint(code),selection,zoneId,mode,variant,timerSeconds,roundCount,rounds};
     }
 
     if (data?.v!==2) throw new Error('Version de challenge non prise en charge.');
@@ -232,7 +239,7 @@ class ChallengeController {
     if (selection.type==='zone' && rounds.some(x=>x.zoneId!==selection.zoneId)) throw new Error('Maps du challenge incohérentes.');
     if (selection.type==='playlist' && rounds.some(x=>!selection.zoneIds.includes(x.zoneId))) throw new Error('Une manche ne fait pas partie de la playlist annoncée.');
     const zoneId=rounds[0].zoneId;
-    return {code,id:fingerprint(code),selection,zoneId,mode,timerSeconds,roundCount,rounds};
+    return {code,id:fingerprint(code),selection,zoneId,mode,variant,timerSeconds,roundCount,rounds};
   }
 
   renderCreated(descriptor) {
@@ -265,7 +272,7 @@ class ChallengeController {
   summary(descriptor) {
     const selection=descriptor.selection || {type:'zone',zoneId:descriptor.zoneId};
     const name=selection.type==='playlist' ? selection.name : (this.api.ZONES[selection.zoneId]?.name || selection.zoneId);
-    return `${selection.type==='playlist'?'Playlist · ':''}${name} · ${modeLabel(descriptor.mode)} · ${descriptor.roundCount} manches · ${timerLabel(descriptor.timerSeconds)}`;
+    return `${selection.type==='playlist'?'Playlist · ':''}${name} · ${modeLabel(descriptor.mode)} · ${variantLabel(descriptor.variant||'classic')} · ${descriptor.roundCount} manches · ${timerLabel(descriptor.timerSeconds)}`;
   }
 
   playDescriptor(descriptor) {
@@ -277,6 +284,8 @@ class ChallengeController {
     this.game.setPlayType?.('guess',{silent:true});
     this.game.zoneId=descriptor.rounds?.[0]?.zoneId || descriptor.zoneId;
     this.game.mode=descriptor.mode;
+    this.game.setGameVariant?.(descriptor.variant||'classic',{silent:true});
+    if ((descriptor.variant||'classic')==='blitz' && [15,20,30].includes(Number(descriptor.timerSeconds))) this.game.blitzSeconds=Number(descriptor.timerSeconds);
     document.querySelectorAll('.modeCard').forEach(x=>x.classList.toggle('selected',x.dataset.mode===descriptor.mode));
     $('challengeModal')?.classList.add('hidden');
     $('gameScreen')?.classList.add('challenge-active');
@@ -340,7 +349,9 @@ class ChallengeController {
     if (this.currentResult) {
       this.saveResult(this.currentResult);
       const distance=Number.isFinite(this.currentResult.d)?this.api.formatDistance(this.currentResult.d):'—';
-      if ($('challengeEndResultStats')) $('challengeEndResultStats').textContent=`${this.currentResult.f} × 5 000 · distance moyenne ${distance}`;
+      if ($('challengeEndResultStats')) $('challengeEndResultStats').textContent=this.currentResult.g==='precision' && Number.isFinite(this.currentResult.td)
+        ? `${this.currentResult.f} × 5 000 · moyenne ${distance} · cumul ${this.api.formatDistance(this.currentResult.td)}`
+        : `${this.currentResult.f} × 5 000 · distance moyenne ${distance}`;
       if ($('challengeEndResultCode')) $('challengeEndResultCode').value=this.encodeResult(this.currentResult);
     }
   }
@@ -363,16 +374,20 @@ class ChallengeController {
     const distances=results.map(x=>Number(x.distance)).filter(Number.isFinite);
     const avg=distances.length ? distances.reduce((s,x)=>s+x,0)/distances.length : null;
     const max=(this.current.roundCount||results.length||5)*5000;
+    const totalDistance=distances.length===results.length && distances.length ? distances.reduce((sum,x)=>sum+x,0) : null;
     return {
-      v:1,
+      v:2,
       c:this.current.id,
       h:this.challengeSignature(this.current.code),
       n:this.resultPlayerName(),
+      g:this.current.variant||'classic',
       s:Number(this.game.total||0),
       x:max,
       f:results.filter(x=>Number(x.points)===5000).length,
       d:Number.isFinite(avg)?Math.round(avg*10)/10:null,
+      td:Number.isFinite(totalDistance)?Math.round(totalDistance*10)/10:null,
       r:results.map(x=>Number(x.points)||0),
+      rd:results.map(x=>Number.isFinite(Number(x.distance))?Math.round(Number(x.distance)*10)/10:null),
       ts:Date.now()
     };
   }
@@ -389,13 +404,15 @@ class ChallengeController {
     let data;
     try { data=JSON.parse(base64UrlToText(token.slice(RESULT_PREFIX.length))); }
     catch (_) { throw new Error('Code résultat invalide ou incomplet.'); }
-    if (data?.v!==1 || !data.c || !data.h || !Number.isFinite(Number(data.s)) || !Number.isFinite(Number(data.x))) throw new Error('Données de résultat invalides.');
-    return {...data,s:Number(data.s),x:Number(data.x),f:Number(data.f||0),d:data.d==null?null:Number(data.d),r:Array.isArray(data.r)?data.r.map(Number):[]};
+    if (![1,2].includes(Number(data?.v)) || !data.c || !data.h || !Number.isFinite(Number(data.s)) || !Number.isFinite(Number(data.x))) throw new Error('Données de résultat invalides.');
+    const variant=VARIANT_IDS.includes(data.g)?data.g:'classic';
+    return {...data,g:variant,s:Number(data.s),x:Number(data.x),f:Number(data.f||0),d:data.d==null?null:Number(data.d),td:data.td==null?null:Number(data.td),r:Array.isArray(data.r)?data.r.map(Number):[],rd:Array.isArray(data.rd)?data.rd.map(x=>x==null?null:Number(x)):[]};
   }
 
   resultSummaryText(result) {
     const distance=Number.isFinite(result.d) ? this.api.formatDistance(result.d) : '—';
-    return `LostPin — Challenge ${result.c}\n${result.n} : ${result.s.toLocaleString('fr-FR')} / ${result.x.toLocaleString('fr-FR')} pts\n${result.f} × 5 000 · distance moyenne ${distance}\nCode résultat : ${this.encodeResult(result)}`;
+    const precision=result.g==='precision' && Number.isFinite(result.td) ? ` · cumul ${this.api.formatDistance(result.td)}` : '';
+    return `LostPin — Challenge ${result.c} · ${variantLabel(result.g||'classic')}\n${result.n} : ${result.s.toLocaleString('fr-FR')} / ${result.x.toLocaleString('fr-FR')} pts\n${result.f} × 5 000 · distance moyenne ${distance}${precision}\nCode résultat : ${this.encodeResult(result)}`;
   }
 
   saveResult(result) {
@@ -409,7 +426,13 @@ class ChallengeController {
   bestLocalResult(signature) {
     try {
       const list=JSON.parse(localStorage.getItem(RESULT_HISTORY_KEY)||'[]');
-      return (Array.isArray(list)?list:[]).filter(x=>x?.h===signature).sort((a,b)=>Number(b.s||0)-Number(a.s||0))[0] || null;
+      const matches=(Array.isArray(list)?list:[]).filter(x=>x?.h===signature);
+      matches.sort((a,b)=>{
+        const variant=VARIANT_IDS.includes(a?.g)?a.g:'classic';
+        if (variant==='precision' && Number.isFinite(Number(a?.td)) && Number.isFinite(Number(b?.td))) return Number(a.td)-Number(b.td) || Number(b.s||0)-Number(a.s||0);
+        return Number(b.s||0)-Number(a.s||0);
+      });
+      return matches[0] || null;
     } catch (_) { return null; }
   }
 
@@ -438,12 +461,20 @@ class ChallengeController {
       const local=this.bestLocalResult(received.h);
       const box=$('challengeCompareResult'); if (!box) return;
       const distance=Number.isFinite(received.d)?this.api.formatDistance(received.d):'—';
-      let html=`<div class="challengeComparePlayer"><b>${esc(received.n||'Joueur')}</b><strong>${received.s.toLocaleString('fr-FR')} / ${received.x.toLocaleString('fr-FR')} pts</strong><small>${received.f} × 5 000 · moyenne ${distance}</small></div>`;
+      const precisionExtra=received.g==='precision' && Number.isFinite(received.td)?` · cumul ${this.api.formatDistance(received.td)}`:'';
+      let html=`<div class="challengeComparePlayer"><b>${esc(received.n||'Joueur')}</b><strong>${received.s.toLocaleString('fr-FR')} / ${received.x.toLocaleString('fr-FR')} pts</strong><small>${variantLabel(received.g||'classic')} · ${received.f} × 5 000 · moyenne ${distance}${precisionExtra}</small></div>`;
       if (local) {
-        const delta=Number(local.s||0)-received.s;
-        const sign=delta>0?'+':'';
         const localDistance=Number.isFinite(Number(local.d))?this.api.formatDistance(Number(local.d)):'—';
-        html+=`<div class="challengeCompareVs">Ton meilleur résultat : <b>${Number(local.s||0).toLocaleString('fr-FR')} pts</b> · ${Number(local.f||0)} × 5 000 · moyenne ${localDistance}<strong class="${delta>=0?'positive':'negative'}">${sign}${delta.toLocaleString('fr-FR')} pts</strong></div>`;
+        if (received.g==='precision' && Number.isFinite(received.td) && Number.isFinite(Number(local.td))) {
+          const deltaDistance=Number(received.td)-Number(local.td);
+          const distanceClass=deltaDistance>=0?'positive':'negative';
+          const distanceSign=deltaDistance>=0?'+':'-';
+          html+=`<div class="challengeCompareVs">Ton meilleur résultat : <b>${Number(local.s||0).toLocaleString('fr-FR')} pts</b> · cumul ${this.api.formatDistance(Number(local.td))} · moyenne ${localDistance}<strong class="${distanceClass}">${distanceSign}${this.api.formatDistance(Math.abs(deltaDistance))}</strong></div>`;
+        } else {
+          const delta=Number(local.s||0)-received.s;
+          const sign=delta>0?'+':'';
+          html+=`<div class="challengeCompareVs">Ton meilleur résultat : <b>${Number(local.s||0).toLocaleString('fr-FR')} pts</b> · ${Number(local.f||0)} × 5 000 · moyenne ${localDistance}<strong class="${delta>=0?'positive':'negative'}">${sign}${delta.toLocaleString('fr-FR')} pts</strong></div>`;
+        }
       } else html+=`<div class="challengeCompareVs">Tu n'as pas encore de résultat local enregistré pour ce challenge.</div>`;
       box.innerHTML=`<div class="eyebrow">CHALLENGE ${esc(received.c)}</div>${html}`;
       box.classList.remove('hidden');

@@ -1,3 +1,26 @@
+# LostPin V5.5.1
+
+- Correction du timeout Blitz en solo : à 0 seconde, la manche est désormais réellement clôturée.
+- Sans marqueur au timeout, LostPin enregistre immédiatement 0 point et affiche le résultat.
+- Avec un marqueur déjà posé, le timeout valide automatiquement cette position.
+- La navigation Street View est verrouillée dès qu'une manche est terminée, y compris après un timeout Blitz ou Challenge.
+- Suppression du multijoueur local : LostPin conserve uniquement le multijoueur en ligne.
+- Nettoyage de l'interface, de l'aide et de la documentation liés au multi local.
+
+# LostPin V5.5.0
+
+- Nouveau format **Blitz** : 15, 20 ou 30 secondes par manche, avec le barème LostPin classique. En solo et en multi local, une réponse déjà placée est validée automatiquement à la fin du chrono ; sans marqueur, la manche vaut 0 point.
+- Nouveau format **Précision** : barème linéaire en fonction de la distance au lieu de la décroissance exponentielle classique. En multijoueur, le classement de chaque manche Précision privilégie directement la plus petite distance.
+- Classique / Blitz / Précision sont disponibles en solo, dans les Challenges et en multijoueur local.
+- Le multijoueur en ligne permet également à l’hôte de choisir le format ; Blitz force un chrono de 15, 20 ou 30 secondes. Le protocole en ligne passe en V6 / LostPin V5.5 pour transporter ce réglage.
+- Les Challenges passent au format interne LP5 V4 afin d’enregistrer le format de partie ; les codes V1, V2 et V3 restent lisibles.
+- Les codes résultat `LPR1.…` conservent leur préfixe mais enregistrent désormais le format, les distances par manche et la distance cumulée pour les comparaisons Précision.
+- Les statistiques séparent les records Classique, Blitz et Précision. Les statistiques de précision récente excluent le barème Précision pour ne pas mélanger deux échelles de score différentes.
+- Deux badges locaux supplémentaires : **Éclair** (5 parties Blitz) et **Géomètre** (5 parties Précision).
+- Exploration reste inchangé et conserve ses propres règles de score.
+
+---
+
 # LostPin V5.4.0
 
 - Nouveau type de partie **Exploration** en solo : au lieu de retrouver le point de départ sur la carte, il faut rejoindre physiquement une cible en se déplaçant dans Google Street View.

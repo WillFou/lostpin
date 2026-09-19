@@ -1,4 +1,4 @@
-/* LostPin V5.4.0 - Exploration missions */
+/* LostPin V5.5.1 - Blitz timeout fix and online-only multiplayer */
 
 body{
   --theme-card:rgba(9,25,40,.94);
@@ -239,7 +239,7 @@ body[data-theme="midnight"] .mapCard.selected:after,body[data-theme="midnight"] 
 #mapPanel{background:var(--theme-map-panel);border-color:var(--line);border-radius:var(--theme-radius)}
 .mapHeader{background:var(--theme-map-head);color:var(--muted)}.mapHeader b{color:var(--text)}.mapActions{background:var(--theme-map-panel)}
 #travelHint,.travelInfo,.multiRoundPlace,.multiWaiting,.onlineStatus,.multiNote{color:var(--muted)}
-.localPlayerRow input,.onlineField{background:var(--theme-field);color:var(--theme-field-text);border-color:var(--line)}
+.onlineField{background:var(--theme-field);color:var(--theme-field-text);border-color:var(--line)}
 .roomCode{color:var(--good)}.compassPanel{background:var(--theme-glass);border-color:var(--line)}
 
 body[data-theme="arcade"] .hud{border-radius:18px;border-width:2px;box-shadow:0 5px 0 #02111b,0 12px 28px #00111d80;padding:8px 12px}
@@ -328,7 +328,7 @@ body[data-theme="midnight"] .onlineLobbyBox{border-color:#2c5266}
    ------------------------------------------------------------------ */
 .modalCard p,.modalCard li,.fineprint,.resultLegend,.compassChoice small{color:var(--muted)}
 .compassPreview{background:var(--theme-field);color:var(--theme-field-text)}
-#loadingPanel,#multiTurnOverlay{background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px)}
+#loadingPanel{background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px)}
 #busyBadge,.toast{background:var(--theme-glass-strong);border-color:var(--line);color:var(--text)}
 .themeChoice.selected:after{content:none!important;display:none!important}
 
@@ -1363,3 +1363,16 @@ body[data-theme="midnight"] .zoneCatalogSearch,body[data-theme="midnight"] .zone
 .explorationObjective b{display:block;font-size:12px}.explorationObjective small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 .explorationDone{color:var(--good)!important}
 @media(max-width:600px){.playTypeGrid{grid-template-columns:1fr}.playTypeCard{min-height:78px}#gameScreen.exploration-mission #travelPanel{bottom:8px}}
+
+/* LostPin V5.5.0 - Blitz & Precision */
+.variantGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:920px}
+.variantCard{appearance:none;text-align:left;border:1px solid var(--line);background:var(--theme-card-soft,#ffffff06);color:var(--text);border-radius:16px;padding:15px;min-height:92px;position:relative;transition:.15s}
+.variantCard:hover{background:#ffffff0d;border-color:#ffffff38;transform:translateY(-1px)}
+.variantCard.selected{border-color:var(--good);box-shadow:inset 0 0 0 1px var(--good);background:#65dfba10}
+.variantCard.selected:after{content:"OK";position:absolute;right:10px;top:9px;font-size:9px;font-weight:900;color:#08251c;background:var(--good);border-radius:999px;padding:3px 6px}
+.variantCard strong{display:block;font-size:15px}.variantCard small{display:block;margin-top:5px;color:var(--muted);font-size:11px;line-height:1.45}.variantIcon{font-size:24px;display:block;margin-bottom:7px}
+#gameVariantSection.playTypeDisabled{opacity:.58}#gameVariantSection.playTypeDisabled .variantGrid{pointer-events:none}
+#gameVariantSection.playTypeDisabled:after{content:"Exploration utilise ses propres règles de score.";display:block;margin-top:9px;color:var(--muted);font-size:11px}
+.blitzOptions{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-card-soft,#ffffff05);width:max-content;max-width:100%}
+.blitzOptions label{font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}.blitzOptions select{border:1px solid #ffffff25;border-radius:10px;background:var(--theme-field,#0a111b);color:var(--text);padding:8px 10px;font-weight:800}
+@media(max-width:720px){.variantGrid{grid-template-columns:1fr}.variantCard{min-height:78px}}

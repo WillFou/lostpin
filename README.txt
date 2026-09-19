@@ -5,7 +5,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
-Version 5.4.0.
+Version 5.5.0.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.
@@ -40,6 +40,18 @@ LostPin propose désormais deux types de parties solo :
 - Exploration : 3 missions, jusqu’à 15 000 points, il faut rejoindre physiquement une cible dans Street View.
 
 Une playlist peut changer de terrain entre les manches ou les missions.
+
+FORMATS DE PARTIE (V5.5)
+-------------------------
+En Géolocalisation, LostPin propose trois formats indépendants du mode de déplacement :
+- Classique : barème historique LostPin, sans limite de temps en solo.
+- Blitz : 15, 20 ou 30 secondes par manche, avec le barème classique.
+- Précision : barème linéaire basé sur la distance ; chaque mètre fait perdre directement des points.
+
+Blitz : si le chrono arrive à zéro avec un marqueur déjà placé, la réponse est validée automatiquement. Sans marqueur, la manche vaut 0 point.
+Précision : en multijoueur, le classement de la manche privilégie la distance la plus faible. Le cumul de points linéaires sert ensuite au classement général et reste compatible avec Duel et Élimination.
+
+Ces formats sont disponibles en solo, dans les Challenges et en multijoueur en ligne. Exploration utilise toujours ses propres règles et n'affiche pas ces formats.
 
 SÉLECTION GÉOGRAPHIQUE
 ----------------------
@@ -113,10 +125,9 @@ Règle de tirage :
 Les playlists fonctionnent :
 - en solo ;
 - dans les Challenges ;
-- en multijoueur local ;
 - en multijoueur en ligne.
 
-Les Challenges créés à partir d'une playlist enregistrent aussi la map exacte de chaque manche. Les anciens codes LP5 V1/V2 restent lisibles ; les nouveaux codes V3 utilisent directement les IDs stables des maps.
+Les Challenges créés à partir d'une playlist enregistrent aussi la map exacte de chaque manche. Les anciens codes LP5 V1/V2 restent lisibles ; les codes V3 utilisent directement les IDs stables des maps et les nouveaux codes V4 enregistrent aussi le format Classique / Blitz / Précision.
 
 CHALLENGES (V5)
 ---------------
@@ -128,7 +139,8 @@ Un challenge mémorise :
 - la map ou playlist ;
 - Move, No Move ou No Move + No Pan/Zoom ;
 - 3, 5 ou 10 manches ;
-- un timer facultatif de 15, 20, 30, 60, 120 ou 180 secondes.
+- le format Classique, Blitz ou Précision ;
+- un timer facultatif de 15, 20, 30, 60, 120 ou 180 secondes (Blitz utilise obligatoirement 15, 20 ou 30 secondes).
 
 Créer un challenge :
 1. Choisis la map ou playlist et le mode sur l'écran d'accueil.
@@ -155,13 +167,10 @@ Le bouton « Copier mon résultat » copie un résumé lisible avec :
 - le score et le score maximal ;
 - le nombre de manches à 5 000 points ;
 - la distance moyenne ;
+- en Précision, la distance cumulée ;
 - le code résultat portable.
 
 Un ami peut coller ce code dans Challenges > Comparer un résultat reçu. LostPin vérifie qu'il correspond au même challenge et le compare au meilleur résultat local enregistré sur ce challenge. Aucune donnée n'est envoyée à un serveur LostPin.
-
-MULTIJOUEUR LOCAL
------------------
-Le mode local permet à plusieurs joueurs de jouer successivement sur la même machine.
 
 MULTIJOUEUR EN LIGNE (BÊTA)
 ----------------------------
@@ -169,15 +178,16 @@ Jusqu'à 6 joueurs peuvent rejoindre une salle avec un code.
 
 L'hôte choisit notamment :
 - 3, 5 ou 10 manches ;
-- un timer de 60, 120 ou 180 secondes ;
+- un timer de 15, 20, 30, 60, 120 ou 180 secondes ;
 - Move, No Move ou No Move + No Pan/Zoom ;
-- Classique, Duel ou Élimination.
+- le format Classique, Blitz ou Précision ;
+- le mode de compétition Classique, Duel ou Élimination.
 
 Classique : cumul normal des scores.
 Duel : exactement 2 joueurs, 6 000 PV chacun ; la différence de score d'une manche devient des dégâts.
 Élimination : 3 à 6 joueurs ; le dernier de chaque manche est éliminé jusqu'au dernier survivant.
 
-Après la première validation d'une manche en ligne, il reste au maximum 20 secondes aux autres joueurs.
+Après la première validation d'une manche en ligne, il reste au maximum 20 secondes aux autres joueurs. En Blitz 15/20 s, le chrono initial est déjà inférieur ou égal à cette limite.
 
 JOUEURS / RÉACTIONS
 -------------------
@@ -251,7 +261,7 @@ FICHIERS PRINCIPAUX
 -------------------
 index.html       Interface principale.
 app.js           Gameplay solo et intégration Street View / carte.
-multiplayer.js   Multijoueur local et en ligne.
+multiplayer.js   Multijoueur en ligne (pair-à-pair).
 challenge.js     Création, import, timer et historique des challenges.
 hud-layout.js    Déplacement, ancrage et persistance du HUD.
 themes.css       Styles et thèmes.

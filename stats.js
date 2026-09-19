@@ -17,6 +17,18 @@ function writeJSON(key, value) { try { localStorage.setItem(key,JSON.stringify(v
 function esc(text) { return String(text ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 function modeLabel(mode){ return mode==='exploration'?'Exploration':mode==='nomove'?'No Move':mode==='nmpz'?'No Move + No Pan/Zoom':'Move'; }
+function variantLabel(value){ return value==='blitz'?'Blitz':value==='precision'?'Précision':'Classique'; }
+function normalizeVariant(value){ return ['classic','blitz','precision'].includes(value)?value:'classic'; }
+function parseRecordKey(key){
+  const parts=String(key||'').split(':');
+  if(parts.length<2) return null;
+  const maybeVariant=parts[parts.length-1];
+  const hasVariant=['blitz','precision','classic'].includes(maybeVariant) && parts.length>=3;
+  const variant=hasVariant?normalizeVariant(maybeVariant):'classic';
+  const mode=parts[parts.length-(hasVariant?2:1)];
+  const zoneId=parts.slice(0,parts.length-(hasVariant?2:1)).join(':');
+  return zoneId&&mode?{zoneId,mode,variant}:null;
+}
 function localDay(dateValue=Date.now()) {
   const d=new Date(dateValue); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
@@ -110,6 +122,7 @@ class StatsController {
       selectionType:selection.type==='playlist'?'playlist':'zone',
       playlistId:selection.type==='playlist'?selection.id:null,
       mode:this.game.playType==='exploration'?'exploration':this.game.mode,
+      variant:this.game.playType==='exploration'?'classic':normalizeVariant(this.game.gameVariant),
       score:Number(this.game.total)||0,
       roundCount:Number(this.game.roundCount)||results.length||5,
       challengeId:challenge?.id||null,
@@ -124,14 +137,14 @@ class StatsController {
     const perfectRounds=game.results.filter(r=>Number(r.points)===5000).length;
     const averageDistance=distances.length?distances.reduce((s,x)=>s+x,0)/distances.length:null;
     const summary={
-      id:game.id,date:game.date,zoneId:game.zoneId,zoneName:game.zoneName,selectionType:game.selectionType||'zone',playlistId:game.playlistId||null,mode:game.mode,
+      id:game.id,date:game.date,zoneId:game.zoneId,zoneName:game.zoneName,selectionType:game.selectionType||'zone',playlistId:game.playlistId||null,mode:game.mode,variant:normalizeVariant(game.variant),
       score:game.score,maxScore,roundCount:game.roundCount,perfectRounds,
       averageDistance,challengeId:game.challengeId||null
     };
     this.data.games.unshift(summary);
     this.data.games=this.data.games.slice(0,MAX_GAMES);
     const roundRows=game.results.map((r,i)=>({
-      date:game.date,gameId:game.id,round:i+1,zoneId:r.zoneId||game.zoneId,zoneName:r.zoneName||this.api.ZONES?.[r.zoneId]?.name||game.zoneName,selectionType:game.selectionType||'zone',mode:game.mode,
+      date:game.date,gameId:game.id,round:i+1,zoneId:r.zoneId||game.zoneId,zoneName:r.zoneName||this.api.ZONES?.[r.zoneId]?.name||game.zoneName,selectionType:game.selectionType||'zone',mode:game.mode,variant:normalizeVariant(game.variant),
       points:Number(r.points)||0,distance:Number.isFinite(Number(r.distance))?Number(r.distance):null,
       challenge:!!game.challengeId,timedOut:!!r.timedOut
     }));
@@ -139,11 +152,13 @@ class StatsController {
     const day=localDay(game.date); this.data.days[day]=(Number(this.data.days[day])||0)+1;
     this.trimDays();
 
-    const key=`${game.zoneId}:${game.mode}`;
+    const variant=normalizeVariant(game.variant);
+    const key=variant==='classic'?`${game.zoneId}:${game.mode}`:`${game.zoneId}:${game.mode}:${variant}`;
     const rec=this.data.records[key]||{};
     rec.games=(Number(rec.games)||0)+1;
     rec.selectionName=game.zoneName;
     rec.selectionType=game.selectionType||'zone';
+    rec.variant=variant;
     if (game.mode==='exploration' && game.roundCount===3) rec.best3=Math.max(Number(rec.best3)||0,game.score);
     if (game.mode!=='exploration' && game.roundCount===5) {
       rec.best5=Math.max(Number(rec.best5)||0,game.score);
@@ -203,7 +218,7 @@ class StatsController {
   dayFromNumber(n){ const d=new Date(n*86400000); return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`; }
 
   recentAccuracy(count){
-    const rows=this.data.rounds.filter(r=>r.mode!=='exploration').slice(0,count); if(!rows.length) return null;
+    const rows=this.data.rounds.filter(r=>r.mode!=='exploration' && normalizeVariant(r.variant)!=='precision').slice(0,count); if(!rows.length) return null;
     const avg=rows.reduce((s,r)=>s+r.points,0)/rows.length;
     return {count:rows.length,avg,percent:avg/5000*100};
   }
@@ -252,26 +267,29 @@ class StatsController {
     const box=$('statsRecords'); if(!box) return;
     const rows=[];
     for(const [key,rec] of Object.entries(this.data.records)){
-      const split=key.lastIndexOf(':'); if(split<0) continue;
-      const zoneId=key.slice(0,split), mode=key.slice(split+1);
+      const parsed=parseRecordKey(key); if(!parsed) continue;
+      const {zoneId,mode}=parsed, variant=normalizeVariant(rec.variant||parsed.variant);
       const best=mode==='exploration'?(Number(rec.best3)||0):(Number(rec.best5)||0); if(!best && !rec.games) continue;
-      rows.push({zoneId,mode,best,perfect:mode==='exploration'?null:(Number(rec.perfect5)||0),games:Number(rec.games)||0,legacy:!!rec.legacyBest,selectionName:rec.selectionName||null,selectionType:rec.selectionType||'zone'});
+      rows.push({zoneId,mode,variant,best,perfect:mode==='exploration'?null:(Number(rec.perfect5)||0),games:Number(rec.games)||0,legacy:!!rec.legacyBest,selectionName:rec.selectionName||null,selectionType:rec.selectionType||'zone'});
     }
     rows.sort((a,b)=>b.best-a.best || (a.selectionName||this.api.ZONES?.[a.zoneId]?.name||a.zoneId).localeCompare(b.selectionName||this.api.ZONES?.[b.zoneId]?.name||b.zoneId));
     if(!rows.length){ box.innerHTML='<div class="statsEmpty">Aucun record pour le moment.</div>'; return; }
     box.innerHTML=`<div class="statsRecordHeader"><span>Sélection / mode</span><span>Meilleur</span><span>Parties</span><span>25 000</span></div>`+rows.map(r=>{
       const zone=r.selectionName||this.api.ZONES?.[r.zoneId]?.name||r.zoneId;
       const type=r.selectionType==='playlist'?'Playlist · ':'';
-      return `<div class="statsRecordRow"><span><b>${esc(type+zone)}</b><small>${esc(modeLabel(r.mode))}${r.legacy && !r.games?' · historique':''}</small></span><strong>${r.best?r.best.toLocaleString('fr-FR'):'—'}</strong><i>${r.games?r.games.toLocaleString('fr-FR'):'—'}</i><em>${r.perfect==null?'—':r.perfect.toLocaleString('fr-FR')}</em></div>`;
+      return `<div class="statsRecordRow"><span><b>${esc(type+zone)}</b><small>${esc(modeLabel(r.mode))}${r.mode!=='exploration'?` · ${esc(variantLabel(r.variant))}`:''}${r.legacy && !r.games?' · historique':''}</small></span><strong>${r.best?r.best.toLocaleString('fr-FR'):'—'}</strong><i>${r.games?r.games.toLocaleString('fr-FR'):'—'}</i><em>${r.perfect==null?'—':r.perfect.toLocaleString('fr-FR')}</em></div>`;
     }).join('');
   }
 
   badges(){
     const hasRoundUnder10=this.data.rounds.some(r=>Number.isFinite(r.distance)&&r.distance<10);
-    const hasParis25=Object.entries(this.data.records).some(([key,r])=>key.startsWith('paris:')&&(Number(r?.perfect5)||0)>0);
-    const hasNoMove25=Object.entries(this.data.records).some(([key,r])=>key.endsWith(':nomove')&&(Number(r?.perfect5)||0)>0);
-    const hasNmpz25=Object.entries(this.data.records).some(([key,r])=>key.endsWith(':nmpz')&&(Number(r?.perfect5)||0)>0);
+    const classicPerfect=(key,r,predicate)=>{ const parsed=parseRecordKey(key); return !!parsed && parsed.variant==='classic' && predicate(parsed) && (Number(r?.perfect5)||0)>0; };
+    const hasParis25=Object.entries(this.data.records).some(([key,r])=>classicPerfect(key,r,p=>p.zoneId==='paris'));
+    const hasNoMove25=Object.entries(this.data.records).some(([key,r])=>classicPerfect(key,r,p=>p.mode==='nomove'));
+    const hasNmpz25=Object.entries(this.data.records).some(([key,r])=>classicPerfect(key,r,p=>p.mode==='nmpz'));
     const explorationGames=this.explorationGameCount();
+    const blitzGames=this.data.games.filter(g=>normalizeVariant(g.variant)==='blitz').length;
+    const precisionGames=this.data.games.filter(g=>normalizeVariant(g.variant)==='precision').length;
     return [
       {icon:'🎯',name:'Sniper',desc:'Une réponse à moins de 10 m',ok:hasRoundUnder10},
       {icon:'🗼',name:'Parisien',desc:'25 000 sur Paris',ok:hasParis25},
@@ -280,6 +298,8 @@ class StatsController {
       {icon:'🔥',name:'Régulier',desc:'Une série de 3 jours',ok:this.bestStreak()>=3},
       {icon:'⌁',name:'Challenger',desc:'Terminer 5 Challenges',ok:this.challengeGameCount()>=5},
       {icon:'🧭',name:'Éclaireur',desc:'Terminer 3 parties Exploration',ok:explorationGames>=3},
+      {icon:'⚡',name:'Éclair',desc:'Terminer 5 parties Blitz',ok:blitzGames>=5},
+      {icon:'📐',name:'Géomètre',desc:'Terminer 5 parties Précision',ok:precisionGames>=5},
       {icon:'🎶',name:'Mixeur',desc:'Terminer 5 parties en playlist',ok:this.playlistGameCount()>=5},
       {icon:'💯',name:'Centurion',desc:'Jouer 100 manches suivies',ok:this.data.rounds.length>=100},
       {icon:'✨',name:'Collectionneur',desc:'Réussir 25 manches à 5 000',ok:this.allPerfectRoundCount()>=25}
@@ -297,7 +317,7 @@ class StatsController {
     if(!games.length){ box.innerHTML='<div class="statsEmpty">Les prochaines parties terminées apparaîtront ici.</div>'; return; }
     box.innerHTML=games.map(g=>{
       const pct=g.maxScore?Math.round(g.score/g.maxScore*100):0;
-      return `<div class="statsHistoryRow"><time>${esc(formatDate(g.date))}</time><span><b>${esc(g.zoneName)}</b><small>${esc(modeLabel(g.mode))}${g.challengeId?` · Challenge ${esc(g.challengeId)}`:''} · ${g.roundCount} ${g.mode==='exploration'?'missions':'manches'}</small></span><strong>${g.score.toLocaleString('fr-FR')}<small>/ ${g.maxScore.toLocaleString('fr-FR')} · ${pct}%</small></strong><em>${g.mode==='exploration'?'Exploration':`${g.perfectRounds}×5000`}</em></div>`;
+      return `<div class="statsHistoryRow"><time>${esc(formatDate(g.date))}</time><span><b>${esc(g.zoneName)}</b><small>${esc(modeLabel(g.mode))}${g.mode!=='exploration'?` · ${esc(variantLabel(g.variant))}`:''}${g.challengeId?` · Challenge ${esc(g.challengeId)}`:''} · ${g.roundCount} ${g.mode==='exploration'?'missions':'manches'}</small></span><strong>${g.score.toLocaleString('fr-FR')}<small>/ ${g.maxScore.toLocaleString('fr-FR')} · ${pct}%</small></strong><em>${g.mode==='exploration'?'Exploration':`${g.perfectRounds}×5000`}</em></div>`;
     }).join('');
   }
 }

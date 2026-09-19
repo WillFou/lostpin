@@ -78,6 +78,16 @@ function scoreFor(distanceMeters, scaleMeters) {
   return clamp(Math.round(5000 * Math.exp(-(distanceMeters - 25) / scaleMeters)), 0, 5000);
 }
 
+function precisionScoreFor(distanceMeters, scaleMeters) {
+  if (distanceMeters <= 25) return 5000;
+  const span=Math.max(1,Number(scaleMeters)||1);
+  return clamp(Math.round(5000 * (1 - (distanceMeters - 25) / span)), 0, 5000);
+}
+
+function variantLabel(variant) {
+  return variant==='blitz' ? 'Blitz' : variant==='precision' ? 'Précision' : 'Classique';
+}
+
 function offsetPoint(origin, distanceMeters, bearingDegrees) {
   const angular = Math.max(0, Number(distanceMeters) || 0) / EARTH;
   const bearing = rad(bearingDegrees);
@@ -237,6 +247,11 @@ class GuessrGame {
     this.mode = 'explore';
     this.lastGuessMode = 'explore';
     this.playType = 'guess';
+    this.gameVariant = 'classic';
+    this.blitzSeconds = 20;
+    this.soloTimerInterval = null;
+    this.soloDeadline = 0;
+    this.soloLastSecond = null;
     this.round = 0;
     this.roundCount = 5;
     this.total = 0;
@@ -298,6 +313,12 @@ class GuessrGame {
   bindUI() {
     this.bindGeographyUI();
     document.querySelectorAll('.playTypeCard').forEach(card => card.addEventListener('click', () => this.setPlayType(card.dataset.playType)));
+    document.querySelectorAll('.variantCard').forEach(card => card.addEventListener('click', () => this.setGameVariant(card.dataset.variant)));
+    $('blitzSeconds')?.addEventListener('change',()=>{
+      const seconds=Number($('blitzSeconds')?.value||20);
+      this.blitzSeconds=[15,20,30].includes(seconds)?seconds:20;
+      this.refreshVariantUI();
+    });
     document.querySelectorAll('.modeCard').forEach(card => card.addEventListener('click', () => {
       if (this.playType === 'exploration') return;
       document.querySelectorAll('.modeCard').forEach(x => x.classList.remove('selected'));
@@ -350,6 +371,97 @@ class GuessrGame {
     });
   }
 
+  setGameVariant(value, options={}) {
+    const variant=['classic','blitz','precision'].includes(value) ? value : 'classic';
+    this.gameVariant=variant;
+    if (variant==='blitz') {
+      const requested=Number($('blitzSeconds')?.value||this.blitzSeconds||20);
+      this.blitzSeconds=[15,20,30].includes(requested)?requested:20;
+    }
+    this.refreshVariantUI();
+    this.updateSelectionBanner();
+    this.updateBest();
+    if (!options.silent) document.dispatchEvent(new CustomEvent('lostpin:variant-change',{detail:{variant:this.gameVariant,blitzSeconds:this.blitzSeconds}}));
+  }
+
+  refreshVariantUI() {
+    const exploration=this.playType==='exploration';
+    document.querySelectorAll('.variantCard').forEach(card=>card.classList.toggle('selected',card.dataset.variant===this.gameVariant));
+    $('gameVariantSection')?.classList.toggle('playTypeDisabled',exploration);
+    const blitzOptions=$('blitzOptions');
+    blitzOptions?.classList.toggle('hidden',this.gameVariant!=='blitz' || exploration);
+    if ($('blitzSeconds')) $('blitzSeconds').value=String(this.blitzSeconds);
+  }
+
+  variantRecordKey(selection=this.getSelectionDescriptor()) {
+    const base=`${this.getSelectionKey(selection)}:${this.mode}`;
+    return this.gameVariant==='classic' ? base : `${base}:${this.gameVariant}`;
+  }
+
+  scoreForCurrentVariant(distance,zone) {
+    return this.gameVariant==='precision' ? precisionScoreFor(distance,zone.scale) : scoreFor(distance,zone.scale);
+  }
+
+  startSoloBlitzTimer() {
+    this.stopSoloBlitzTimer(false);
+    if (this.playType!=='guess' || this.gameVariant!=='blitz' || this.challengeConfig || window.guessrMultiplayer?.active) return;
+    const seconds=[15,20,30].includes(Number(this.blitzSeconds))?Number(this.blitzSeconds):20;
+    const box=$('multiTimer'); if (!box) return;
+    box.classList.remove('hidden','urgent','critical');
+    this.soloDeadline=Date.now()+seconds*1000;
+    const tick=()=>{
+      const remaining=Math.max(0,Math.ceil((this.soloDeadline-Date.now())/1000));
+      if (remaining!==this.soloLastSecond) {
+        this.soloLastSecond=remaining;
+        const mins=Math.floor(remaining/60), secs=remaining%60;
+        if ($('multiTimerValue')) $('multiTimerValue').textContent=`${mins}:${String(secs).padStart(2,'0')}`;
+        box.classList.toggle('urgent',remaining>0 && remaining<=10);
+        box.classList.toggle('critical',remaining>0 && remaining<=5);
+      }
+      if (remaining<=0) {
+        this.stopSoloBlitzTimer(false);
+        if (!$('resultPanel')?.classList.contains('hidden')) return;
+        if (this.guess) this.submitGuess(); else this.submitSoloTimeout();
+      }
+    };
+    tick();
+    this.soloTimerInterval=setInterval(tick,250);
+  }
+
+  stopSoloBlitzTimer(hide=false) {
+    if (this.soloTimerInterval) clearInterval(this.soloTimerInterval);
+    this.soloTimerInterval=null; this.soloDeadline=0; this.soloLastSecond=null;
+    const box=$('multiTimer');
+    box?.classList.remove('urgent','critical');
+    if (hide && !window.guessrMultiplayer?.active && !window.lostPinChallenges?.current) box?.classList.add('hidden');
+  }
+
+  lockRoundNavigation() {
+    if (!this.panorama) return;
+    this.panorama.setOptions({clickToGo:false,linksControl:false});
+  }
+
+  submitSoloTimeout() {
+    if (this.playType==='exploration' || !this.answer || !$('resultPanel')?.classList.contains('hidden')) return;
+    const zone=ZONES[this.zoneId];
+    const seconds=[15,20,30].includes(Number(this.blitzSeconds))?Number(this.blitzSeconds):20;
+    this.results.push({distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
+    $('scoreLabel').textContent=this.total.toLocaleString('fr-FR');
+    $('distanceLabel').textContent='Aucune réponse';
+    $('roundScoreLabel').textContent='0';
+    $('resultPlace').textContent=this.startDescription || zone.name;
+    $('travelInfo').textContent=`Blitz ${seconds} s · temps écoulé · aucune réponse validée.`;
+    const source=new URL('https://www.google.com/maps/@'); source.searchParams.set('api','1'); source.searchParams.set('map_action','pano'); source.searchParams.set('pano',this.startPano||'');
+    if (this.startPov) source.searchParams.set('heading',String(Math.round(this.startPov.heading)));
+    $('streetViewLink').href=source.toString();
+    $('placeLink').href=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${this.answer.lat},${this.answer.lng}`)}`;
+    this.setBusy(false); $('toast').classList.add('hidden'); $('gameScreen').classList.add('has-result'); $('resultPanel').classList.remove('hidden'); $('guessButton').disabled=true; $('guessButton').textContent='Temps écoulé';
+    this.lockRoundNavigation();
+    this.answerMarker=new google.maps.Marker({map:this.map,position:this.answer,title:'Lieu réel',zIndex:3,label:{text:'R',color:'#ffffff',fontWeight:'900',fontSize:'12px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:11,fillColor:'#e53935',fillOpacity:1,strokeColor:'#ffffff',strokeOpacity:1,strokeWeight:3}});
+    this.map.setCenter(this.answer); this.map.setZoom(Math.max(5,zone.zoom||10));
+    $('nextButton').textContent=this.round===(this.roundCount||5)-1?'Voir le score final':'Manche suivante';
+  }
+
   setPlayType(type, options={}) {
     const next = type === 'exploration' ? 'exploration' : 'guess';
     if (next === this.playType && !options.force) { this.refreshPlayTypeUI(); return; }
@@ -368,14 +480,19 @@ class GuessrGame {
     const exploration = this.playType === 'exploration';
     document.querySelectorAll('.playTypeCard').forEach(card => card.classList.toggle('selected',card.dataset.playType === this.playType));
     $('movementModeSection')?.classList.toggle('playTypeDisabled',exploration);
+    $('gameVariantSection')?.classList.toggle('playTypeDisabled',exploration);
+    this.refreshVariantUI();
     for (const id of ['multiplayerButton','challengeButton']) {
       const button=$(id); if (!button) continue;
       button.disabled=exploration;
       button.title=exploration ? 'Disponible en Géolocalisation. Exploration multijoueur arrivera plus tard.' : '';
     }
-    if ($('soloRulesText')) $('soloRulesText').innerHTML = exploration
-      ? '<b>3 missions &middot; 15 000 points.</b> Rejoins physiquement chaque cible dans Street View. Chrono, déplacements et distance parcourue sont mesurés.'
-      : `<b>5 manches &middot; 25 000 points.</b> Les panoramas proviennent de Google Street View. Le jeu n'est affilié ni à Google ni à GeoGuessr. Ta clé API reste uniquement dans le dossier local sur ton PC.`;
+    if ($('soloRulesText')) {
+      if (exploration) $('soloRulesText').innerHTML='<b>3 missions &middot; 15 000 points.</b> Rejoins physiquement chaque cible dans Street View. Chrono, déplacements et distance parcourue sont mesurés.';
+      else if (this.gameVariant==='blitz') $('soloRulesText').innerHTML=`<b>Blitz · 5 manches · ${this.blitzSeconds} s par manche.</b> Le barème classique reste utilisé, mais chaque réponse doit être validée avant la fin du chrono.`;
+      else if (this.gameVariant==='precision') $('soloRulesText').innerHTML='<b>Précision · 5 manches.</b> Le score décroît linéairement avec la distance : chaque mètre compte davantage, sans courbe exponentielle.';
+      else $('soloRulesText').innerHTML=`<b>5 manches &middot; 25 000 points.</b> Les panoramas proviennent de Google Street View. Le jeu n'est affilié ni à Google ni à GeoGuessr. Ta clé API reste uniquement dans le dossier local sur ton PC.`;
+    }
     if (this.apiReady && $('startButton')) $('startButton').textContent = exploration ? `Lancer l'exploration` : 'Lancer la partie';
   }
 
@@ -730,9 +847,13 @@ class GuessrGame {
     const type=$('selectionType'), name=$('selectionName'), detail=$('selectionDetail');
     if (type) type.textContent=selection.type==='playlist'?'PLAYLIST':'MAP';
     if (name) name.textContent=this.getSelectionName(selection);
-    if (detail) detail.textContent=this.playType==='exploration'
-      ? (selection.type==='playlist' ? `${selection.zoneIds.length} maps · 3 missions · une map tirée par mission` : '3 missions sur ce terrain')
-      : (selection.type==='playlist' ? `${selection.zoneIds.length} maps · une map tirée par manche` : '5 manches sur le même terrain');
+    if (detail) {
+      if (this.playType==='exploration') detail.textContent=selection.type==='playlist' ? `${selection.zoneIds.length} maps · 3 missions · une map tirée par mission` : '3 missions sur ce terrain';
+      else {
+        const prefix=this.gameVariant==='blitz'?`Blitz ${this.blitzSeconds} s`:this.gameVariant==='precision'?'Précision':'Classique';
+        detail.textContent=selection.type==='playlist' ? `${prefix} · ${selection.zoneIds.length} maps · une map tirée par manche` : `${prefix} · 5 manches sur le même terrain`;
+      }
+    }
     box.classList.toggle('playlistActive',selection.type==='playlist');
   }
 
@@ -769,10 +890,11 @@ class GuessrGame {
     }
     const bests = readJSON(BEST_KEY, {});
     const perfects = readJSON(PERFECT_KEY, {});
-    const key = `${this.getSelectionKey()}:${this.mode}`;
+    const key = this.variantRecordKey();
     const score = bests[key] || 0;
     const perfect = perfects[key];
     const parts = [];
+    if (this.gameVariant!=='classic') parts.push(variantLabel(this.gameVariant));
     if (score) parts.push(`Meilleur score : ${score.toLocaleString('fr-FR')}`);
     if (perfect?.count) {
       parts.push(`25 000 depuis V3.6 : ${perfect.count}`);
@@ -1307,7 +1429,10 @@ class GuessrGame {
 
   async startGame() {
     if (!this.apiReady) return;
+    this.stopSoloBlitzTimer(true);
     if (this.challengeConfig && this.playType === 'exploration') this.setPlayType('guess',{silent:true});
+    if (this.challengeConfig?.variant) this.setGameVariant(this.challengeConfig.variant,{silent:true});
+    if (this.challengeConfig?.variant==='blitz' && [15,20,30].includes(Number(this.challengeConfig.timerSeconds))) this.blitzSeconds=Number(this.challengeConfig.timerSeconds);
     const startButtonText = $('startButton').textContent;
     this.roundCount = this.challengeConfig?.roundCount || (this.playType === 'exploration' ? 3 : 5);
     this.roundZoneIds = this.challengeConfig?.rounds?.length
@@ -1356,6 +1481,7 @@ class GuessrGame {
     this.startPano = null;
     this.startDescription = '';
     this.stopExplorationClock();
+    this.stopSoloBlitzTimer(false);
     this.maxTravel = 0;
     this.currentTravel = 0;
     this.travelDistance = 0;
@@ -1480,7 +1606,10 @@ class GuessrGame {
       setTimeout(() => {
         if (token === this.currentRoundToken) {
           $('loadingPanel').classList.add('hidden');
-          if (!mission) window.lostPinChallenges?.onRoundReady?.(this.round);
+          if (!mission) {
+            if (window.lostPinChallenges?.current) window.lostPinChallenges.onRoundReady?.(this.round);
+            else this.startSoloBlitzTimer();
+          }
         }
       }, 450);
     } catch (error) {
@@ -1495,19 +1624,21 @@ class GuessrGame {
   submitGuess() {
     if (this.playType === 'exploration') return;
     if (!this.guess || !this.answer || !$('resultPanel').classList.contains('hidden')) return;
+    this.stopSoloBlitzTimer(false);
     const zone = ZONES[this.zoneId];
     const distance = haversine(this.guess, this.answer);
-    const points = scoreFor(distance, zone.scale);
+    const points = this.scoreForCurrentVariant(distance, zone);
     this.total += points;
     const seconds = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
-    this.results.push({distance,points,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,zoneId:this.zoneId,zoneName:zone.name});
+    this.results.push({distance,points,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent = formatDistance(distance);
     $('roundScoreLabel').textContent = points.toLocaleString('fr-FR');
     $('resultPlace').textContent = this.startDescription || zone.name;
-    $('travelInfo').textContent = this.mode === 'explore'
+    const variantText=this.gameVariant==='precision'?' · Précision linéaire':this.gameVariant==='blitz'?` · Blitz ${this.blitzSeconds} s`:'';
+    $('travelInfo').textContent = (this.mode === 'explore'
       ? `Move : ${this.moveCount} déplacement${this.moveCount === 1 ? '' : 's'}, jusqu'à ${formatDistance(this.maxTravel)} du départ - ${seconds} s`
-      : `${this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'No Move'} - ${seconds} s`;
+      : `${this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'No Move'} - ${seconds} s`) + variantText;
     const source = new URL('https://www.google.com/maps/@');
     source.searchParams.set('api','1');
     source.searchParams.set('map_action','pano');
@@ -1520,6 +1651,7 @@ class GuessrGame {
     $('gameScreen').classList.add('has-result');
     $('resultPanel').classList.remove('hidden');
     $('guessButton').disabled = true;
+    this.lockRoundNavigation();
     this.answerMarker = new google.maps.Marker({
       map:this.map, position:this.answer, title:'Lieu réel', zIndex:3,
       label:{text:'R',color:'#ffffff',fontWeight:'900',fontSize:'12px'},
@@ -1536,7 +1668,7 @@ class GuessrGame {
     if (!this.answer || !$('resultPanel').classList.contains('hidden')) return;
     const zone = ZONES[this.zoneId];
     const seconds = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
-    this.results.push({distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name});
+    this.results.push({distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent = 'Aucune réponse';
     $('roundScoreLabel').textContent = '0';
@@ -1554,6 +1686,8 @@ class GuessrGame {
     $('gameScreen').classList.add('has-result');
     $('resultPanel').classList.remove('hidden');
     $('guessButton').disabled = true;
+    $('guessButton').textContent = 'Temps écoulé';
+    this.lockRoundNavigation();
     this.answerMarker = new google.maps.Marker({
       map:this.map, position:this.answer, title:'Lieu réel', zIndex:3,
       label:{text:'R',color:'#ffffff',fontWeight:'900',fontSize:'12px'},
@@ -1566,6 +1700,7 @@ class GuessrGame {
 
   async nextRound() {
     if (this.results.length !== this.round + 1) return;
+    this.stopSoloBlitzTimer(false);
     this.round++;
     if (this.round >= (this.roundCount || (this.playType==='exploration'?3:5))) this.endGame();
     else await this.loadRound();
@@ -1619,7 +1754,7 @@ class GuessrGame {
     const validDistances = this.results.map(x => x.distance).filter(Number.isFinite);
     const avg = validDistances.reduce((s,x) => s + x,0) / Math.max(1,validDistances.length);
     const avgText = validDistances.length ? formatDistance(avg) : 'aucune réponse mesurée';
-    const key = `${this.getSelectionKey(selection)}:${this.mode}`;
+    const key = this.variantRecordKey(selection);
     const isPerfect = this.total === 25000 && this.results.length === 5 && this.results.every(r => r.points === 5000);
 
     const perfects = readJSON(PERFECT_KEY, {});
@@ -1643,10 +1778,10 @@ class GuessrGame {
 
     let comment;
     if (isPerfect) {
-      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move'}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${avgText}.`;
+      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move'} · ${variantLabel(this.gameVariant)}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${avgText}.`;
       if (newPrecisionRecord && perfect.count > 1) comment += ' Nouveau record de précision sur un 25 000 !';
     } else {
-      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move'}. Distance moyenne : ${avgText}.`;
+      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move'} · ${variantLabel(this.gameVariant)}. Distance moyenne : ${avgText}.`;
       const ratio = maxScore > 0 ? this.total / maxScore : 0;
       if (ratio >= .92) comment += ' Très grosse partie.';
       else if (ratio >= .76) comment += ' Solide.';
@@ -1680,7 +1815,7 @@ class GuessrGame {
       const distanceText = r.timedOut ? 'Aucune réponse' : formatDistance(r.distance);
       const roundZoneName=r.zoneName || ZONES[r.zoneId]?.name || zone.name;
       const placeLabel=selection.type==='playlist' ? `${roundZoneName} · ${r.description || roundZoneName}` : (r.description || roundZoneName);
-      row.innerHTML = `<span class="roundNum">${i+1}</span><span><strong>${this.escapeHTML(placeLabel)}</strong><small>${distanceText} - ${r.seconds} s${extra}</small></span><b>${r.points.toLocaleString('fr-FR')} pts</b>`;
+      row.innerHTML = `<span class="roundNum">${i+1}</span><span><strong>${this.escapeHTML(placeLabel)}</strong><small>${distanceText} - ${r.seconds} s${extra}${this.gameVariant==='precision'?' · précision':''}</small></span><b>${r.points.toLocaleString('fr-FR')} pts</b>`;
       $('breakdown').appendChild(row);
     });
     if ((this.roundCount || 5) === 5) {
@@ -1697,6 +1832,7 @@ class GuessrGame {
   showMenu() {
     this.currentRoundToken++;
     this.stopExplorationClock();
+    this.stopSoloBlitzTimer(true);
     this.setBusy(false);
     if (this.toastTimer) clearTimeout(this.toastTimer);
     $('toast')?.classList.add('hidden');
@@ -1714,6 +1850,6 @@ class GuessrGame {
   }
 }
 
-window.GUESSR_INTERNALS = { ZONES, GEOGRAPHY:window.LOSTPIN_GEOGRAPHY, haversine, scoreFor, formatDistance, normalizeHeading };
+window.GUESSR_INTERNALS = { ZONES, GEOGRAPHY:window.LOSTPIN_GEOGRAPHY, haversine, scoreFor, precisionScoreFor, variantLabel, formatDistance, normalizeHeading };
 window.guessrGame = new GuessrGame();
 })();
