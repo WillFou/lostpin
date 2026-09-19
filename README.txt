@@ -5,7 +5,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
-Version 5.3.1.
+Version 5.3.3.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.
@@ -39,12 +39,22 @@ Une partie classique comporte 5 manches pour un maximum de 25 000 points. Une pl
 
 SÉLECTION GÉOGRAPHIQUE
 ----------------------
-L'accueil classe désormais les terrains par niveau : Paris, Villes, Pays, Continents et Monde.
-- Paris conserve les limites officielles de la Ville de Paris.
-- France conserve son contour dédié (métropole + Corse).
-- Europe, Amérique du Nord, Amérique du Sud, Asie, Afrique et Océanie tirent dans les zones Google Street View prises en charge par LostPin.
-- Monde utilise l'ensemble du catalogue mondial de zones prises en charge.
-Ces terrains larges privilégient la jouabilité Street View et ne constituent pas des frontières administratives exhaustives.
+L'accueil classe les terrains par niveau : Paris, Villes, Pays, Continents et Monde.
+La V5.3.3 porte le catalogue à 152 terrains jouables : 89 villes, 54 pays, les six continents, Monde et les sélections parisiennes spéciales.
+
+Navigation :
+- Villes : continent -> pays -> ville ;
+- Pays : continent -> pays ;
+- la recherche globale accepte une ville, un pays, un continent, une région, un département ou plusieurs alias usuels.
+
+Précision des zones :
+- Paris conserve les limites officielles de la Ville de Paris ;
+- France conserve son contour dédié (métropole + Corse) ;
+- Bagneux-la-Fosse reste une map officielle LostPin avec son périmètre dédié autour du bourg ;
+- les nouvelles maps pays/villes utilisent pour l'instant des zones de jeu simplifiées et optimisées pour Street View ;
+- Europe, Amérique du Nord, Amérique du Sud, Asie, Afrique, Océanie et Monde utilisent le même catalogue de couverture.
+
+Les nouvelles zones ne constituent donc pas encore des frontières administratives exactes. Leur découpe pourra être affinée progressivement sans changer les IDs des maps.
 
 Modes disponibles :
 - Move : déplacement, rotation et zoom autorisés.
@@ -56,13 +66,20 @@ Les déplacements se font avec les contrôles natifs de Google Street View. Les 
 
 PLAYLISTS / COLLECTIONS (V5.3)
 ------------------------------
-LostPin peut maintenant mélanger plusieurs maps dans une même partie.
+LostPin peut mélanger plusieurs maps dans une même partie.
 
-Depuis l'écran d'accueil, clique sur « Playlists ». Quatre playlists sont fournies :
+Playlists intégrées :
 - Paris sous toutes ses coutures ;
-- France · ville & campagne ;
+- Tour des continents ;
+- France · du local au national ;
 - Deux capitales ;
-- Grand Mix LostPin.
+- Grand Mix LostPin ;
+- France urbaine ;
+- Capitales européennes ;
+- USA · Coast to Coast ;
+- Amérique latine ;
+- Asie urbaine ;
+- Océanie urbaine.
 
 Tu peux aussi créer jusqu'à 12 playlists personnelles à partir des maps disponibles.
 Elles sont stockées uniquement dans le localStorage du navigateur.
@@ -79,7 +96,7 @@ Les playlists fonctionnent :
 - en multijoueur local ;
 - en multijoueur en ligne.
 
-Les Challenges créés à partir d'une playlist enregistrent aussi la map exacte de chaque manche. Les anciens codes LP5 de V5.0/V5.1 restent lisibles.
+Les Challenges créés à partir d'une playlist enregistrent aussi la map exacte de chaque manche. Les anciens codes LP5 V1/V2 restent lisibles ; les nouveaux codes V3 utilisent directement les IDs stables des maps.
 
 CHALLENGES (V5)
 ---------------
@@ -248,7 +265,7 @@ Les anciens meilleurs scores et les anciens compteurs de 25 000 sont importés q
 Le bouton « Réinitialiser les statistiques » efface uniquement les données statistiques V5.2 ; les anciens records historiques restent gérés par LostPin et peuvent donc être réimportés.
 
 
-CATALOGUE GEOGRAPHIQUE (V5.3.2)
+CATALOGUE GEOGRAPHIQUE (V5.3.3)
 ---------------------------------
 Le choix des terrains est maintenant hierarchique. Dans Villes, on choisit d'abord
 le continent, puis le pays, puis la ville. Dans Pays, on choisit le continent puis

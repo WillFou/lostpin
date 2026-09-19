@@ -1,4 +1,4 @@
-/* LostPin V5.3.2 - hierarchical geographic catalogue and global search */
+/* LostPin V5.3.5 - stable responsive geographic catalogue */
 
 body{
   --theme-card:rgba(9,25,40,.94);
@@ -1331,3 +1331,9 @@ body[data-theme="midnight"] .statsMetric,body[data-theme="midnight"] .statsAccur
 body[data-theme="midnight"] .zoneCatalogSearch,body[data-theme="midnight"] .zoneNode{border-radius:2px;border-color:#274a5d}
 @media(max-width:900px){.zoneHierarchy{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.zoneCatalogSearch{padding:0 8px}.zoneHierarchy{grid-template-columns:1fr 1fr}.zoneNode{padding:9px 10px;min-height:68px}.zoneBreadcrumbs{margin-top:0}}
+
+/* V5.3.5 - stable catalogue layout: viewport-driven, never item-count-driven */
+#startScreen .hero{width:min(1280px,100%)}
+#startScreen .mapGrid,#startScreen .zoneHierarchy{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:1100px){#startScreen .mapGrid,#startScreen .zoneHierarchy{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:900px){#startScreen .mapGrid,#startScreen .zoneHierarchy{grid-template-columns:repeat(2,minmax(0,1fr))}}

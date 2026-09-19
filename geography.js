@@ -1,227 +1,110 @@
 (() => {
 'use strict';
 
-// LostPin geographic catalogue.
-// Keep gameplay geometry in app.js; this file describes how playable maps are
-// organised, browsed and searched. Zone IDs are stable because Challenges,
-// playlists, statistics and multiplayer already persist them.
+// LostPin geographic catalogue V5.3.3.
+// Stable IDs are persisted by Challenges, playlists, statistics and multiplayer.
+// The catalogue is intentionally separated from app.js so it can migrate later
+// to the ASP.NET catalogue planned for LostPin V6.
 
 const CONTINENTS = Object.freeze({
-  europe: { id:'europe', name:'Europe', aliases:['europe'] },
-  northAmerica: { id:'northAmerica', name:'Amérique du Nord', aliases:['amerique du nord','north america'] },
-  southAmerica: { id:'southAmerica', name:'Amérique du Sud', aliases:['amerique du sud','south america'] },
-  asia: { id:'asia', name:'Asie', aliases:['asie','asia'] },
-  africa: { id:'africa', name:'Afrique', aliases:['afrique','africa'] },
-  oceania: { id:'oceania', name:'Océanie', aliases:['oceanie','oceania'] }
+  europe:{id:'europe',name:'Europe',aliases:['europe']},
+  northAmerica:{id:'northAmerica',name:'Amérique du Nord',aliases:['amerique du nord','north america']},
+  southAmerica:{id:'southAmerica',name:'Amérique du Sud',aliases:['amerique du sud','south america']},
+  asia:{id:'asia',name:'Asie',aliases:['asie','asia']},
+  africa:{id:'africa',name:'Afrique',aliases:['afrique','africa']},
+  oceania:{id:'oceania',name:'Océanie',aliases:['oceanie','oceania']}
 });
+const CONTINENT_ORDER=['europe','northAmerica','southAmerica','asia','africa','oceania'];
 
-const COUNTRIES = Object.freeze({
-  france: { id:'france', name:'France', continentId:'europe', aliases:['france','fr'] },
-  usa: { id:'usa', name:'États-Unis', continentId:'northAmerica', aliases:['etats unis','états-unis','usa','us','united states','united states of america'] }
-});
+const COUNTRY_DEFS = [{"id":"ireland","name":"Irlande","continentId":"europe","aliases":["ireland","eire","ie"],"center":[53.3,-8.0],"zoom":6,"scale":220000,"recent":18000,"areas":[[-10.5,51.4,-6.0,55.3]]},{"id":"unitedKingdom","name":"Royaume-Uni","continentId":"europe","aliases":["royaume uni","uk","united kingdom","great britain","grande bretagne","gb"],"center":[54.5,-2.5],"zoom":5,"scale":300000,"recent":22000,"areas":[[-5.8,50.0,1.8,55.8],[-7.5,55.0,-0.5,58.7]]},{"id":"portugal","name":"Portugal","continentId":"europe","aliases":["portugal","pt"],"center":[39.6,-8.0],"zoom":6,"scale":240000,"recent":18000,"areas":[[-9.5,37.0,-6.2,42.1]]},{"id":"spain","name":"Espagne","continentId":"europe","aliases":["espagne","spain","es"],"center":[40.2,-3.5],"zoom":5,"scale":420000,"recent":28000,"areas":[[-8.9,36.0,-1.0,43.4],[-1.0,36.3,3.1,42.7]]},{"id":"belgium","name":"Belgique","continentId":"europe","aliases":["belgique","belgium","be"],"center":[50.7,4.6],"zoom":7,"scale":105000,"recent":10000,"areas":[[2.55,49.5,6.4,51.5]]},{"id":"netherlands","name":"Pays-Bas","continentId":"europe","aliases":["pays bas","netherlands","holland","hollande","nl"],"center":[52.2,5.4],"zoom":7,"scale":120000,"recent":11000,"areas":[[3.4,50.75,7.2,53.5]]},{"id":"germany","name":"Allemagne","continentId":"europe","aliases":["allemagne","germany","deutschland","de"],"center":[51.1,10.3],"zoom":5,"scale":360000,"recent":26000,"areas":[[6.0,47.3,15.0,54.9]]},{"id":"denmark","name":"Danemark","continentId":"europe","aliases":["danemark","denmark","dk"],"center":[56.0,9.5],"zoom":6,"scale":180000,"recent":15000,"areas":[[8.0,54.5,12.8,57.8]]},{"id":"norway","name":"Norvège","continentId":"europe","aliases":["norvege","norway","no"],"center":[62.0,9.0],"zoom":4,"scale":520000,"recent":35000,"areas":[[4.8,58.0,12.0,64.0],[10.0,63.0,22.0,69.0]]},{"id":"sweden","name":"Suède","continentId":"europe","aliases":["suede","sweden","se"],"center":[62.0,16.0],"zoom":4,"scale":520000,"recent":35000,"areas":[[11.0,55.0,18.8,61.5],[13.0,61.0,23.5,68.5]]},{"id":"finland","name":"Finlande","continentId":"europe","aliases":["finlande","finland","fi"],"center":[63.5,26.0],"zoom":4,"scale":500000,"recent":35000,"areas":[[20.0,59.5,31.5,66.5],[22.0,66.0,30.0,69.5]]},{"id":"switzerland","name":"Suisse","continentId":"europe","aliases":["suisse","switzerland","ch"],"center":[46.8,8.2],"zoom":7,"scale":110000,"recent":10000,"areas":[[5.95,45.8,10.5,47.8]]},{"id":"austria","name":"Autriche","continentId":"europe","aliases":["autriche","austria","at"],"center":[47.6,14.2],"zoom":6,"scale":170000,"recent":14000,"areas":[[9.5,46.3,17.1,49.1]]},{"id":"italy","name":"Italie","continentId":"europe","aliases":["italie","italy","it"],"center":[42.5,12.5],"zoom":5,"scale":360000,"recent":25000,"areas":[[7.0,44.0,13.5,46.8],[8.0,40.0,16.5,44.2],[12.0,37.0,18.5,41.2],[8.2,38.8,9.8,41.3]]},{"id":"czechia","name":"Tchéquie","continentId":"europe","aliases":["tchequie","czechia","czech republic","republique tcheque","cz"],"center":[49.8,15.5],"zoom":6,"scale":170000,"recent":14000,"areas":[[12.1,48.5,18.9,51.1]]},{"id":"poland","name":"Pologne","continentId":"europe","aliases":["pologne","poland","pl"],"center":[52.0,19.2],"zoom":5,"scale":320000,"recent":24000,"areas":[[14.1,49.0,24.1,54.9]]},{"id":"slovakia","name":"Slovaquie","continentId":"europe","aliases":["slovaquie","slovakia","sk"],"center":[48.7,19.6],"zoom":7,"scale":130000,"recent":12000,"areas":[[16.8,47.7,22.6,49.7]]},{"id":"hungary","name":"Hongrie","continentId":"europe","aliases":["hongrie","hungary","hu"],"center":[47.2,19.4],"zoom":6,"scale":170000,"recent":14000,"areas":[[16.0,45.7,22.9,48.6]]},{"id":"slovenia","name":"Slovénie","continentId":"europe","aliases":["slovenie","slovenia","si"],"center":[46.1,14.9],"zoom":7,"scale":90000,"recent":9000,"areas":[[13.4,45.4,16.6,46.9]]},{"id":"croatia","name":"Croatie","continentId":"europe","aliases":["croatie","croatia","hr"],"center":[45.1,15.5],"zoom":6,"scale":170000,"recent":14000,"areas":[[13.5,45.0,19.0,46.6],[14.0,42.5,18.5,45.2]]},{"id":"romania","name":"Roumanie","continentId":"europe","aliases":["roumanie","romania","ro"],"center":[45.9,24.9],"zoom":6,"scale":250000,"recent":20000,"areas":[[20.2,43.6,29.7,48.3]]},{"id":"bulgaria","name":"Bulgarie","continentId":"europe","aliases":["bulgarie","bulgaria","bg"],"center":[42.7,25.4],"zoom":6,"scale":190000,"recent":15000,"areas":[[22.3,41.2,28.7,44.3]]},{"id":"greece","name":"Grèce","continentId":"europe","aliases":["grece","greece","gr"],"center":[39.0,22.0],"zoom":6,"scale":210000,"recent":16000,"areas":[[20.5,37.5,24.8,41.5],[21.0,36.4,23.7,38.4],[23.0,35.0,26.5,36.0]]},{"id":"estonia","name":"Estonie","continentId":"europe","aliases":["estonie","estonia","ee"],"center":[58.6,25.0],"zoom":6,"scale":150000,"recent":13000,"areas":[[21.8,57.5,28.2,59.8]]},{"id":"latvia","name":"Lettonie","continentId":"europe","aliases":["lettonie","latvia","lv"],"center":[57.0,24.6],"zoom":6,"scale":150000,"recent":13000,"areas":[[20.9,55.7,28.3,58.1]]},{"id":"lithuania","name":"Lituanie","continentId":"europe","aliases":["lituanie","lithuania","lt"],"center":[55.2,23.9],"zoom":6,"scale":150000,"recent":13000,"areas":[[20.9,53.9,26.8,56.5]]},{"id":"usa","name":"États-Unis","continentId":"northAmerica","aliases":["etats unis","usa","us","united states","united states of america"],"center":[39.0,-98.0],"zoom":4,"scale":850000,"recent":60000,"areas":[[-77.6,39.0,-69.9,43.1],[-85.8,29.3,-77.0,36.7],[-94.8,39.0,-82.5,46.2],[-104.5,28.5,-96.0,35.0],[-112.7,33.0,-104.5,43.5],[-123.8,32.7,-117.0,47.8]]},{"id":"canada","name":"Canada","continentId":"northAmerica","aliases":["canada","ca"],"center":[51.0,-107.0],"zoom":4,"scale":900000,"recent":65000,"areas":[[-83.5,43.0,-71.0,47.0],[-123.5,48.4,-120.0,51.3],[-117.5,49.0,-110.0,54.0]]},{"id":"mexico","name":"Mexique","continentId":"northAmerica","aliases":["mexique","mexico","mx"],"center":[23.6,-102.5],"zoom":5,"scale":520000,"recent":38000,"areas":[[-103.8,18.5,-98.0,22.5],[-90.8,19.0,-87.2,21.5],[-117.0,23.0,-102.0,32.0]]},{"id":"colombia","name":"Colombie","continentId":"southAmerica","aliases":["colombie","colombia","co"],"center":[4.6,-74.1],"zoom":5,"scale":430000,"recent":30000,"areas":[[-76.8,3.0,-73.5,7.5],[-75.5,0.5,-72.0,3.5]]},{"id":"peru","name":"Pérou","continentId":"southAmerica","aliases":["perou","peru","pe"],"center":[-9.2,-75.0],"zoom":5,"scale":480000,"recent":32000,"areas":[[-78.9,-14.0,-75.0,-7.0],[-76.5,-7.0,-70.5,-1.5]]},{"id":"chile","name":"Chili","continentId":"southAmerica","aliases":["chili","chile","cl"],"center":[-33.5,-70.7],"zoom":4,"scale":600000,"recent":42000,"areas":[[-73.2,-36.8,-70.0,-30.0],[-73.5,-43.0,-71.0,-36.5],[-71.8,-30.0,-69.0,-20.0]]},{"id":"argentina","name":"Argentine","continentId":"southAmerica","aliases":["argentine","argentina","ar"],"center":[-34.0,-64.0],"zoom":4,"scale":720000,"recent":50000,"areas":[[-63.8,-38.2,-57.0,-31.0],[-68.0,-33.0,-62.0,-25.0],[-72.0,-46.0,-64.0,-38.0]]},{"id":"uruguay","name":"Uruguay","continentId":"southAmerica","aliases":["uruguay","uy"],"center":[-32.8,-56.0],"zoom":6,"scale":180000,"recent":15000,"areas":[[-58.4,-34.9,-53.2,-30.1]]},{"id":"brazil","name":"Brésil","continentId":"southAmerica","aliases":["bresil","brazil","brasil","br"],"center":[-15.0,-52.0],"zoom":4,"scale":900000,"recent":65000,"areas":[[-49.5,-25.8,-42.0,-19.0],[-54.5,-30.0,-48.5,-25.0],[-52.0,-19.0,-43.0,-12.0],[-48.0,-12.0,-35.0,-5.0]]},{"id":"ecuador","name":"Équateur","continentId":"southAmerica","aliases":["equateur","ecuador","ec"],"center":[-1.5,-78.2],"zoom":6,"scale":180000,"recent":15000,"areas":[[-80.8,-4.8,-76.8,1.3]]},{"id":"japan","name":"Japon","continentId":"asia","aliases":["japon","japan","jp"],"center":[36.2,138.2],"zoom":5,"scale":430000,"recent":30000,"areas":[[135.0,34.0,141.5,39.5],[129.5,31.0,132.0,34.0],[140.0,39.5,143.0,43.5]]},{"id":"southKorea","name":"Corée du Sud","continentId":"asia","aliases":["coree du sud","south korea","korea","kr"],"center":[36.3,127.9],"zoom":6,"scale":220000,"recent":18000,"areas":[[126.0,35.0,129.5,38.0]]},{"id":"taiwan","name":"Taïwan","continentId":"asia","aliases":["taiwan","tw"],"center":[23.7,121.0],"zoom":7,"scale":130000,"recent":12000,"areas":[[120.0,22.0,121.8,25.2]]},{"id":"thailand","name":"Thaïlande","continentId":"asia","aliases":["thailande","thailand","th"],"center":[14.0,101.0],"zoom":5,"scale":430000,"recent":30000,"areas":[[98.5,7.5,102.5,18.5]]},{"id":"malaysia","name":"Malaisie","continentId":"asia","aliases":["malaisie","malaysia","my"],"center":[4.2,102.0],"zoom":6,"scale":250000,"recent":20000,"areas":[[100.0,1.2,103.8,6.5],[109.5,1.0,118.5,6.8]]},{"id":"singapore","name":"Singapour","continentId":"asia","aliases":["singapour","singapore","sg"],"center":[1.35,103.82],"zoom":11,"scale":16000,"recent":1800,"areas":[[103.6,1.2,104.05,1.47]]},{"id":"indonesia","name":"Indonésie","continentId":"asia","aliases":["indonesie","indonesia","id"],"center":[-2.5,118.0],"zoom":4,"scale":750000,"recent":50000,"areas":[[106.0,-8.2,113.5,-6.0],[98.0,-5.0,105.5,4.5],[112.0,-8.8,119.0,-5.0]]},{"id":"philippines","name":"Philippines","continentId":"asia","aliases":["philippines","ph"],"center":[12.8,122.8],"zoom":5,"scale":420000,"recent":30000,"areas":[[120.0,13.0,122.5,18.5],[120.5,7.0,126.0,13.5]]},{"id":"southAfrica","name":"Afrique du Sud","continentId":"africa","aliases":["afrique du sud","south africa","za"],"center":[-30.5,24.5],"zoom":5,"scale":500000,"recent":35000,"areas":[[18.0,-34.5,31.0,-25.0]]},{"id":"botswana","name":"Botswana","continentId":"africa","aliases":["botswana","bw"],"center":[-22.0,24.0],"zoom":6,"scale":260000,"recent":20000,"areas":[[22.0,-25.5,28.0,-18.0]]},{"id":"lesotho","name":"Lesotho","continentId":"africa","aliases":["lesotho","ls"],"center":[-29.6,28.2],"zoom":7,"scale":90000,"recent":9000,"areas":[[27.0,-30.7,29.5,-28.5]]},{"id":"eswatini","name":"Eswatini","continentId":"africa","aliases":["eswatini","swaziland","sz"],"center":[-26.5,31.5],"zoom":8,"scale":70000,"recent":8000,"areas":[[30.8,-27.4,32.2,-25.7]]},{"id":"ghana","name":"Ghana","continentId":"africa","aliases":["ghana","gh"],"center":[7.9,-1.0],"zoom":6,"scale":220000,"recent":18000,"areas":[[-2.5,5.0,0.8,10.5]]},{"id":"uganda","name":"Ouganda","continentId":"africa","aliases":["ouganda","uganda","ug"],"center":[1.4,32.3],"zoom":6,"scale":220000,"recent":18000,"areas":[[30.0,-1.2,34.0,3.8]]},{"id":"kenya","name":"Kenya","continentId":"africa","aliases":["kenya","ke"],"center":[0.2,37.8],"zoom":6,"scale":280000,"recent":22000,"areas":[[34.5,-4.5,40.5,5.0]]},{"id":"australia","name":"Australie","continentId":"oceania","aliases":["australie","australia","au"],"center":[-25.5,134.0],"zoom":4,"scale":950000,"recent":65000,"areas":[[143.0,-38.8,151.7,-32.0],[146.0,-32.0,153.5,-23.0],[114.5,-35.2,117.8,-30.5],[130.0,-15.0,139.0,-11.0]]},{"id":"newZealand","name":"Nouvelle-Zélande","continentId":"oceania","aliases":["nouvelle zelande","new zealand","nz"],"center":[-41.0,173.0],"zoom":5,"scale":300000,"recent":24000,"areas":[[174.0,-41.2,178.0,-36.0],[168.0,-46.5,173.5,-41.0]]}];
+const CITY_DEFS = [{"id":"lyon","name":"Lyon","countryId":"france","center":[45.764,4.8357],"bounds":[4.7,45.68,4.98,45.86],"aliases":["lyon france"]},{"id":"marseille","name":"Marseille","countryId":"france","center":[43.2965,5.3698],"bounds":[5.2,43.2,5.55,43.4],"aliases":["marseille france"]},{"id":"bordeaux","name":"Bordeaux","countryId":"france","center":[44.8378,-0.5792],"bounds":[-0.75,44.75,-0.42,44.93],"aliases":["bordeaux france"]},{"id":"lille","name":"Lille","countryId":"france","center":[50.6292,3.0573],"bounds":[2.95,50.55,3.2,50.72],"aliases":["lille france"]},{"id":"toulouse","name":"Toulouse","countryId":"france","center":[43.6047,1.4442],"bounds":[1.3,43.52,1.58,43.7],"aliases":["toulouse france"]},{"id":"nantes","name":"Nantes","countryId":"france","center":[47.2184,-1.5536],"bounds":[-1.72,47.13,-1.42,47.32],"aliases":["nantes france"]},{"id":"strasbourg","name":"Strasbourg","countryId":"france","center":[48.5734,7.7521],"bounds":[7.6,48.48,7.88,48.67],"aliases":["strasbourg france"]},{"id":"nice","name":"Nice","countryId":"france","center":[43.7102,7.262],"bounds":[7.15,43.65,7.38,43.78],"aliases":["nice france"]},{"id":"dublin","name":"Dublin","countryId":"ireland","center":[53.3498,-6.2603],"bounds":[-6.45,53.23,-6.05,53.45],"aliases":["dublin ireland","dublin irlande"]},{"id":"london","name":"Londres","countryId":"unitedKingdom","center":[51.5074,-0.1278],"bounds":[-0.52,51.28,0.25,51.7],"aliases":["london","londres angleterre"]},{"id":"manchester","name":"Manchester","countryId":"unitedKingdom","center":[53.4808,-2.2426],"bounds":[-2.42,53.38,-2.05,53.58],"aliases":["manchester uk"]},{"id":"edinburgh","name":"Édimbourg","countryId":"unitedKingdom","center":[55.9533,-3.1883],"bounds":[-3.35,55.86,-3.02,56.05],"aliases":["edinburgh","edimbourg ecosse"]},{"id":"lisbon","name":"Lisbonne","countryId":"portugal","center":[38.7223,-9.1393],"bounds":[-9.3,38.62,-8.98,38.82],"aliases":["lisbon","lisbonne portugal"]},{"id":"porto","name":"Porto","countryId":"portugal","center":[41.1579,-8.6291],"bounds":[-8.76,41.08,-8.5,41.24],"aliases":["porto portugal"]},{"id":"madrid","name":"Madrid","countryId":"spain","center":[40.4168,-3.7038],"bounds":[-3.95,40.25,-3.45,40.6],"aliases":["madrid espagne"]},{"id":"barcelona","name":"Barcelone","countryId":"spain","center":[41.3874,2.1686],"bounds":[1.95,41.28,2.35,41.5],"aliases":["barcelona","barcelone espagne"]},{"id":"valencia","name":"Valence","countryId":"spain","center":[39.4699,-0.3763],"bounds":[-0.5,39.36,-0.2,39.58],"aliases":["valencia espagne","valence espagne"]},{"id":"seville","name":"Séville","countryId":"spain","center":[37.3891,-5.9845],"bounds":[-6.12,37.3,-5.84,37.48],"aliases":["seville","sevilla","seville espagne"]},{"id":"brussels","name":"Bruxelles","countryId":"belgium","center":[50.8503,4.3517],"bounds":[4.18,50.76,4.55,50.95],"aliases":["brussels","bruxelles belgique"]},{"id":"amsterdam","name":"Amsterdam","countryId":"netherlands","center":[52.3676,4.9041],"bounds":[4.72,52.26,5.05,52.45],"aliases":["amsterdam pays bas"]},{"id":"rotterdam","name":"Rotterdam","countryId":"netherlands","center":[51.9244,4.4777],"bounds":[4.28,51.82,4.66,52.03],"aliases":["rotterdam pays bas"]},{"id":"berlin","name":"Berlin","countryId":"germany","center":[52.52,13.405],"bounds":[13.08,52.34,13.77,52.68],"aliases":["berlin allemagne"]},{"id":"hamburg","name":"Hambourg","countryId":"germany","center":[53.5511,9.9937],"bounds":[9.72,53.39,10.28,53.7],"aliases":["hamburg","hambourg allemagne"]},{"id":"munich","name":"Munich","countryId":"germany","center":[48.1351,11.582],"bounds":[11.35,48.02,11.78,48.25],"aliases":["munich allemagne","muenchen"]},{"id":"copenhagen","name":"Copenhague","countryId":"denmark","center":[55.6761,12.5683],"bounds":[12.4,55.57,12.72,55.77],"aliases":["copenhagen","copenhague danemark"]},{"id":"oslo","name":"Oslo","countryId":"norway","center":[59.9139,10.7522],"bounds":[10.5,59.78,10.98,60.05],"aliases":["oslo norvege"]},{"id":"stockholm","name":"Stockholm","countryId":"sweden","center":[59.3293,18.0686],"bounds":[17.8,59.2,18.35,59.47],"aliases":["stockholm suede"]},{"id":"helsinki","name":"Helsinki","countryId":"finland","center":[60.1699,24.9384],"bounds":[24.7,60.08,25.18,60.28],"aliases":["helsinki finlande"]},{"id":"zurich","name":"Zurich","countryId":"switzerland","center":[47.3769,8.5417],"bounds":[8.42,47.3,8.67,47.45],"aliases":["zurich suisse"]},{"id":"geneva","name":"Genève","countryId":"switzerland","center":[46.2044,6.1432],"bounds":[6.04,46.14,6.24,46.27],"aliases":["geneva","geneve suisse"]},{"id":"vienna","name":"Vienne","countryId":"austria","center":[48.2082,16.3738],"bounds":[16.18,48.1,16.58,48.32],"aliases":["vienna","vienne autriche"]},{"id":"rome","name":"Rome","countryId":"italy","center":[41.9028,12.4964],"bounds":[12.25,41.75,12.75,42.05],"aliases":["roma","rome italie"]},{"id":"milan","name":"Milan","countryId":"italy","center":[45.4642,9.19],"bounds":[8.98,45.35,9.4,45.58],"aliases":["milano","milan italie"]},{"id":"naples","name":"Naples","countryId":"italy","center":[40.8518,14.2681],"bounds":[14.12,40.75,14.43,40.95],"aliases":["napoli","naples italie"]},{"id":"prague","name":"Prague","countryId":"czechia","center":[50.0755,14.4378],"bounds":[14.2,49.95,14.7,50.2],"aliases":["praha","prague tchequie"]},{"id":"warsaw","name":"Varsovie","countryId":"poland","center":[52.2297,21.0122],"bounds":[20.78,52.08,21.25,52.37],"aliases":["warsaw","varsovie pologne"]},{"id":"krakow","name":"Cracovie","countryId":"poland","center":[50.0647,19.945],"bounds":[19.75,49.95,20.15,50.17],"aliases":["krakow","cracovie pologne"]},{"id":"budapest","name":"Budapest","countryId":"hungary","center":[47.4979,19.0402],"bounds":[18.82,47.35,19.28,47.65],"aliases":["budapest hongrie"]},{"id":"zagreb","name":"Zagreb","countryId":"croatia","center":[45.815,15.9819],"bounds":[15.75,45.7,16.2,45.93],"aliases":["zagreb croatie"]},{"id":"bucharest","name":"Bucarest","countryId":"romania","center":[44.4268,26.1025],"bounds":[25.85,44.3,26.35,44.58],"aliases":["bucharest","bucarest roumanie"]},{"id":"athens","name":"Athènes","countryId":"greece","center":[37.9838,23.7275],"bounds":[23.55,37.88,23.9,38.1],"aliases":["athens","athenes grece"]},{"id":"tallinn","name":"Tallinn","countryId":"estonia","center":[59.437,24.7536],"bounds":[24.55,59.33,24.95,59.55],"aliases":["tallinn estonie"]},{"id":"riga","name":"Riga","countryId":"latvia","center":[56.9496,24.1052],"bounds":[23.9,56.82,24.32,57.08],"aliases":["riga lettonie"]},{"id":"vilnius","name":"Vilnius","countryId":"lithuania","center":[54.6872,25.2797],"bounds":[25.05,54.55,25.5,54.82],"aliases":["vilnius lituanie"]},{"id":"newYork","name":"New York","countryId":"usa","center":[40.7128,-74.006],"bounds":[-74.25,40.49,-73.68,40.93],"aliases":["new york city","nyc","new york usa"]},{"id":"boston","name":"Boston","countryId":"usa","center":[42.3601,-71.0589],"bounds":[-71.2,42.26,-70.9,42.46],"aliases":["boston usa"]},{"id":"chicago","name":"Chicago","countryId":"usa","center":[41.8781,-87.6298],"bounds":[-87.85,41.64,-87.5,42.05],"aliases":["chicago usa"]},{"id":"miami","name":"Miami","countryId":"usa","center":[25.7617,-80.1918],"bounds":[-80.4,25.6,-80.05,25.95],"aliases":["miami usa","miami floride"]},{"id":"dallas","name":"Dallas","countryId":"usa","center":[32.7767,-96.797],"bounds":[-97.1,32.58,-96.55,33.02],"aliases":["dallas usa","dallas texas"]},{"id":"denver","name":"Denver","countryId":"usa","center":[39.7392,-104.9903],"bounds":[-105.2,39.58,-104.75,39.92],"aliases":["denver usa","denver colorado"]},{"id":"seattle","name":"Seattle","countryId":"usa","center":[47.6062,-122.3321],"bounds":[-122.52,47.48,-122.18,47.75],"aliases":["seattle usa"]},{"id":"sanFrancisco","name":"San Francisco","countryId":"usa","center":[37.7749,-122.4194],"bounds":[-122.55,37.68,-122.32,37.84],"aliases":["san francisco usa","sf"]},{"id":"losAngeles","name":"Los Angeles","countryId":"usa","center":[34.0522,-118.2437],"bounds":[-118.65,33.75,-117.95,34.35],"aliases":["los angeles usa","la california"]},{"id":"toronto","name":"Toronto","countryId":"canada","center":[43.6532,-79.3832],"bounds":[-79.65,43.5,-79.1,43.85],"aliases":["toronto canada"]},{"id":"montreal","name":"Montréal","countryId":"canada","center":[45.5017,-73.5673],"bounds":[-73.85,45.38,-73.35,45.7],"aliases":["montreal canada"]},{"id":"vancouver","name":"Vancouver","countryId":"canada","center":[49.2827,-123.1207],"bounds":[-123.3,49.18,-122.95,49.38],"aliases":["vancouver canada"]},{"id":"mexicoCity","name":"Mexico","countryId":"mexico","center":[19.4326,-99.1332],"bounds":[-99.35,19.25,-98.9,19.62],"aliases":["mexico city","ciudad de mexico","cdmx"]},{"id":"guadalajara","name":"Guadalajara","countryId":"mexico","center":[20.6597,-103.3496],"bounds":[-103.55,20.5,-103.15,20.83],"aliases":["guadalajara mexique"]},{"id":"bogota","name":"Bogota","countryId":"colombia","center":[4.711,-74.0721],"bounds":[-74.25,4.5,-73.95,4.9],"aliases":["bogota colombie","bogota colombia"]},{"id":"lima","name":"Lima","countryId":"peru","center":[-12.0464,-77.0428],"bounds":[-77.22,-12.2,-76.85,-11.85],"aliases":["lima perou"]},{"id":"santiago","name":"Santiago","countryId":"chile","center":[-33.4489,-70.6693],"bounds":[-70.85,-33.62,-70.48,-33.28],"aliases":["santiago chili","santiago chile"]},{"id":"buenosAires","name":"Buenos Aires","countryId":"argentina","center":[-34.6037,-58.3816],"bounds":[-58.65,-34.75,-58.2,-34.45],"aliases":["buenos aires argentine"]},{"id":"montevideo","name":"Montevideo","countryId":"uruguay","center":[-34.9011,-56.1645],"bounds":[-56.35,-35.02,-55.95,-34.75],"aliases":["montevideo uruguay"]},{"id":"saoPaulo","name":"Sao Paulo","countryId":"brazil","center":[-23.5505,-46.6333],"bounds":[-46.9,-23.75,-46.35,-23.35],"aliases":["sao paulo bresil","são paulo"]},{"id":"rio","name":"Rio de Janeiro","countryId":"brazil","center":[-22.9068,-43.1729],"bounds":[-43.45,-23.05,-42.95,-22.75],"aliases":["rio de janeiro bresil","rio"]},{"id":"quito","name":"Quito","countryId":"ecuador","center":[-0.1807,-78.4678],"bounds":[-78.6,-0.32,-78.35,-0.05],"aliases":["quito equateur"]},{"id":"tokyo","name":"Tokyo","countryId":"japan","center":[35.6762,139.6503],"bounds":[139.45,35.5,139.9,35.85],"aliases":["tokyo japon"]},{"id":"osaka","name":"Osaka","countryId":"japan","center":[34.6937,135.5023],"bounds":[135.32,34.55,135.7,34.82],"aliases":["osaka japon"]},{"id":"seoul","name":"Séoul","countryId":"southKorea","center":[37.5665,126.978],"bounds":[126.75,37.4,127.2,37.72],"aliases":["seoul","seoul coree"]},{"id":"taipei","name":"Taipei","countryId":"taiwan","center":[25.033,121.5654],"bounds":[121.4,24.92,121.72,25.18],"aliases":["taipei taiwan"]},{"id":"bangkok","name":"Bangkok","countryId":"thailand","center":[13.7563,100.5018],"bounds":[100.3,13.6,100.75,13.95],"aliases":["bangkok thailande"]},{"id":"kualaLumpur","name":"Kuala Lumpur","countryId":"malaysia","center":[3.139,101.6869],"bounds":[101.5,2.98,101.88,3.3],"aliases":["kuala lumpur malaisie","kl"]},{"id":"singaporeCity","name":"Singapour","countryId":"singapore","center":[1.3521,103.8198],"bounds":[103.65,1.22,104.0,1.46],"aliases":["singapore city","ville de singapour"]},{"id":"jakarta","name":"Jakarta","countryId":"indonesia","center":[-6.2088,106.8456],"bounds":[106.65,-6.4,107.05,-6.0],"aliases":["jakarta indonesie"]},{"id":"manila","name":"Manille","countryId":"philippines","center":[14.5995,120.9842],"bounds":[120.8,14.4,121.15,14.78],"aliases":["manila","manille philippines"]},{"id":"capeTown","name":"Le Cap","countryId":"southAfrica","center":[-33.9249,18.4241],"bounds":[18.25,-34.08,18.65,-33.75],"aliases":["cape town","le cap afrique du sud"]},{"id":"johannesburg","name":"Johannesburg","countryId":"southAfrica","center":[-26.2041,28.0473],"bounds":[27.8,-26.38,28.3,-26.02],"aliases":["johannesburg afrique du sud"]},{"id":"accra","name":"Accra","countryId":"ghana","center":[5.6037,-0.187],"bounds":[-0.4,5.45,0.05,5.75],"aliases":["accra ghana"]},{"id":"kampala","name":"Kampala","countryId":"uganda","center":[0.3476,32.5825],"bounds":[32.42,0.22,32.75,0.48],"aliases":["kampala ouganda"]},{"id":"nairobi","name":"Nairobi","countryId":"kenya","center":[-1.2921,36.8219],"bounds":[36.65,-1.45,37.02,-1.12],"aliases":["nairobi kenya"]},{"id":"sydney","name":"Sydney","countryId":"australia","center":[-33.8688,151.2093],"bounds":[150.95,-34.05,151.4,-33.68],"aliases":["sydney australie"]},{"id":"melbourne","name":"Melbourne","countryId":"australia","center":[-37.8136,144.9631],"bounds":[144.7,-38.02,145.25,-37.6],"aliases":["melbourne australie"]},{"id":"brisbane","name":"Brisbane","countryId":"australia","center":[-27.4698,153.0251],"bounds":[152.8,-27.65,153.25,-27.28],"aliases":["brisbane australie"]},{"id":"perth","name":"Perth","countryId":"australia","center":[-31.9523,115.8613],"bounds":[115.65,-32.1,116.05,-31.78],"aliases":["perth australie"]},{"id":"auckland","name":"Auckland","countryId":"newZealand","center":[-36.8509,174.7645],"bounds":[174.55,-37.02,175.0,-36.68],"aliases":["auckland nouvelle zelande"]},{"id":"wellington","name":"Wellington","countryId":"newZealand","center":[-41.2866,174.7756],"bounds":[174.62,-41.38,174.9,-41.18],"aliases":["wellington nouvelle zelande"]}];
+
+const countryObject={
+  france:{id:'france',name:'France',continentId:'europe',aliases:['france','fr','france metropolitaine','hexagone']}
+};
+for (const x of COUNTRY_DEFS) countryObject[x.id]={id:x.id,name:x.name,continentId:x.continentId,aliases:x.aliases||[]};
+const COUNTRIES=Object.freeze(countryObject);
 
 const REGIONS = Object.freeze({
-  ileDeFrance: { id:'ileDeFrance', name:'Île-de-France', countryId:'france', aliases:['ile de france','île-de-france','idf'] },
-  grandEst: { id:'grandEst', name:'Grand Est', countryId:'france', aliases:['grand est'] },
-  districtOfColumbia: { id:'districtOfColumbia', name:'District of Columbia', countryId:'usa', aliases:['district of columbia','dc','washington dc'] }
+  ileDeFrance:{id:'ileDeFrance',name:'Île-de-France',countryId:'france',aliases:['ile de france','île-de-france','idf']},
+  grandEst:{id:'grandEst',name:'Grand Est',countryId:'france',aliases:['grand est']},
+  districtOfColumbia:{id:'districtOfColumbia',name:'District of Columbia',countryId:'usa',aliases:['district of columbia','dc','washington dc']}
 });
-
 const DEPARTMENTS = Object.freeze({
-  paris: { id:'paris', name:'Paris (75)', regionId:'ileDeFrance', aliases:['paris 75','75'] },
-  aube: { id:'aube', name:'Aube (10)', regionId:'grandEst', aliases:['aube','10'] }
+  paris:{id:'paris',name:'Paris (75)',regionId:'ileDeFrance',aliases:['paris 75','75']},
+  aube:{id:'aube',name:'Aube (10)',regionId:'grandEst',aliases:['aube','10']}
 });
 
-const MAPS = Object.freeze({
-  paris: {
-    zoneId:'paris', name:'Paris', kind:'city', continentId:'europe', countryId:'france', regionId:'ileDeFrance', departmentId:'paris', cityId:'paris',
-    parisFeatured:true, icon:'paris', order:10,
-    description:'Limites officielles de Paris, grands bois exclus.',
-    aliases:['paris france','capitale france','ville de paris']
-  },
-  paris13: {
-    zoneId:'paris13', name:'Paris 13e', kind:'district', continentId:'europe', countryId:'france', regionId:'ileDeFrance', departmentId:'paris', cityId:'paris',
-    parisFeatured:true, icon:'arr13', order:20,
-    description:'Limite administrative officielle du 13e arrondissement.',
-    aliases:['paris 13','paris 13e','13e arrondissement','13eme arrondissement','13ème arrondissement']
-  },
-  parisGroup: {
-    zoneId:'parisGroup', name:'Paris 5e / 6e / 7e / 13e', kind:'districtCollection', continentId:'europe', countryId:'france', regionId:'ileDeFrance', departmentId:'paris', cityId:'paris',
-    parisFeatured:true, icon:'quarters', order:30,
-    description:'Un des quatre arrondissements officiels à chaque manche.',
-    aliases:['paris arrondissements','paris 5 6 7 13','5e 6e 7e 13e']
-  },
-  bagneux: {
-    zoneId:'bagneux', name:'Bagneux-la-Fosse', kind:'city', continentId:'europe', countryId:'france', regionId:'grandEst', departmentId:'aube', cityId:'bagneuxLaFosse',
-    icon:'village', order:40,
-    description:'Village et proches alentours (~1,5 km autour du bourg).',
-    aliases:['bagneux la fosse','bagneux-la-fosse','aube bagneux','village bagneux']
-  },
-  washington: {
-    zoneId:'washington', name:'Washington DC', kind:'city', continentId:'northAmerica', countryId:'usa', regionId:'districtOfColumbia', cityId:'washingtonDc',
-    icon:'washington', order:50,
-    description:'Le District of Columbia.',
-    aliases:['washington','washington dc','district of columbia','dc']
-  },
-  france: {
-    zoneId:'france', name:'France', kind:'country', continentId:'europe', countryId:'france',
-    icon:'france', order:60,
-    description:'Métropole et Corse.',
-    aliases:['france métropolitaine','france metropolitaine','hexagone']
-  },
-  europe: {
-    zoneId:'europe', name:'Europe', kind:'continent', continentId:'europe', icon:'world', order:70,
-    description:'Zones Street View européennes prises en charge.', aliases:['europe']
-  },
-  northAmerica: {
-    zoneId:'northAmerica', name:'Amérique du Nord', kind:'continent', continentId:'northAmerica', icon:'world', order:80,
-    description:'États-Unis, Canada et Mexique dans les zones prises en charge.', aliases:['amerique du nord','north america']
-  },
-  southAmerica: {
-    zoneId:'southAmerica', name:'Amérique du Sud', kind:'continent', continentId:'southAmerica', icon:'world', order:90,
-    description:'Zones Street View sud-américaines prises en charge.', aliases:['amerique du sud','south america']
-  },
-  asia: {
-    zoneId:'asia', name:'Asie', kind:'continent', continentId:'asia', icon:'world', order:100,
-    description:'Japon, Corée, Taïwan et Asie du Sud-Est prises en charge.', aliases:['asie','asia']
-  },
-  africa: {
-    zoneId:'africa', name:'Afrique', kind:'continent', continentId:'africa', icon:'world', order:110,
-    description:'Zones Street View africaines prises en charge.', aliases:['afrique','africa']
-  },
-  oceania: {
-    zoneId:'oceania', name:'Océanie', kind:'continent', continentId:'oceania', icon:'world', order:120,
-    description:'Australie et Nouvelle-Zélande dans les zones prises en charge.', aliases:['oceanie','oceania']
-  },
-  world: {
-    zoneId:'world', name:'Monde', kind:'world', icon:'world', order:130,
-    description:'Tirage mondial dans les zones couvertes par Street View.', aliases:['monde','world','mondial']
-  }
-});
+const maps={
+  paris:{zoneId:'paris',name:'Paris',kind:'city',continentId:'europe',countryId:'france',regionId:'ileDeFrance',departmentId:'paris',cityId:'paris',parisFeatured:true,icon:'paris',order:10,description:'Limites officielles de Paris, grands bois exclus.',aliases:['paris france','capitale france','ville de paris']},
+  paris13:{zoneId:'paris13',name:'Paris 13e',kind:'district',continentId:'europe',countryId:'france',regionId:'ileDeFrance',departmentId:'paris',cityId:'paris',parisFeatured:true,icon:'arr13',order:20,description:'Limite administrative officielle du 13e arrondissement.',aliases:['paris 13','paris 13e','13e arrondissement','13eme arrondissement','13ème arrondissement']},
+  parisGroup:{zoneId:'parisGroup',name:'Paris 5e / 6e / 7e / 13e',kind:'districtCollection',continentId:'europe',countryId:'france',regionId:'ileDeFrance',departmentId:'paris',cityId:'paris',parisFeatured:true,icon:'quarters',order:30,description:'Un des quatre arrondissements officiels à chaque manche.',aliases:['paris arrondissements','paris 5 6 7 13','5e 6e 7e 13e']},
+  bagneux:{zoneId:'bagneux',name:'Bagneux-la-Fosse',kind:'city',continentId:'europe',countryId:'france',regionId:'grandEst',departmentId:'aube',cityId:'bagneuxLaFosse',icon:'village',order:40,description:'Village et proches alentours (~1,5 km autour du bourg).',aliases:['bagneux la fosse','bagneux-la-fosse','aube bagneux','village bagneux']},
+  washington:{zoneId:'washington',name:'Washington DC',kind:'city',continentId:'northAmerica',countryId:'usa',regionId:'districtOfColumbia',cityId:'washingtonDc',icon:'washington',order:50,description:'Le District of Columbia.',aliases:['washington','washington dc','district of columbia','dc']},
+  france:{zoneId:'france',name:'France',kind:'country',continentId:'europe',countryId:'france',icon:'france',order:60,description:'Métropole et Corse, avec contour dédié.',aliases:['france métropolitaine','france metropolitaine','hexagone']},
+  europe:{zoneId:'europe',name:'Europe',kind:'continent',continentId:'europe',icon:'world',order:70,description:'Pays Street View européens du catalogue LostPin.',aliases:['europe']},
+  northAmerica:{zoneId:'northAmerica',name:'Amérique du Nord',kind:'continent',continentId:'northAmerica',icon:'world',order:80,description:'Pays Street View nord-américains du catalogue LostPin.',aliases:['amerique du nord','north america']},
+  southAmerica:{zoneId:'southAmerica',name:'Amérique du Sud',kind:'continent',continentId:'southAmerica',icon:'world',order:90,description:'Pays Street View sud-américains du catalogue LostPin.',aliases:['amerique du sud','south america']},
+  asia:{zoneId:'asia',name:'Asie',kind:'continent',continentId:'asia',icon:'world',order:100,description:'Pays Street View asiatiques du catalogue LostPin.',aliases:['asie','asia']},
+  africa:{zoneId:'africa',name:'Afrique',kind:'continent',continentId:'africa',icon:'world',order:110,description:'Pays Street View africains du catalogue LostPin.',aliases:['afrique','africa']},
+  oceania:{zoneId:'oceania',name:'Océanie',kind:'continent',continentId:'oceania',icon:'world',order:120,description:'Australie et Nouvelle-Zélande.',aliases:['oceanie','oceania']},
+  world:{zoneId:'world',name:'Monde',kind:'world',icon:'world',order:130,description:'Tirage mondial dans tous les pays du catalogue LostPin.',aliases:['monde','world','mondial']}
+};
 
-const KIND_LABELS = Object.freeze({
-  city:'Ville', district:'Arrondissement', districtCollection:'Collection parisienne', country:'Pays', continent:'Continent', world:'Monde'
-});
-
-function normalizeText(value) {
-  return String(value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g,'')
-    .toLowerCase()
-    .replace(/[’']/g,' ')
-    .replace(/[^a-z0-9]+/g,' ')
-    .trim();
+let countryOrder=200;
+for (const x of COUNTRY_DEFS) {
+  maps[x.id]={zoneId:x.id,name:x.name,kind:'country',continentId:x.continentId,countryId:x.id,icon:'world',order:countryOrder++,description:'Sélection nationale optimisée pour Street View.',aliases:x.aliases||[]};
 }
-
-function mapValues() { return Object.values(MAPS).slice().sort((a,b)=>(a.order||0)-(b.order||0)); }
-function getMap(zoneId) { return MAPS[zoneId] || null; }
-function getContinent(id) { return CONTINENTS[id] || null; }
-function getCountry(id) { return COUNTRIES[id] || null; }
-function getRegion(id) { return REGIONS[id] || null; }
-function getDepartment(id) { return DEPARTMENTS[id] || null; }
-
-function pathParts(map, options={}) {
-  if (!map) return [];
-  const parts=[];
-  const continent=getContinent(map.continentId);
-  const country=getCountry(map.countryId);
-  const region=getRegion(map.regionId);
-  const department=getDepartment(map.departmentId);
-  if (continent) parts.push(continent.name);
-  if (country) parts.push(country.name);
-  if (options.includeRegion && region) parts.push(region.name);
-  if (options.includeDepartment && department) parts.push(department.name);
-  if (map.kind==='district' || map.kind==='districtCollection') parts.push('Paris');
-  return parts;
+let cityOrder=1000;
+for (const x of CITY_DEFS) {
+  const country=COUNTRIES[x.countryId];
+  if (!country) continue;
+  maps[x.id]={zoneId:x.id,name:x.name,kind:'city',continentId:country.continentId,countryId:x.countryId,cityId:x.id,icon:'world',order:cityOrder++,description:`Zone urbaine de ${x.name}.`,aliases:x.aliases||[]};
 }
+const MAPS=Object.freeze(maps);
 
-function pathLabel(map, options={}) { return pathParts(map,options).join(' › '); }
+const KIND_LABELS=Object.freeze({city:'Ville',district:'Arrondissement',districtCollection:'Collection parisienne',country:'Pays',continent:'Continent',world:'Monde'});
 
-function matchesType(map, selectorType) {
-  if (selectorType==='paris') return !!map.parisFeatured;
-  if (selectorType==='city') return map.kind==='city';
-  if (selectorType==='country') return map.kind==='country';
-  if (selectorType==='continent') return map.kind==='continent';
-  if (selectorType==='world') return map.kind==='world';
-  if (selectorType==='all') return true;
-  return false;
+function area(name,b){return {name,west:b[0],south:b[1],east:b[2],north:b[3]};}
+const gameplay={};
+for (const x of COUNTRY_DEFS) {
+  gameplay[x.id]={name:x.name,center:{lat:x.center[0],lng:x.center[1]},zoom:x.zoom,areas:x.areas.map((b,i)=>area(`${x.name} ${i+1}`,b)),radius:4500,attempts:42,scale:x.scale,recent:x.recent,requireLinks:true};
 }
-
-function mapsFor(selectorType, filters={}) {
-  return mapValues().filter(map => {
-    if (!matchesType(map,selectorType)) return false;
-    if (filters.continentId && map.continentId!==filters.continentId) return false;
-    if (filters.countryId && map.countryId!==filters.countryId) return false;
-    return true;
-  });
+for (const x of CITY_DEFS) {
+  gameplay[x.id]={name:x.name,center:{lat:x.center[0],lng:x.center[1]},zoom:12,areas:[area(x.name,x.bounds)],radius:900,attempts:34,scale:15000,recent:1800,requireLinks:true};
 }
+const GAMEPLAY_ZONES=Object.freeze(gameplay);
 
-function continentsFor(selectorType) {
-  const ids=[];
-  for (const map of mapsFor(selectorType)) if (map.continentId && !ids.includes(map.continentId)) ids.push(map.continentId);
-  return ids.map(getContinent).filter(Boolean);
+const CONTINENT_AREAS={};
+for (const id of CONTINENT_ORDER) CONTINENT_AREAS[id]=[];
+for (const x of COUNTRY_DEFS) {
+  for (let i=0;i<x.areas.length;i++) CONTINENT_AREAS[x.continentId].push(area(`${x.name} ${i+1}`,x.areas[i]));
 }
+// France is a dedicated polygon zone, but its representative rectangle keeps it
+// present in Europe/World random draws without duplicating the detailed polygon.
+CONTINENT_AREAS.europe.push(area('France',[-4.5,43.0,7.5,50.8]));
+for (const id of CONTINENT_ORDER) Object.freeze(CONTINENT_AREAS[id]);
+Object.freeze(CONTINENT_AREAS);
+const WORLD_AREAS=Object.freeze(CONTINENT_ORDER.flatMap(id=>CONTINENT_AREAS[id]));
 
-function countriesFor(selectorType, continentId) {
-  const ids=[];
-  for (const map of mapsFor(selectorType,{continentId})) if (map.countryId && !ids.includes(map.countryId)) ids.push(map.countryId);
-  return ids.map(getCountry).filter(Boolean);
-}
+function normalizeText(value){return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[’']/g,' ').replace(/[^a-z0-9]+/g,' ').trim();}
+function compareName(a,b){return a.name.localeCompare(b.name,'fr',{sensitivity:'base'});}
+function mapValues(){return Object.values(MAPS).slice().sort((a,b)=>(a.order||0)-(b.order||0));}
+function getMap(zoneId){return MAPS[zoneId]||null;}
+function getContinent(id){return CONTINENTS[id]||null;}
+function getCountry(id){return COUNTRIES[id]||null;}
+function getRegion(id){return REGIONS[id]||null;}
+function getDepartment(id){return DEPARTMENTS[id]||null;}
+function pathParts(map,options={}){if(!map)return[];const parts=[];const continent=getContinent(map.continentId),country=getCountry(map.countryId),region=getRegion(map.regionId),department=getDepartment(map.departmentId);if(continent)parts.push(continent.name);if(country)parts.push(country.name);if(options.includeRegion&&region)parts.push(region.name);if(options.includeDepartment&&department)parts.push(department.name);if(map.kind==='district'||map.kind==='districtCollection')parts.push('Paris');return parts;}
+function pathLabel(map,options={}){return pathParts(map,options).join(' › ');}
+function matchesType(map,selectorType){if(selectorType==='paris')return!!map.parisFeatured;if(selectorType==='city')return map.kind==='city';if(selectorType==='country')return map.kind==='country';if(selectorType==='continent')return map.kind==='continent';if(selectorType==='world')return map.kind==='world';if(selectorType==='all')return true;return false;}
+function mapsFor(selectorType,filters={}){return mapValues().filter(map=>{if(!matchesType(map,selectorType))return false;if(filters.continentId&&map.continentId!==filters.continentId)return false;if(filters.countryId&&map.countryId!==filters.countryId)return false;return true;}).sort((a,b)=>{if(selectorType==='city'||selectorType==='country')return compareName(a,b);return(a.order||0)-(b.order||0);});}
+function continentsFor(selectorType){const ids=[];for(const map of mapsFor(selectorType))if(map.continentId&&!ids.includes(map.continentId))ids.push(map.continentId);return ids.map(getContinent).filter(Boolean).sort((a,b)=>CONTINENT_ORDER.indexOf(a.id)-CONTINENT_ORDER.indexOf(b.id));}
+function countriesFor(selectorType,continentId){const ids=[];for(const map of mapsFor(selectorType,{continentId}))if(map.countryId&&!ids.includes(map.countryId))ids.push(map.countryId);return ids.map(getCountry).filter(Boolean).sort(compareName);}
+function searchableText(map){const chunks=[map.name,KIND_LABELS[map.kind]||map.kind,...(map.aliases||[])];const continent=getContinent(map.continentId);if(continent)chunks.push(continent.name,...(continent.aliases||[]));const country=getCountry(map.countryId);if(country)chunks.push(country.name,...(country.aliases||[]));const region=getRegion(map.regionId);if(region)chunks.push(region.name,...(region.aliases||[]));const department=getDepartment(map.departmentId);if(department)chunks.push(department.name,...(department.aliases||[]));return normalizeText(chunks.join(' '));}
+function search(query){const q=normalizeText(query);if(!q)return[];return mapValues().map(map=>{const name=normalizeText(map.name),aliases=(map.aliases||[]).map(normalizeText),haystack=searchableText(map);if(!haystack.includes(q))return null;let rank=50;if(name===q)rank=0;else if(name.startsWith(q))rank=5;else if(aliases.some(x=>x===q))rank=8;else if(aliases.some(x=>x.startsWith(q)))rank=12;else if(normalizeText(pathLabel(map,{includeRegion:true,includeDepartment:true})).includes(q))rank=20;return{map,rank};}).filter(Boolean).sort((a,b)=>a.rank-b.rank||compareName(a.map,b.map)).map(x=>x.map);}
+function categoryForZone(zoneId){const map=getMap(zoneId);if(!map)return'paris';if(map.parisFeatured)return'paris';if(map.kind==='city')return'city';if(map.kind==='country')return'country';if(map.kind==='continent')return'continent';if(map.kind==='world')return'world';return'all';}
+function playlistSections(zoneIds){const ids=Array.isArray(zoneIds)?zoneIds:Object.keys(MAPS),selected=ids.map(getMap).filter(Boolean),groups=[['Paris',selected.filter(x=>x.parisFeatured)]];for(const continentId of CONTINENT_ORDER){const continent=getContinent(continentId);const cities=selected.filter(x=>x.kind==='city'&&!x.parisFeatured&&x.continentId===continentId).sort(compareName);if(cities.length)groups.push([`Villes · ${continent.name}`,cities]);const countries=selected.filter(x=>x.kind==='country'&&x.continentId===continentId).sort(compareName);if(countries.length)groups.push([`Pays · ${continent.name}`,countries]);}const continents=selected.filter(x=>x.kind==='continent');if(continents.length)groups.push(['Continents',continents]);const world=selected.filter(x=>x.kind==='world');if(world.length)groups.push(['Monde',world]);return groups.filter(([,items])=>items.length);}
 
-function searchableText(map) {
-  const chunks=[map.name, KIND_LABELS[map.kind] || map.kind, ...(map.aliases||[])];
-  const continent=getContinent(map.continentId); if (continent) chunks.push(continent.name,...(continent.aliases||[]));
-  const country=getCountry(map.countryId); if (country) chunks.push(country.name,...(country.aliases||[]));
-  const region=getRegion(map.regionId); if (region) chunks.push(region.name,...(region.aliases||[]));
-  const department=getDepartment(map.departmentId); if (department) chunks.push(department.name,...(department.aliases||[]));
-  return normalizeText(chunks.join(' '));
-}
-
-function search(query) {
-  const q=normalizeText(query);
-  if (!q) return [];
-  return mapValues().map(map => {
-    const name=normalizeText(map.name);
-    const aliases=(map.aliases||[]).map(normalizeText);
-    const haystack=searchableText(map);
-    if (!haystack.includes(q)) return null;
-    let rank=50;
-    if (name===q) rank=0;
-    else if (name.startsWith(q)) rank=5;
-    else if (aliases.some(x=>x===q)) rank=8;
-    else if (aliases.some(x=>x.startsWith(q))) rank=12;
-    else if (normalizeText(pathLabel(map,{includeRegion:true,includeDepartment:true})).includes(q)) rank=20;
-    return {map,rank};
-  }).filter(Boolean).sort((a,b)=>a.rank-b.rank || (a.map.order||0)-(b.map.order||0)).map(x=>x.map);
-}
-
-function categoryForZone(zoneId) {
-  const map=getMap(zoneId);
-  if (!map) return 'paris';
-  if (map.parisFeatured) return 'paris';
-  if (map.kind==='city') return 'city';
-  if (map.kind==='country') return 'country';
-  if (map.kind==='continent') return 'continent';
-  if (map.kind==='world') return 'world';
-  return 'all';
-}
-
-function playlistSections(zoneIds) {
-  const ids=Array.isArray(zoneIds) ? zoneIds : Object.keys(MAPS);
-  const selected=ids.map(getMap).filter(Boolean);
-  const groups=[
-    ['Paris', selected.filter(x=>x.parisFeatured)],
-    ['Villes', selected.filter(x=>x.kind==='city' && !x.parisFeatured)],
-    ['Pays', selected.filter(x=>x.kind==='country')],
-    ['Continents', selected.filter(x=>x.kind==='continent')],
-    ['Monde', selected.filter(x=>x.kind==='world')]
-  ];
-  return groups.filter(([,items])=>items.length);
-}
-
-window.LOSTPIN_GEOGRAPHY = Object.freeze({
-  CONTINENTS, COUNTRIES, REGIONS, DEPARTMENTS, MAPS, KIND_LABELS,
-  normalizeText, getMap, getContinent, getCountry, getRegion, getDepartment,
-  pathParts, pathLabel, mapsFor, continentsFor, countriesFor, search,
-  categoryForZone, playlistSections
-});
+window.LOSTPIN_GEOGRAPHY=Object.freeze({CONTINENTS,COUNTRIES,REGIONS,DEPARTMENTS,MAPS,KIND_LABELS,GAMEPLAY_ZONES,CONTINENT_AREAS,WORLD_AREAS,normalizeText,getMap,getContinent,getCountry,getRegion,getDepartment,pathParts,pathLabel,mapsFor,continentsFor,countriesFor,search,categoryForZone,playlistSections});
 })();

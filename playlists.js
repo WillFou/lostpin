@@ -33,8 +33,44 @@ const BUILT_INS = [
   {
     id:'grand-mix',
     name:'Grand Mix LostPin',
-    description:'Villes, France, continents et monde dans une seule collection.',
-    zoneIds:['paris','washington','france','europe','northAmerica','southAmerica','asia','africa','oceania','world']
+    description:'Villes, pays, continents et monde dans une seule collection.',
+    zoneIds:['paris','washington','france','spain','usa','japan','europe','northAmerica','southAmerica','asia','africa','oceania','world']
+  },
+  {
+    id:'france-urbaine',
+    name:'France urbaine',
+    description:'Neuf grandes villes françaises, de Lille à Marseille.',
+    zoneIds:['paris','lyon','marseille','bordeaux','lille','toulouse','nantes','strasbourg','nice']
+  },
+  {
+    id:'capitales-europeennes',
+    name:'Capitales européennes',
+    description:'Un grand tour des capitales du continent.',
+    zoneIds:['paris','london','dublin','lisbon','madrid','brussels','amsterdam','berlin','copenhagen','oslo','stockholm','helsinki','vienna','rome','prague','warsaw','budapest','zagreb','bucharest','athens','tallinn','riga','vilnius']
+  },
+  {
+    id:'usa-coast-to-coast',
+    name:'USA · Coast to Coast',
+    description:'Dix villes américaines de Washington à San Francisco.',
+    zoneIds:['washington','newYork','boston','chicago','miami','dallas','denver','seattle','sanFrancisco','losAngeles']
+  },
+  {
+    id:'amerique-latine',
+    name:'Amérique latine',
+    description:'Grandes métropoles du Mexique et d’Amérique du Sud.',
+    zoneIds:['mexicoCity','bogota','lima','santiago','buenosAires','montevideo','saoPaulo','rio','quito']
+  },
+  {
+    id:'asie-urbaine',
+    name:'Asie urbaine',
+    description:'Tokyo, Séoul, Bangkok et six autres grandes métropoles asiatiques.',
+    zoneIds:['tokyo','osaka','seoul','taipei','bangkok','kualaLumpur','singaporeCity','jakarta','manila']
+  },
+  {
+    id:'oceanie-urbaine',
+    name:'Océanie urbaine',
+    description:'Australie et Nouvelle-Zélande en six grandes villes.',
+    zoneIds:['sydney','melbourne','brisbane','perth','auckland','wellington']
   }
 ];
 

@@ -1,3 +1,37 @@
+# LostPin V5.3.5
+
+- Le sélecteur géographique utilise désormais une largeur stable : son gabarit ne dépend plus du nombre de pays, villes ou résultats affichés.
+- La largeur de l'accueil est maintenant déterminée uniquement par la taille de la fenêtre, avec un maximum desktop fixe et des paliers responsive cohérents.
+- La grille du catalogue suit les mêmes paliers responsive (5 colonnes sur grand écran, 4 sur écran intermédiaire, 2 sur tablette/mobile), sans changement lors de la navigation.
+- Le correctif V5.3.4 qui permet de remonter jusqu'au vrai haut de l'écran lors des longues listes est conservé.
+- Aucun changement de données géographiques, de Challenges, de playlists, de statistiques ou de multijoueur.
+
+---
+
+# LostPin V5.3.4
+
+- Correction du défilement de l’écran d’accueil lorsque le catalogue géographique dépasse la hauteur de la fenêtre : le haut de la page reste désormais toujours accessible.
+- L’accueil conserve son centrage vertical lorsque son contenu tient dans la fenêtre, puis se cale naturellement en haut dès qu’il devient plus grand que l’écran.
+- Les catalogues géographiques denses passent aussi en mode large sur les grands écrans afin d’utiliser davantage de colonnes et de réduire la hauteur totale.
+- Aucun changement de données géographiques, de Challenges, de playlists ou de multijoueur.
+
+---
+
+# LostPin V5.3.3
+
+- Première grosse vague de découpe géographique : le catalogue atteint 152 terrains jouables.
+- 54 maps de pays et 89 maps de villes sont maintenant disponibles, réparties sur les six continents pris en charge.
+- La navigation Villes exploite réellement la hiérarchie continent → pays → ville sur un catalogue beaucoup plus fourni.
+- La recherche globale retrouve les nouvelles villes et les nouveaux pays par nom français, alias courant ou contexte géographique.
+- Les nouvelles maps de pays et de villes sont décrites dans `geography.js` puis transformées automatiquement en zones jouables ; `app.js` conserve seulement les géométries historiques spéciales (Paris, France, Bagneux-la-Fosse, Washington DC).
+- Monde et les six continents utilisent désormais la même base de zones nationales que le catalogue afin de limiter les divergences entre sélection et tirage.
+- Six playlists intégrées supplémentaires : France urbaine, Capitales européennes, USA Coast to Coast, Amérique latine, Asie urbaine et Océanie urbaine.
+- Les nouveaux Challenges utilisent le format interne LP5 V3 avec des IDs de map textuels stables au lieu d'indices numériques ; les anciens codes LP5 V1/V2 restent lisibles.
+- Bagneux-la-Fosse reste une map officielle intégrée et conserve son périmètre dédié.
+- Les nouvelles découpes pays/villes sont des zones de jeu optimisées Street View ; elles ne prétendent pas encore reproduire exactement toutes les frontières administratives.
+
+---
+
 # LostPin V5.3.2
 
 - Refonte du catalogue géographique autour d'une structure hiérarchique réutilisable.

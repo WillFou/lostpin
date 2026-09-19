@@ -172,28 +172,10 @@ const BAGNEUX_PLAY = [
   [4.29860,47.97981],[4.30867,47.98162],[4.31604,47.98656]
 ];
 
-const WORLD_AREAS = [
-  ['US Northeast',-77.6,39.0,-69.9,43.1],['US Southeast',-85.8,29.3,-77.0,36.7],['US Midwest',-94.8,39.0,-82.5,46.2],['Texas',-104.5,28.5,-96.0,35.0],['US Mountain',-112.7,33.0,-104.5,43.5],['US West Coast',-123.8,32.7,-117.0,47.8],
-  ['Ontario Quebec',-83.5,43.0,-71.0,47.0],['British Columbia',-123.5,48.4,-120.0,51.3],['Mexico Central',-103.8,18.5,-98.0,22.5],['Yucatan',-90.8,19.0,-87.2,21.5],
-  ['Colombia',-76.8,3.0,-73.5,7.5],['Peru',-78.9,-14.0,-75.0,-7.0],['Chile Central',-73.2,-36.8,-70.0,-30.0],['Argentina Pampas',-63.8,-38.2,-57.0,-31.0],['Uruguay',-58.4,-34.9,-53.2,-30.1],['Brazil Southeast',-49.5,-25.8,-42.0,-19.0],['Brazil South',-54.5,-30.0,-48.5,-25.0],
-  ['Ireland',-10.5,51.4,-6.0,55.3],['Great Britain',-5.7,50.1,1.5,55.8],['Iberia',-9.4,37.0,2.4,43.4],['France',-4.5,43.0,7.5,50.8],['Benelux',2.5,49.5,6.5,53.3],['Germany',6.0,48.0,14.5,53.5],['Denmark',8.1,54.6,12.7,57.5],['Sweden South',11.0,55.3,18.5,61.0],['Norway South',5.0,58.0,11.0,63.0],['Finland South',21.0,59.8,30.0,64.0],['Italy',7.2,38.0,16.8,45.8],['Central Europe',12.0,46.0,23.0,51.0],['Balkans',14.0,42.0,26.0,47.0],['Greece',20.0,37.0,26.5,41.5],
-  ['Japan Honshu',135.0,34.0,141.5,39.5],['Japan Kyushu',129.5,31.0,132.0,34.0],['South Korea',126.0,35.0,129.5,38.0],['Taiwan',120.0,22.0,121.8,25.2],['Thailand',98.5,7.5,102.5,18.5],['Malaysia',100.0,1.2,103.8,6.5],['Java',106.0,-8.2,113.5,-6.0],['Singapore',103.6,1.20,104.05,1.47],
-  ['Australia Southeast',143.0,-38.8,151.7,-32.0],['Australia East',146.0,-32.0,153.5,-23.0],['Australia Southwest',114.5,-35.2,117.8,-30.5],['New Zealand North',174.0,-41.2,178.0,-36.0],['New Zealand South',168.0,-46.5,173.5,-41.0],
-  ['South Africa',18.0,-34.5,31.0,-25.0],['Botswana',22.0,-25.5,28.0,-18.0],['Lesotho Eswatini',27.0,-31.0,32.0,-25.5],['Ghana',-2.5,5.0,0.8,10.5],['Uganda',30.0,-1.2,34.0,3.8]
-].map(([name,west,south,east,north]) => ({name,west,south,east,north}));
-
-const areasNamed = (...names) => {
-  const wanted = new Set(names);
-  return WORLD_AREAS.filter(area => wanted.has(area.name));
-};
-
-const CONTINENT_AREAS = {
-  europe: areasNamed('Ireland','Great Britain','Iberia','France','Benelux','Germany','Denmark','Sweden South','Norway South','Finland South','Italy','Central Europe','Balkans','Greece'),
-  northAmerica: areasNamed('US Northeast','US Southeast','US Midwest','Texas','US Mountain','US West Coast','Ontario Quebec','British Columbia','Mexico Central','Yucatan'),
-  southAmerica: areasNamed('Colombia','Peru','Chile Central','Argentina Pampas','Uruguay','Brazil Southeast','Brazil South'),
-  asia: areasNamed('Japan Honshu','Japan Kyushu','South Korea','Taiwan','Thailand','Malaysia','Java','Singapore'),
-  africa: areasNamed('South Africa','Botswana','Lesotho Eswatini','Ghana','Uganda'),
-  oceania: areasNamed('Australia Southeast','Australia East','Australia Southwest','New Zealand North','New Zealand South')
+const GEO_CATALOG = window.LOSTPIN_GEOGRAPHY || {};
+const WORLD_AREAS = Array.isArray(GEO_CATALOG.WORLD_AREAS) ? GEO_CATALOG.WORLD_AREAS : [];
+const CONTINENT_AREAS = GEO_CATALOG.CONTINENT_AREAS || {
+  europe:[], northAmerica:[], southAmerica:[], asia:[], africa:[], oceania:[]
 };
 
 const ZONES = {
@@ -212,6 +194,15 @@ const ZONES = {
   africa: {name:'Afrique', center:{lat:0,lng:22}, zoom:3, areas:CONTINENT_AREAS.africa, radius:6000, attempts:42, scale:1400000, recent:150000, requireLinks:true},
   oceania: {name:'Océanie', center:{lat:-27,lng:145}, zoom:3, areas:CONTINENT_AREAS.oceania, radius:6000, attempts:42, scale:1400000, recent:150000, requireLinks:true}
 };
+
+// V5.3.3: country and city maps are data-driven from geography.js. Existing
+// historical zones above keep their dedicated geometry and stable IDs.
+for (const [zoneId, spec] of Object.entries(GEO_CATALOG.GAMEPLAY_ZONES || {})) {
+  if (!ZONES[zoneId]) ZONES[zoneId] = {
+    ...spec,
+    areas: Array.isArray(spec.areas) ? spec.areas.map(area => ({...area})) : spec.areas
+  };
+}
 
 class GuessrGame {
   constructor() {
@@ -409,6 +400,7 @@ class GuessrGame {
       }
     });
   }
+
 
   renderGeographySelector() {
     const geo=this.geo, grid=$('zoneGrid'), hierarchy=$('zoneHierarchy'), empty=$('zoneEmpty');

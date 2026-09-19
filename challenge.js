@@ -2,7 +2,7 @@
 'use strict';
 
 const $ = id => document.getElementById(id);
-const ZONE_IDS = ['paris','paris13','parisGroup','bagneux','washington','france','world','europe','northAmerica','southAmerica','asia','africa','oceania'];
+const LEGACY_ZONE_IDS = ['paris','paris13','parisGroup','bagneux','washington','france','world','europe','northAmerica','southAmerica','asia','africa','oceania'];
 const MODE_IDS = ['explore','nomove','nmpz'];
 const TIMER_VALUES = [0,15,20,30,60,120,180];
 const ROUND_VALUES = [3,5,10];
@@ -154,9 +154,11 @@ class ChallengeController {
         this.game.avoidPoint=start.pos;
       }
       const selectionPayload=selection.type==='playlist'
-        ? ['p',String(selection.id||'playlist'),String(selection.name||'Playlist').slice(0,48),selection.zoneIds.map(id=>ZONE_IDS.indexOf(id))]
-        : ['z',ZONE_IDS.indexOf(selection.zoneId)];
-      const payload={v:2,s:selectionPayload,m:MODE_IDS.indexOf(mode),t:timerSeconds,n:roundCount,r:rounds.map(x=>[ZONE_IDS.indexOf(x.zoneId),x.pano,x.heading])};
+        ? ['p',String(selection.id||'playlist'),String(selection.name||'Playlist').slice(0,48),selection.zoneIds.slice()]
+        : ['z',selection.zoneId];
+      // V3 stores stable textual zone IDs instead of indexes. This keeps new
+      // Challenges valid when the geographic catalogue grows in later releases.
+      const payload={v:3,s:selectionPayload,m:MODE_IDS.indexOf(mode),t:timerSeconds,n:roundCount,r:rounds.map(x=>[x.zoneId,x.pano,x.heading])};
       const tokenValue=SHARE_PREFIX+bytesToBase64Url(JSON.stringify(payload));
       const descriptor=this.decode(tokenValue);
       this.generated=descriptor;
@@ -183,7 +185,7 @@ class ChallengeController {
     if (!mode || !TIMER_VALUES.includes(timerSeconds) || !ROUND_VALUES.includes(roundCount)) throw new Error('Réglages du challenge invalides.');
 
     if (data?.v===1) {
-      const zoneId=ZONE_IDS[Number(data.z)];
+      const zoneId=LEGACY_ZONE_IDS[Number(data.z)];
       if (!zoneId || !this.api.ZONES[zoneId]) throw new Error('Map du challenge inconnue.');
       if (!Array.isArray(data.r) || data.r.length!==roundCount) throw new Error('Nombre de manches incohérent.');
       const rounds=data.r.map(item=>({zoneId,pano:String(item?.[0]||''),heading:Number(item?.[1])}));
@@ -192,20 +194,40 @@ class ChallengeController {
       return {code,id:fingerprint(code),selection,zoneId,mode,timerSeconds,roundCount,rounds};
     }
 
+    if (data?.v===3) {
+      if (!Array.isArray(data.s) || !Array.isArray(data.r) || data.r.length!==roundCount) throw new Error('Données du challenge incomplètes.');
+      let selection;
+      if (data.s[0]==='z') {
+        const zoneId=String(data.s[1]||'');
+        if (!zoneId || !this.api.ZONES[zoneId]) throw new Error('Map du challenge inconnue.');
+        selection={type:'zone',zoneId,name:this.api.ZONES[zoneId].name};
+      } else if (data.s[0]==='p') {
+        const zoneIds=Array.from(new Set((Array.isArray(data.s[3])?data.s[3]:[]).map(id=>String(id||'')).filter(id=>!!this.api.ZONES[id])));
+        if (zoneIds.length<2) throw new Error('Playlist du challenge invalide.');
+        selection={type:'playlist',id:String(data.s[1]||'challenge-playlist').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,40)||'challenge-playlist',name:String(data.s[2]||'Playlist').trim().slice(0,48)||'Playlist',zoneIds};
+      } else throw new Error('Sélection du challenge inconnue.');
+      const rounds=data.r.map(item=>({zoneId:String(item?.[0]||''),pano:String(item?.[1]||''),heading:Number(item?.[2])}));
+      if (rounds.some(x=>!x.zoneId || !this.api.ZONES[x.zoneId] || !x.pano || !Number.isFinite(x.heading))) throw new Error('Panoramas du challenge invalides.');
+      if (selection.type==='zone' && rounds.some(x=>x.zoneId!==selection.zoneId)) throw new Error('Maps du challenge incohérentes.');
+      if (selection.type==='playlist' && rounds.some(x=>!selection.zoneIds.includes(x.zoneId))) throw new Error('Une manche ne fait pas partie de la playlist annoncée.');
+      const zoneId=rounds[0].zoneId;
+      return {code,id:fingerprint(code),selection,zoneId,mode,timerSeconds,roundCount,rounds};
+    }
+
     if (data?.v!==2) throw new Error('Version de challenge non prise en charge.');
     if (!Array.isArray(data.s) || !Array.isArray(data.r) || data.r.length!==roundCount) throw new Error('Données du challenge incomplètes.');
     let selection;
     if (data.s[0]==='z') {
-      const zoneId=ZONE_IDS[Number(data.s[1])];
+      const zoneId=LEGACY_ZONE_IDS[Number(data.s[1])];
       if (!zoneId || !this.api.ZONES[zoneId]) throw new Error('Map du challenge inconnue.');
       selection={type:'zone',zoneId,name:this.api.ZONES[zoneId].name};
     } else if (data.s[0]==='p') {
-      const zoneIds=Array.from(new Set((Array.isArray(data.s[3])?data.s[3]:[]).map(index=>ZONE_IDS[Number(index)]).filter(id=>!!this.api.ZONES[id])));
+      const zoneIds=Array.from(new Set((Array.isArray(data.s[3])?data.s[3]:[]).map(index=>LEGACY_ZONE_IDS[Number(index)]).filter(id=>!!this.api.ZONES[id])));
       if (zoneIds.length<2) throw new Error('Playlist du challenge invalide.');
       selection={type:'playlist',id:String(data.s[1]||'challenge-playlist').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,40)||'challenge-playlist',name:String(data.s[2]||'Playlist').trim().slice(0,48)||'Playlist',zoneIds};
     } else throw new Error('Sélection du challenge inconnue.');
 
-    const rounds=data.r.map(item=>({zoneId:ZONE_IDS[Number(item?.[0])],pano:String(item?.[1]||''),heading:Number(item?.[2])}));
+    const rounds=data.r.map(item=>({zoneId:LEGACY_ZONE_IDS[Number(item?.[0])],pano:String(item?.[1]||''),heading:Number(item?.[2])}));
     if (rounds.some(x=>!x.zoneId || !this.api.ZONES[x.zoneId] || !x.pano || !Number.isFinite(x.heading))) throw new Error('Panoramas du challenge invalides.');
     if (selection.type==='zone' && rounds.some(x=>x.zoneId!==selection.zoneId)) throw new Error('Maps du challenge incohérentes.');
     if (selection.type==='playlist' && rounds.some(x=>!selection.zoneIds.includes(x.zoneId))) throw new Error('Une manche ne fait pas partie de la playlist annoncée.');
