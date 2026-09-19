@@ -97,219 +97,59 @@
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Nunito+Sans:wght@500;700;800;900&family=Oxanium:wght@500;600;700&family=Permanent+Marker&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito+Sans:wght@500;700;800;900&family=Oxanium:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="themes.css">
-<link rel="stylesheet" href="v6-ui.css">
 </head>
 <body data-theme="arcade">
-<main id="startScreen" class="screen v6StartScreen">
-  <header class="v6SiteHeader">
-    <a class="v6Brand" href="#v6Home" data-v6-scroll="v6Home" aria-label="LostPin - Accueil">
-      <img data-brand-mark src="assets/lostpin-arcade-mark.svg" alt="">
-      <span class="v6BrandWords"><strong>Lost<span>Pin</span></strong><small id="brandTagline">EXPLORE. DEVINE. PROGRESSE.</small></span>
-    </a>
-    <nav class="v6MainNav" aria-label="Navigation principale">
-      <button class="active" type="button" data-v6-scroll="v6Home">Accueil</button>
-      <button type="button" data-v6-scroll="v6Play">Jouer</button>
-      <button type="button" data-v6-scroll="v6Collections">Collections</button>
-      <button id="v6NavMultiplayer" type="button">Multijoueur</button>
-      <button id="v6NavChallenges" type="button">D&eacute;fis</button>
-      <button id="v6NavStats" type="button">Classements</button>
-      <button id="v6NavProfile" type="button">Profil</button>
-    </nav>
-    <div class="v6HeaderActions">
-      <button id="v6SearchNav" class="v6SearchButton" type="button" title="Rechercher un terrain" aria-label="Rechercher un terrain"><span aria-hidden="true">&#128269;</span><span>Rechercher</span></button>
-      <span class="v6LanguagePill">&#127467;&#127479; <b>FR</b></span>
-      <div id="apiStatus" class="statusPill">Google Maps...</div>
-      <button id="musicStartButton" class="v6IconButton" title="Musique chill" aria-label="Musique chill"><span class="lpIcon" data-lp-icon="music"></span></button>
-      <button id="helpButton" class="v6IconButton" title="Aide / configuration" aria-label="Aide / configuration"><span class="lpIcon" data-lp-icon="help"></span></button>
+<main id="startScreen" class="screen">
+  <section class="hero">
+    <div class="topline"><div><div class="eyebrow">LostPin &middot; Google Street View</div><div class="brandLockup"><span class="brandSymbol" aria-hidden="true"><img data-brand-mark src="assets/lostpin-arcade-mark.svg" alt=""></span><div class="brandText"><h1 class="brandTitle"><span class="brandLost">Lost</span><span class="brandPinText">Pin</span></h1><p id="brandTagline" class="brandTagline">EXPLORE. GUESS. TOGETHER.</p></div></div><p class="subtitle">Choisis ton terrain, observe les rues et retrouve ton point de départ. Joue en solo, en <strong>No Move</strong> ou défie tes amis en multijoueur.</p></div><div id="apiStatus" class="statusPill">Vérification de Google Maps...</div></div>
+    <div class="sectionTitle">Choisir un terrain</div>
+    <div class="zoneCatalogHint"><span>Catalogue hiérarchique : <b>catégorie → continent → pays → map</b>.</span><span>La recherche est globale : ville, pays, région, département ou alias.</span></div>
+    <div class="zoneCatalogSearch" role="search">
+      <span aria-hidden="true">⌕</span>
+      <input id="zoneSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Rechercher une ville, un pays, une région…" aria-label="Rechercher un terrain">
+      <button id="zoneSearchClear" class="zoneSearchClear hidden" type="button" aria-label="Effacer la recherche">×</button>
     </div>
-  </header>
-
-  <div class="v6Page">
-    <section id="v6Home" class="v6HeroSection">
-      <div class="v6HeroBackdrop" aria-hidden="true"></div>
-      <div class="v6HeroContent">
-        <div class="v6Kicker">OBSERVE &middot; D&Eacute;DUIS &middot; EXPLORE</div>
-        <h1>LE MONDE EST<br>PLEIN <em>D'INDICES.</em></h1>
-        <p>Explore des lieux r&eacute;els, observe, devine et retrouve ta position. Seul ou avec tes amis, de Paris aux confins du monde.</p>
-        <div class="v6HeroActions">
-          <button id="startButton" class="primary v6HeroPrimary" disabled><span class="v6PlayTriangle" aria-hidden="true"></span><span>Chargement de l'API...</span></button>
-          <button class="secondary v6HeroSecondary" type="button" data-v6-scroll="v6Collections">Voir les collections <span aria-hidden="true">&rarr;</span></button>
-        </div>
+    <div class="zoneCatalogBar" id="zoneCatalogBar" aria-label="Catégories de terrains">
+      <button class="zoneFilter selected" type="button" data-zone-filter="paris">Paris</button>
+      <button class="zoneFilter" type="button" data-zone-filter="city">Villes</button>
+      <button class="zoneFilter" type="button" data-zone-filter="country">Pays</button>
+      <button class="zoneFilter" type="button" data-zone-filter="continent">Continents</button>
+      <button class="zoneFilter" type="button" data-zone-filter="world">Monde</button>
+      <button class="zoneFilter" type="button" data-zone-filter="all">Tout</button>
+    </div>
+    <div id="zoneBreadcrumbs" class="zoneBreadcrumbs" aria-live="polite"></div>
+    <div id="zoneHierarchy" class="zoneHierarchy"></div>
+    <div class="mapGrid" id="zoneGrid"></div>
+    <div id="zoneEmpty" class="zoneEmpty hidden">Aucun terrain ne correspond à cette sélection.</div>
+    <div id="selectionBanner" class="selectionBanner"><span id="selectionType">MAP</span><div><b id="selectionName">Paris</b><small id="selectionDetail">5 manches sur le même terrain</small></div><button id="playlistButton" class="secondary" type="button">♫ Playlists</button></div>
+    <div class="sectionTitle">Type de partie</div>
+    <div class="playTypeGrid" id="playTypeGrid">
+      <button class="playTypeCard selected" type="button" data-play-type="guess"><span class="playTypeIcon" aria-hidden="true">⌖</span><strong>Géolocalisation</strong><small>Observe le panorama puis retrouve ton point de départ sur la carte.</small></button>
+      <button class="playTypeCard" type="button" data-play-type="exploration"><span class="playTypeIcon" aria-hidden="true">➜</span><strong>Exploration</strong><small>3 missions : rejoins physiquement une cible dans Street View, le plus vite et directement possible.</small></button>
+    </div>
+    <div id="movementModeSection">
+      <div class="sectionTitle">Mode de déplacement</div>
+      <div class="modeGrid" id="modeGrid">
+        <button class="modeCard selected" data-mode="explore"><span class="modeTitle"><span class="lpIcon" data-lp-icon="explore"></span><strong>Move</strong></span><small>Rotation, zoom et déplacement libre dans Street View.</small></button>
+        <button class="modeCard" data-mode="nomove"><span class="modeTitle"><span class="lpIcon" data-lp-icon="nomove"></span><strong>No Move</strong></span><small>Déplacement interdit. Rotation et zoom restent autorisés.</small></button>
+        <button class="modeCard" data-mode="nmpz"><span class="modeTitle"><span class="lpIcon" data-lp-icon="nomove"></span><strong>No Move + No Pan/Zoom</strong></span><small>Vue totalement figée : aucun déplacement, aucune rotation et aucun zoom.</small></button>
       </div>
-      <div class="v6HeroScribble" aria-hidden="true">M&ecirc;me endroit.<br><b>Des milliers d'histoires.</b></div>
-      <div class="v6HeroBottom" aria-label="Raccourcis LostPin">
-        <button type="button" data-v6-scroll="v6Catalog"><span class="v6HeroFeatureIcon">&#127758;</span><span><b>150+ terrains</b><small>&agrave; d&eacute;couvrir</small></span></button>
-        <button type="button" data-v6-scroll="v6Collections"><span class="v6HeroFeatureIcon">&#128506;</span><span><b>Collections</b><small>uniques et th&eacute;matiques</small></span></button>
-        <button id="v6HeroChallenge" type="button"><span class="v6HeroFeatureIcon">&#9876;</span><span><b>D&eacute;fi entre amis</b><small>m&ecirc;mes lieux, m&ecirc;mes r&egrave;gles</small></span></button>
-        <button id="v6HeroProfile" type="button"><span class="v6HeroFeatureIcon">&#127942;</span><span><b>Progresse</b><small>records et statistiques</small></span></button>
+    </div>
+    <div id="gameVariantSection">
+      <div class="sectionTitle">Format de partie</div>
+      <div class="variantGrid" id="variantGrid">
+        <button class="variantCard selected" type="button" data-variant="classic"><span class="variantIcon" aria-hidden="true">◎</span><strong>Classique</strong><small>Le barème LostPin habituel, sans limite de temps en solo.</small></button>
+        <button class="variantCard" type="button" data-variant="blitz"><span class="variantIcon" aria-hidden="true">⚡</span><strong>Blitz</strong><small>15, 20 ou 30 secondes pour placer ta réponse. Le score classique reste utilisé.</small></button>
+        <button class="variantCard" type="button" data-variant="precision"><span class="variantIcon" aria-hidden="true">🎯</span><strong>Précision</strong><small>Barème linéaire : chaque mètre compte, sans décroissance exponentielle.</small></button>
       </div>
-    </section>
-
-    <section id="v6Play" class="v6Section v6ModesSection">
-      <div class="v6SectionHeading compact">
-        <div><span class="v6SectionBar"></span><div><h2>Choisis ton mode de jeu</h2></div></div>
-        <button type="button" class="v6TextButton" data-v6-scroll="v6Setup">Voir tous les modes &rarr;</button>
-      </div>
-      <div class="v6ModeShowcase">
-        <button class="v6ModeTile featured classic" type="button" data-v6-preset="classic">
-          <span class="v6ModeIcon">&#128205;</span><strong>Classique</strong><small>Explore librement. Une nouvelle position &agrave; chaque manche.</small><b>JOUER</b>
-        </button>
-        <button class="v6ModeTile blitz" id="v6HeroBlitz" type="button" data-v6-preset="blitz">
-          <span class="v6ModeIcon">&#9889;</span><strong>Blitz</strong><small>15 &agrave; 30 secondes. Observe vite et tranche encore plus vite.</small><b>JOUER</b>
-        </button>
-        <button class="v6ModeTile multiplayer" id="v6ModeMultiplayer" type="button">
-          <span class="v6ModeIcon">&#128101;</span><strong>Multijoueur</strong><small>Affronte tes amis ou des joueurs du monde entier en temps r&eacute;el.</small><b>JOUER</b>
-        </button>
-        <button class="v6ModeTile nomove" type="button" data-v6-preset="nomove">
-          <span class="v6ModeIcon">&#128683;</span><strong>Mode No Move</strong><small>Pas de d&eacute;placement. Seulement ton sens de l'observation.</small><b>JOUER</b>
-        </button>
-        <button class="v6ModeTile challenge" id="v6ModeChallenge" type="button">
-          <span class="v6ModeIcon">&#9998;</span><strong>Cr&eacute;er un d&eacute;fi</strong><small>Joue les m&ecirc;mes lieux qu'un ami et comparez vos scores.</small><b>CR&Eacute;ER</b>
-        </button>
-      </div>
-    </section>
-
-    <section id="v6Collections" class="v6Section v6CollectionsSection">
-      <div class="v6SectionHeading compact">
-        <div><span class="v6SectionBar cyan"></span><div><small>DES LIEUX, DES AMBIANCES, DES PI&Egrave;GES</small><h2>Collections en vedette</h2></div></div>
-        <button type="button" class="v6TextButton" data-v6-scroll="v6Catalog">Voir toutes les collections &rarr;</button>
-      </div>
-      <div class="v6FeaturedGrid">
-        <button class="v6CollectionCard paris" type="button" data-v6-zone="paris"><span class="v6CardBadge">POPULAIRE</span><span class="v6CollectionImage"></span><strong>Paris</strong><small>La capitale sous toutes ses facettes.</small><b>Explorer &rarr;</b></button>
-        <button class="v6CollectionCard paris13" type="button" data-v6-zone="paris13"><span class="v6CardBadge cyan">LOCAL</span><span class="v6CollectionImage"></span><strong>Paris 13e</strong><small>Quartiers, fresques et rues famili&egrave;res.</small><b>Explorer &rarr;</b></button>
-        <button class="v6CollectionCard parisgroup" type="button" data-v6-zone="parisGroup"><span class="v6CollectionImage"></span><strong>Paris arrondissements</strong><small>5e, 6e, 7e et 13e.</small><b>Explorer &rarr;</b></button>
-        <button class="v6CollectionCard france" type="button" data-v6-zone="france"><span class="v6CollectionImage"></span><strong>France</strong><small>Des Alpes &agrave; l'Atlantique.</small><b>Explorer &rarr;</b></button>
-        <button class="v6CollectionCard europe" type="button" data-v6-zone="europe"><span class="v6CollectionImage"></span><strong>Europe</strong><small>Capitales et paysages embl&eacute;matiques.</small><b>Explorer &rarr;</b></button>
-        <button class="v6CollectionCard world" type="button" data-v6-zone="world"><span class="v6CollectionImage"></span><strong>Monde</strong><small>Explore la plan&egrave;te.</small><b>Explorer &rarr;</b></button>
-      </div>
-    </section>
-
-    <section class="v6Section v6CommunitySection">
-      <article class="v6CommunityCard multiplayer">
-        <div class="v6CommunityVisual" aria-hidden="true"></div>
-        <div class="v6CommunityBody">
-          <span class="v6CommunityEyebrow">JOUE AVEC TES AMIS</span>
-          <h3>Plus fun &agrave; plusieurs.</h3>
-          <div class="v6FriendDots"><i>W</i><i>A</i><i>M</i><i>+</i></div>
-          <ul><li>Cr&eacute;e une partie priv&eacute;e</li><li>Partage le code de salle</li><li>Affrontez-vous en temps r&eacute;el</li></ul>
-          <button id="v6CommunityMulti" class="primary" type="button">Lancer une partie</button>
-        </div>
-      </article>
-      <article class="v6CommunityCard progress">
-        <div class="v6CommunityBody">
-          <span class="v6CommunityEyebrow">CLASSEMENTS</span>
-          <h3>Grimpe dans le classement.</h3>
-          <div class="v6MiniRanking" aria-hidden="true"><span><b>1</b><i></i><strong>24 580 pts</strong></span><span><b>2</b><i></i><strong>23 410 pts</strong></span><span><b>3</b><i></i><strong>22 915 pts</strong></span></div>
-          <p id="bestLabel" class="v6BestLabel">Retrouve ici tes meilleurs scores et tes statistiques.</p>
-          <button id="v6CommunityStats" class="secondary" type="button">Voir mes statistiques</button>
-        </div>
-      </article>
-      <article class="v6CommunityCard challenge">
-        <div class="v6ChallengeVisual" aria-hidden="true"></div>
-        <div class="v6CommunityBody">
-          <span class="v6CommunityEyebrow">D&Eacute;FI ENTRE AMIS</span>
-          <h3>Paris en d&eacute;tails</h3>
-          <p>Les m&ecirc;mes lieux pour tout le monde. Partage le code et voyez qui reconna&icirc;t le mieux la ville.</p>
-          <button id="v6CommunityChallenge" class="primary" type="button">Cr&eacute;er un d&eacute;fi</button>
-        </div>
-      </article>
-    </section>
-
-    <section class="v6WorldStrip" aria-label="Communaut&eacute; LostPin">
-      <div class="v6WorldStripCopy"><strong>D&Eacute;J&Agrave;<br><em>+ 150 TERRAINS</em></strong><span>&agrave; explorer dans LostPin.</span></div>
-      <div class="v6WorldMap" aria-hidden="true"><i style="--x:18%;--y:54%"></i><i style="--x:43%;--y:35%"></i><i style="--x:58%;--y:58%"></i><i style="--x:73%;--y:31%"></i><i style="--x:86%;--y:62%"></i></div>
-      <div class="v6WorldQuote"><q>Le monde est un terrain de jeu.</q><small>LostPin</small></div>
-    </section>
-
-    <section id="v6Catalog" class="v6Section v6CatalogSection">
-      <div class="v6SectionHeading catalog">
-        <div><span class="v6SectionBar"></span><div><small>150+ TERRAINS</small><h2>Choisis ton terrain</h2></div></div>
-        <span class="v6CatalogHint">Ville, pays, continent, r&eacute;gion ou alias.</span>
-      </div>
-      <div class="zoneCatalogSearch" role="search">
-        <span aria-hidden="true">&#128269;</span>
-        <input id="zoneSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Rechercher une ville, un pays, une r&eacute;gion..." aria-label="Rechercher un terrain">
-        <button id="zoneSearchClear" class="zoneSearchClear hidden" type="button" aria-label="Effacer la recherche">&times;</button>
-      </div>
-      <div class="zoneCatalogBar" id="zoneCatalogBar" aria-label="Cat&eacute;gories de terrains">
-        <button class="zoneFilter selected" type="button" data-zone-filter="paris">Paris</button>
-        <button class="zoneFilter" type="button" data-zone-filter="city">Villes</button>
-        <button class="zoneFilter" type="button" data-zone-filter="country">Pays</button>
-        <button class="zoneFilter" type="button" data-zone-filter="continent">Continents</button>
-        <button class="zoneFilter" type="button" data-zone-filter="world">Monde</button>
-        <button class="zoneFilter" type="button" data-zone-filter="all">Tout</button>
-      </div>
-      <div class="v6CatalogFrame">
-        <div id="zoneBreadcrumbs" class="zoneBreadcrumbs" aria-live="polite"></div>
-        <div id="zoneHierarchy" class="zoneHierarchy"></div>
-        <div class="mapGrid" id="zoneGrid"></div>
-        <div id="zoneEmpty" class="zoneEmpty hidden">Aucun terrain ne correspond &agrave; cette s&eacute;lection.</div>
-      </div>
-    </section>
-
-    <section id="v6Setup" class="v6Section v6SetupSection">
-      <div class="v6SectionHeading">
-        <div><span class="v6SectionBar cyan"></span><div><small>PR&Ecirc;T &Agrave; PARTIR ?</small><h2>Configure ta partie</h2></div></div>
-      </div>
-      <div class="v6SetupGrid">
-        <div class="v6SetupMain">
-          <div id="selectionBanner" class="selectionBanner"><span id="selectionType">MAP</span><div><b id="selectionName">Paris</b><small id="selectionDetail">5 manches sur le m&ecirc;me terrain</small></div><button id="playlistButton" class="secondary" type="button">Collections / Playlists</button></div>
-
-          <div class="v6ConfigGroup">
-            <div class="sectionTitle">Type de partie</div>
-            <div class="playTypeGrid" id="playTypeGrid">
-              <button class="playTypeCard selected" type="button" data-play-type="guess"><span class="playTypeIcon" aria-hidden="true">&#8982;</span><strong>G&eacute;olocalisation</strong><small>Observe le panorama puis retrouve ton point de d&eacute;part sur la carte.</small></button>
-              <button class="playTypeCard" type="button" data-play-type="exploration"><span class="playTypeIcon" aria-hidden="true">&#10148;</span><strong>Exploration</strong><small>3 missions : rejoins physiquement une cible dans Street View.</small></button>
-            </div>
-          </div>
-
-          <div id="movementModeSection" class="v6ConfigGroup">
-            <div class="sectionTitle">Mode de d&eacute;placement</div>
-            <div class="modeGrid" id="modeGrid">
-              <button class="modeCard selected" data-mode="explore"><span class="modeTitle"><span class="lpIcon" data-lp-icon="explore"></span><strong>Move</strong></span><small>Rotation, zoom et d&eacute;placement libre.</small></button>
-              <button class="modeCard" data-mode="nomove"><span class="modeTitle"><span class="lpIcon" data-lp-icon="nomove"></span><strong>No Move</strong></span><small>D&eacute;placement interdit. Rotation et zoom autoris&eacute;s.</small></button>
-              <button class="modeCard" data-mode="nmpz"><span class="modeTitle"><span class="lpIcon" data-lp-icon="nomove"></span><strong>NMPZ</strong></span><small>Vue totalement fig&eacute;e : aucun mouvement, pan ou zoom.</small></button>
-            </div>
-          </div>
-
-          <div id="gameVariantSection" class="v6ConfigGroup">
-            <div class="sectionTitle">Format de partie</div>
-            <div class="variantGrid" id="variantGrid">
-              <button class="variantCard selected" type="button" data-variant="classic"><span class="variantIcon" aria-hidden="true">&#9678;</span><strong>Classique</strong><small>Le bar&egrave;me LostPin historique.</small></button>
-              <button class="variantCard" type="button" data-variant="blitz"><span class="variantIcon" aria-hidden="true">&#9889;</span><strong>Blitz</strong><small>15, 20 ou 30 secondes pour r&eacute;pondre.</small></button>
-              <button class="variantCard" type="button" data-variant="precision"><span class="variantIcon" aria-hidden="true">&#127919;</span><strong>Pr&eacute;cision</strong><small>Chaque m&egrave;tre compte directement.</small></button>
-            </div>
-            <div id="blitzOptions" class="blitzOptions hidden"><label for="blitzSeconds">Chrono Blitz</label><select id="blitzSeconds"><option value="15">15 secondes</option><option value="20" selected>20 secondes</option><option value="30">30 secondes</option></select></div>
-          </div>
-        </div>
-        <aside class="v6SetupAside">
-          <span class="v6CommunityEyebrow">TA PARTIE</span><h3>Tout est pr&ecirc;t.</h3><p>V&eacute;rifie ton terrain et tes r&egrave;gles, puis lance la partie.</p>
-          <button id="v6SetupLaunch" class="primary v6LaunchMirror" type="button">Jouer maintenant</button>
-          <div class="v6SetupShortcuts">
-            <button id="multiplayerButton" class="secondary btnWithIcon" type="button"><span class="lpIcon" data-lp-icon="multiplayer"></span><span>Multijoueur</span></button>
-            <button id="challengeButton" class="secondary btnWithIcon" type="button"><span aria-hidden="true">&#8769;</span><span>D&eacute;fis</span></button>
-            <button id="statsButton" class="secondary btnWithIcon" type="button"><span aria-hidden="true">&#9645;</span><span>Statistiques</span></button>
-          </div>
-          <div class="v6SetupSettings">
-            <button id="compassStartButton" class="secondary compassPickerButton btnWithIcon" type="button"><span class="lpIcon" data-lp-icon="compass"></span><span id="compassStartLabel">Boussole : Bandeau</span></button>
-            <button id="musicSettingsButton" class="secondary btnWithIcon" type="button"><span class="lpIcon" data-lp-icon="audio"></span><span>Audio</span></button>
-            <button id="themeStartButton" class="secondary themePickerButton" type="button"><span class="lpIcon" data-lp-icon="palette"></span><span id="themeStartLabel">LostPin V6</span></button>
-          </div>
-          <p id="soloRulesText" class="fineprint"><b>5 manches &middot; 25 000 points.</b> Les panoramas proviennent de Google Street View.</p>
-        </aside>
-      </div>
-    </section>
-
-    <footer class="v6Footer">
-      <div class="v6Brand footer"><img data-brand-mark src="assets/lostpin-arcade-mark.svg" alt=""><span class="v6BrandWords"><strong>Lost<span>Pin</span></strong><small>EXPLORE. DEVINE. PROGRESSE.</small></span></div>
-      <p>Le monde est plus proche qu'il n'y para&icirc;t.</p>
-      <button class="v6TextButton" type="button" data-v6-scroll="v6Home">Retour en haut &uarr;</button>
-    </footer>
-  </div>
+      <div id="blitzOptions" class="blitzOptions hidden"><label for="blitzSeconds">Chrono Blitz</label><select id="blitzSeconds"><option value="15">15 secondes</option><option value="20" selected>20 secondes</option><option value="30">30 secondes</option></select></div>
+    </div>
+    <div class="startRow"><button id="startButton" class="primary" disabled>Chargement de l'API...</button><button id="multiplayerButton" class="secondary btnWithIcon"><span class="lpIcon" data-lp-icon="multiplayer"></span><span>Multijoueur</span></button><button id="challengeButton" class="secondary btnWithIcon"><span aria-hidden="true">⌁</span><span>Challenges</span></button><button id="statsButton" class="secondary btnWithIcon"><span aria-hidden="true">▥</span><span>Statistiques</span></button><button id="themeStartButton" class="secondary themePickerButton"><span class="lpIcon" data-lp-icon="palette"></span><span id="themeStartLabel">Identité : Arcade Night</span></button><button id="compassStartButton" class="secondary compassPickerButton btnWithIcon"><span class="lpIcon" data-lp-icon="compass"></span><span id="compassStartLabel">Boussole : Bandeau</span></button><button id="musicStartButton" class="icon" title="Musique chill" aria-label="Musique chill"><span class="lpIcon" data-lp-icon="music"></span></button><button id="musicSettingsButton" class="secondary btnWithIcon"><span class="lpIcon" data-lp-icon="audio"></span><span>Audio</span></button><button id="helpButton" class="secondary btnWithIcon"><span class="lpIcon" data-lp-icon="help"></span><span>Aide / configuration</span></button><span id="bestLabel" class="muted"></span></div>
+    <p id="soloRulesText" class="fineprint"><b>5 manches &middot; 25 000 points.</b> Les panoramas proviennent de Google Street View. Le jeu n'est affilié ni à Google ni à GeoGuessr. Ta clé API reste uniquement dans le dossier local sur ton PC.</p>
+  </section>
 </main>
-
 
 <main id="gameScreen" class="screen hidden">
   <div id="pano"></div><div class="panoShade"></div><div id="panoInteractionLock" class="hidden" aria-hidden="true" title="Vue verrouillée : No Move + No Pan/Zoom"></div>
@@ -395,7 +235,7 @@
 
 <div id="statsModal" class="modal hidden"><section class="modalCard statsModalCard"><div class="modalHead"><div><div class="eyebrow">PROGRESSION LOCALE</div><h2>Statistiques</h2><p class="statsIntro">Tes parties solo, Explorations et Challenges sont enregistrées uniquement dans ce navigateur.</p></div><button id="closeStats" class="icon" aria-label="Fermer les statistiques">&times;</button></div><div id="statsOverview" class="statsOverview"></div><div class="statsSectionHead"><h3>Précision récente</h3><span>Score moyen par manche</span></div><div id="statsRecentAccuracy" class="statsAccuracyGrid"></div><div class="statsSectionHead"><h3>Records</h3><span>5 manches en géolocalisation · 3 missions en Exploration</span></div><div id="statsRecords" class="statsRecords"></div><div class="statsSectionHead"><h3>Badges</h3><span>Des objectifs liés à tes vraies performances</span></div><div id="statsBadges" class="statsBadges"></div><div class="statsSectionHead"><h3>Parties récentes</h3><span>20 dernières parties enregistrées</span></div><div id="statsHistory" class="statsHistory"></div><div class="statsFooter"><span id="statsMigrationNote" class="muted"></span><button id="resetStats" class="secondary">Réinitialiser les statistiques</button></div></section></div>
 
-<div id="helpModal" class="modal hidden"><section class="modalCard"><div class="modalHead"><h2>LostPin</h2><button id="closeHelp" class="icon">&times;</button></div><h3>Blitz & Précision</h3><p><strong>Blitz</strong> impose 15, 20 ou 30 secondes par manche et conserve le barème classique. <strong>Précision</strong> utilise un barème linéaire : plus tu t’éloignes, plus chaque mètre coûte directement des points. En multijoueur Précision, le classement de la manche est déterminé d’abord par la distance.</p><h3>Exploration</h3><p>La V5.4 ajoute un vrai type de partie Exploration : LostPin place une cible Street View dans la map choisie et te fait démarrer à proximité. Rejoins physiquement la cible en te déplaçant dans Street View. La carte affiche <strong>D</strong> pour le départ et <strong>C</strong> pour la cible. La manche se valide automatiquement à moins de 40 m.</p><p>Chaque partie comporte 3 missions. Le score tient compte du chrono, du nombre de déplacements et des détours. Les boutons Avancer / Reculer / Demi-tour / Départ sont disponibles dans ce mode, en plus des contrôles natifs Street View. Raccourcis : <code>&larr;</code>/<code>&rarr;</code> pour tourner, <code>&uarr;</code> pour avancer, <code>&darr;</code> pour reculer, <code>Home</code> pour revenir au départ et <code>M</code> pour agrandir la carte.</p><h3>Move</h3><p>Le mode historique avec déplacement libre s’appelle désormais <strong>Move</strong> : tu explores Street View puis tu places ta réponse sur la carte.</p><h3>No Move</h3><p>Tu peux regarder autour de toi et zoomer, mais pas te déplacer. Les liens Street View sont masqués et le jeu remet automatiquement le panorama de départ si une navigation devait quand même se produire.</p><h3>No Move + No Pan/Zoom</h3><p>En solo comme en multijoueur en ligne, ce mode verrouille entièrement le panorama de départ : aucun déplacement, aucune rotation et aucun zoom. Seule la carte de réponse reste interactive.</p><h3>Clé Google Maps</h3><p>La clé est lue depuis <code>config.js</code>. <code>start.bat</code> te la demande automatiquement au premier lancement. Les référents conseillés sont <code>http://localhost:8080/*</code> et <code>http://127.0.0.1:8080/*</code>, avec uniquement <code>Maps JavaScript API</code> autorisée.</p><h3>Tirage des lieux</h3><p>Le jeu cherche uniquement des panoramas issus des collections Google Street View. En Move comme en Exploration, il privilégie un départ disposant de liens de navigation. Les derniers départs sont conservés localement pour réduire les répétitions.</p><h3>Parties parfaites</h3><p>En géolocalisation, un score de <strong>25 000</strong> est traité comme une partie parfaite. Exploration utilise un classement séparé sur 15 000 points afin de ne pas mélanger les deux gameplays.</p><h3>Périmètre Bagneux-la-Fosse</h3><p>La map Bagneux-la-Fosse est volontairement centrée sur le bourg et ses proches alentours (environ 1,5 km autour du centre), et non sur toute la superficie administrative de la commune.</p><h3>Musique chill</h3><p>LostPin génère une ambiance chill directement avec Web Audio. Tu peux la couper avec le bouton <strong>♫</strong> ou régler son volume depuis <strong>Audio</strong>.</p><h3>Apparence V6</h3><p>LostPin utilise maintenant une identit&eacute; gaming unique : bleu nuit, rose LostPin et cyan, navigation de type site web, cartes de modes et collections, et HUD modernis&eacute;. Les anciens th&egrave;mes restent uniquement pour compatibilit&eacute; interne.</p><h3>HUD personnalisable</h3><p>Le bouton cadenas en haut à droite déverrouille temporairement la disposition. Le bloc Joueurs / Réactions, le timer et la boussole peuvent alors être déplacés ; au relâchement, ils s’aimantent à la zone d’ancrage la plus proche. Les positions sont mémorisées sur ce navigateur. LostPin évite les ancrages en double et recalcule la disposition lorsque la fenêtre change de taille. Le bouton ↺ rétablit la disposition par défaut.</p><h3>Sélecteur géographique</h3><p>Le catalogue est hiérarchique et contient désormais une large sélection de pays et de villes. Dans <strong>Villes</strong>, choisis d’abord un continent, puis un pays, puis la ville. Dans <strong>Pays</strong>, choisis le continent puis le pays. La recherche au-dessus du catalogue est globale : elle retrouve une map par son nom mais aussi par pays, continent, région, département ou alias. Les contours parisiens et la France conservent leurs règles dédiées. Les terrains continentaux et Monde tirent dans les zones Google Street View prises en charge par LostPin ; ils ne prétendent pas couvrir uniformément chaque territoire.</p><h3>Playlists</h3><p>Depuis l’accueil, <strong>Playlists</strong> permet de mélanger plusieurs maps dans une même partie. LostPin utilise un sac aléatoire : chaque map de la playlist est jouée une fois avant de recommencer une nouvelle boucle, ce qui limite les répétitions. Tu peux utiliser les playlists intégrées ou créer les tiennes ; elles restent stockées localement dans ce navigateur.</p><h3>Challenges</h3><p>Un challenge contient les panoramas exacts, leur ordre, le mode de déplacement, le format Classique / Blitz / Précision, le nombre de manches et le timer. Génère-le depuis <strong>Challenges</strong>, copie le code portable puis envoie-le à un ami. Le même code peut être rejoué plus tard sur une autre copie de LostPin. À la fin, LostPin génère aussi un code résultat <code>LPR1.…</code> partageable : il peut être collé dans Challenges pour comparer le score reçu à ton meilleur résultat local sur ce même challenge.</p><h3>Statistiques et progression</h3><p>L’écran <strong>Statistiques</strong> enregistre localement les parties solo, les Explorations et les Challenges : records de géolocalisation sur 5 manches séparés par format, records Exploration sur 3 missions, nombre de 5 000 et de 25 000, distance moyenne, précision récente, série de jours et badges. Les anciens meilleurs scores et compteurs de parties parfaites sont importés quand c’est possible, mais l’historique détaillé ne peut commencer qu’à partir de l’activation de ce suivi.</p><h3>Multijoueur</h3><p><strong>En ligne (bêta) :</strong> jusqu’à 6 joueurs jouent simultanément le même panorama. L’hôte choisit le format <strong>Classique</strong>, <strong>Blitz</strong> ou <strong>Précision</strong>, un timer de 15 à 180 secondes, 3, 5 ou 10 manches et le mode <strong>Move</strong>, <strong>No Move</strong> ou <strong>No Move + No Pan/Zoom</strong>. Blitz utilise 15, 20 ou 30 secondes. Tous les joueurs doivent être prêts avant le départ. Après la première validation, il reste au maximum 20 secondes. <strong>Classique :</strong> cumul des scores. <strong>Duel :</strong> exactement 2 joueurs commencent avec 6 000 PV ; la différence de score de chaque manche devient des dégâts et un K.O. termine la partie. <strong>Élimination :</strong> 3 à 6 joueurs ; le dernier de chaque manche est éliminé et peut continuer à observer en spectateur, jusqu’au dernier survivant. Les résultats affichent les positions, les scores, les PV ou l’état d’élimination, ainsi que le classement général.</p><h3>Limites parisiennes officielles</h3><p>Paris, le 5e, le 6e, le 7e et le 13e n’utilisent plus de polygones dessinés à la main. Les limites sont chargées depuis le service cartographique officiel de la Ville de Paris (CapGeo). Pour la map Paris, les entités marquées <code>B_BOIS = N</code> sont utilisées afin d’exclure les grands bois. Les données sont mises en cache localement pendant 30 jours.</p><div id="helpError" class="errorBox hidden"></div></section></div>
+<div id="helpModal" class="modal hidden"><section class="modalCard"><div class="modalHead"><h2>LostPin</h2><button id="closeHelp" class="icon">&times;</button></div><h3>Blitz & Précision</h3><p><strong>Blitz</strong> impose 15, 20 ou 30 secondes par manche et conserve le barème classique. <strong>Précision</strong> utilise un barème linéaire : plus tu t’éloignes, plus chaque mètre coûte directement des points. En multijoueur Précision, le classement de la manche est déterminé d’abord par la distance.</p><h3>Exploration</h3><p>La V5.4 ajoute un vrai type de partie Exploration : LostPin place une cible Street View dans la map choisie et te fait démarrer à proximité. Rejoins physiquement la cible en te déplaçant dans Street View. La carte affiche <strong>D</strong> pour le départ et <strong>C</strong> pour la cible. La manche se valide automatiquement à moins de 40 m.</p><p>Chaque partie comporte 3 missions. Le score tient compte du chrono, du nombre de déplacements et des détours. Les boutons Avancer / Reculer / Demi-tour / Départ sont disponibles dans ce mode, en plus des contrôles natifs Street View. Raccourcis : <code>&larr;</code>/<code>&rarr;</code> pour tourner, <code>&uarr;</code> pour avancer, <code>&darr;</code> pour reculer, <code>Home</code> pour revenir au départ et <code>M</code> pour agrandir la carte.</p><h3>Move</h3><p>Le mode historique avec déplacement libre s’appelle désormais <strong>Move</strong> : tu explores Street View puis tu places ta réponse sur la carte.</p><h3>No Move</h3><p>Tu peux regarder autour de toi et zoomer, mais pas te déplacer. Les liens Street View sont masqués et le jeu remet automatiquement le panorama de départ si une navigation devait quand même se produire.</p><h3>No Move + No Pan/Zoom</h3><p>En solo comme en multijoueur en ligne, ce mode verrouille entièrement le panorama de départ : aucun déplacement, aucune rotation et aucun zoom. Seule la carte de réponse reste interactive.</p><h3>Clé Google Maps</h3><p>La clé est lue depuis <code>config.js</code>. <code>start.bat</code> te la demande automatiquement au premier lancement. Les référents conseillés sont <code>http://localhost:8080/*</code> et <code>http://127.0.0.1:8080/*</code>, avec uniquement <code>Maps JavaScript API</code> autorisée.</p><h3>Tirage des lieux</h3><p>Le jeu cherche uniquement des panoramas issus des collections Google Street View. En Move comme en Exploration, il privilégie un départ disposant de liens de navigation. Les derniers départs sont conservés localement pour réduire les répétitions.</p><h3>Parties parfaites</h3><p>En géolocalisation, un score de <strong>25 000</strong> est traité comme une partie parfaite. Exploration utilise un classement séparé sur 15 000 points afin de ne pas mélanger les deux gameplays.</p><h3>Périmètre Bagneux-la-Fosse</h3><p>La map Bagneux-la-Fosse est volontairement centrée sur le bourg et ses proches alentours (environ 1,5 km autour du centre), et non sur toute la superficie administrative de la commune.</p><h3>Musique chill</h3><p>LostPin génère une ambiance chill directement avec Web Audio. Tu peux la couper avec le bouton <strong>♫</strong> ou régler son volume depuis <strong>Audio</strong>.</p><h3>Apparence</h3><p>LostPin propose deux identités visuelles complètes : <strong>Arcade Night</strong> et <strong>Midnight Explorer</strong>. Elles changent le logo, les polices, les icônes, les formes des composants, le HUD et l’ambiance générale. Le choix est accessible depuis l’accueil ou pendant une partie et reste mémorisé localement.</p><h3>HUD personnalisable</h3><p>Le bouton cadenas en haut à droite déverrouille temporairement la disposition. Le bloc Joueurs / Réactions, le timer et la boussole peuvent alors être déplacés ; au relâchement, ils s’aimantent à la zone d’ancrage la plus proche. Les positions sont mémorisées sur ce navigateur. LostPin évite les ancrages en double et recalcule la disposition lorsque la fenêtre change de taille. Le bouton ↺ rétablit la disposition par défaut.</p><h3>Sélecteur géographique</h3><p>Le catalogue est hiérarchique et contient désormais une large sélection de pays et de villes. Dans <strong>Villes</strong>, choisis d’abord un continent, puis un pays, puis la ville. Dans <strong>Pays</strong>, choisis le continent puis le pays. La recherche au-dessus du catalogue est globale : elle retrouve une map par son nom mais aussi par pays, continent, région, département ou alias. Les contours parisiens et la France conservent leurs règles dédiées. Les terrains continentaux et Monde tirent dans les zones Google Street View prises en charge par LostPin ; ils ne prétendent pas couvrir uniformément chaque territoire.</p><h3>Playlists</h3><p>Depuis l’accueil, <strong>Playlists</strong> permet de mélanger plusieurs maps dans une même partie. LostPin utilise un sac aléatoire : chaque map de la playlist est jouée une fois avant de recommencer une nouvelle boucle, ce qui limite les répétitions. Tu peux utiliser les playlists intégrées ou créer les tiennes ; elles restent stockées localement dans ce navigateur.</p><h3>Challenges</h3><p>Un challenge contient les panoramas exacts, leur ordre, le mode de déplacement, le format Classique / Blitz / Précision, le nombre de manches et le timer. Génère-le depuis <strong>Challenges</strong>, copie le code portable puis envoie-le à un ami. Le même code peut être rejoué plus tard sur une autre copie de LostPin. À la fin, LostPin génère aussi un code résultat <code>LPR1.…</code> partageable : il peut être collé dans Challenges pour comparer le score reçu à ton meilleur résultat local sur ce même challenge.</p><h3>Statistiques et progression</h3><p>L’écran <strong>Statistiques</strong> enregistre localement les parties solo, les Explorations et les Challenges : records de géolocalisation sur 5 manches séparés par format, records Exploration sur 3 missions, nombre de 5 000 et de 25 000, distance moyenne, précision récente, série de jours et badges. Les anciens meilleurs scores et compteurs de parties parfaites sont importés quand c’est possible, mais l’historique détaillé ne peut commencer qu’à partir de l’activation de ce suivi.</p><h3>Multijoueur</h3><p><strong>En ligne (bêta) :</strong> jusqu’à 6 joueurs jouent simultanément le même panorama. L’hôte choisit le format <strong>Classique</strong>, <strong>Blitz</strong> ou <strong>Précision</strong>, un timer de 15 à 180 secondes, 3, 5 ou 10 manches et le mode <strong>Move</strong>, <strong>No Move</strong> ou <strong>No Move + No Pan/Zoom</strong>. Blitz utilise 15, 20 ou 30 secondes. Tous les joueurs doivent être prêts avant le départ. Après la première validation, il reste au maximum 20 secondes. <strong>Classique :</strong> cumul des scores. <strong>Duel :</strong> exactement 2 joueurs commencent avec 6 000 PV ; la différence de score de chaque manche devient des dégâts et un K.O. termine la partie. <strong>Élimination :</strong> 3 à 6 joueurs ; le dernier de chaque manche est éliminé et peut continuer à observer en spectateur, jusqu’au dernier survivant. Les résultats affichent les positions, les scores, les PV ou l’état d’élimination, ainsi que le classement général.</p><h3>Limites parisiennes officielles</h3><p>Paris, le 5e, le 6e, le 7e et le 13e n’utilisent plus de polygones dessinés à la main. Les limites sont chargées depuis le service cartographique officiel de la Ville de Paris (CapGeo). Pour la map Paris, les entités marquées <code>B_BOIS = N</code> sont utilisées afin d’exclure les grands bois. Les données sont mises en cache localement pendant 30 jours.</p><div id="helpError" class="errorBox hidden"></div></section></div>
 <script src="config.js"></script>
 <script src="theme.js"></script>
 <script src="geography.js"></script>
@@ -407,7 +247,6 @@
 <script src="challenge.js"></script>
 <script src="stats.js"></script>
 <script src="hud-layout.js"></script>
-<script src="v6-ui.js"></script>
 <script>
     fetch('./version.json', { cache: 'no-store' })
         .then(response => response.json())

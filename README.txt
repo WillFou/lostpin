@@ -5,7 +5,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
-Version 5.5.0.
+Version 6.0.3.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.
@@ -220,13 +220,11 @@ BOUSSOLE
 --------
 Plusieurs styles de boussole sont disponibles depuis l'accueil ou pendant une partie. Le style choisi est mémorisé.
 
-APPARENCE
-----------
-Deux identités visuelles sont disponibles :
-- Arcade Night ;
-- Midnight Explorer.
+APPARENCE V6
+-------------
+LostPin V6 utilise une identite gaming unique : bleu nuit, rose LostPin et cyan, navigation de type site web, cartes de modes et collections, et HUD modernise.
 
-Le thème peut être changé depuis l'accueil ou pendant une partie et reste mémorisé.
+Les anciennes identites Arcade Night et Midnight Explorer restent dans le code uniquement pour compatibilite interne ; elles ne sont plus proposees dans l interface V6.
 
 MUSIQUE
 -------

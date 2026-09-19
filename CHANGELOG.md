@@ -1,3 +1,58 @@
+# LostPin V6.0.3
+
+- Homepage reconstruite en prenant la maquette gaming validée comme référence directe de composition.
+- Hero raccourci et densifié : photo plein cadre, fin de la grande zone vide centrale sur les écrans larges, titre plus proche du concept et raccourcis intégrés en pied de hero.
+- Hiérarchie typographique revue : plus de micro-textes sur la homepage ; corps, sous-titres, stats et libellés remontés à des tailles lisibles.
+- Rangée principale de modes alignée sur la maquette : Classique, Blitz, Multijoueur, No Move et Défi, avec grandes cartes photographiques et CTA visibles.
+- Collections compactées en six cartes image-first afin de réduire le scroll tout en gardant une vraie présence visuelle.
+- Bloc social refondu en trois panneaux : jouer avec ses amis, progression/classements et défi entre amis.
+- Ajout d'un bandeau communautaire avant le catalogue pour refermer visuellement la homepage principale.
+- Le catalogue complet et le configurateur restent disponibles plus bas sans toucher au moteur Street View, au scoring, aux playlists, aux Challenges ou au multijoueur.
+
+---
+
+# LostPin V6.0.2
+
+- Passe de fidélité visuelle basée sur les captures réelles de la V6.0.1 et la maquette gaming validée.
+- Suppression des micro-textes 7–10 px sur la homepage, le catalogue et le configurateur : tailles de lecture relevées sur desktop et responsive.
+- Hero reconstruit autour d’un vrai fond photographique exploitable, sans texte ni boutons incrustés dans l’image.
+- Contraste du hero allégé pour laisser apparaître Paris au lieu d’un grand aplat presque noir.
+- Modes de jeu agrandis avec davantage de photographie et une hiérarchie texte/description/action plus proche de la maquette.
+- Collections agrandies et réillustrées avec des recadrages photo propres sans labels intégrés dans les images.
+- Bloc multijoueur / progression / défis agrandi pour retrouver l’effet launcher de jeu.
+- Catalogue : cartes, descriptions, badges et filtres rendus nettement plus lisibles.
+- Aucun changement du moteur Street View, du scoring, des Challenges, des playlists, des statistiques ou du protocole multijoueur.
+
+---
+
+# LostPin V6.0.1
+
+- Reprise complète de la homepage V6 pour l'aligner réellement sur la maquette gaming validée.
+- Hero beaucoup plus compact et photographique, avec Paris en toile de fond, accroche forte, CTA et collection mise en avant.
+- Header de vrai site : navigation complète, recherche, langue, état Google Maps et raccourcis audio/aide.
+- Modes de jeu présentés comme de vraies cartes gaming : Classique, No Move, NMPZ, Blitz et Multijoueur.
+- Collections en vedette désormais illustrées avec des visuels photographiques et six entrées visibles.
+- Nouveau bloc bas de homepage : multijoueur, progression locale et défis entre amis.
+- Densité et proportions revues pour retrouver l'effet launcher/jeu de la maquette, au lieu d'une succession de grandes sections SaaS.
+- Ajout des raccourcis Hero vers Défis, Blitz, statistiques et recherche du catalogue.
+- Aucun changement du moteur Street View, du scoring, des Challenges, des playlists ou du protocole multijoueur.
+
+---
+
+# LostPin V6.0.0
+
+- Refonte graphique majeure : nouvelle identite gaming LostPin, plus forte et plus reconnaissable.
+- Nouvel accueil de type vrai site web : barre de navigation, hero, modes, collections, communaute et configurateur de partie.
+- Acces directs au multijoueur, aux Challenges et a la progression depuis la navigation principale.
+- Mise en avant des collections Paris, Paris 13e, France, Europe et Monde sans modifier les IDs de terrains existants.
+- Nouveau catalogue V6 integre a la page d'accueil avec recherche et navigation geographique existantes conservees.
+- Nouvelle mise en forme V6 du HUD, de la carte de reponse, des resultats et des modales.
+- L'identite V6 devient l'identite visuelle unique ; les anciens themes restent dans le code pour compatibilite mais ne sont plus proposes dans l'interface.
+- Aucun changement de protocole Challenge, de logique Street View, de scoring, de playlists, de statistiques ou de multijoueur.
+- Le passage a ASP.NET reste reporte a une version ulterieure (V7).
+
+---
+
 # LostPin V5.5.1
 
 - Correction du timeout Blitz en solo : à 0 seconde, la manche est désormais réellement clôturée.

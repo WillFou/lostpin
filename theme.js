@@ -10,7 +10,7 @@ const THEMES = {
     color: '#071726',
     mark: 'assets/lostpin-arcade-mark.svg',
     icons: 'assets/icons-arcade.svg',
-    tagline: 'EXPLORE. GUESS. TOGETHER.',
+    tagline: 'EXPLORE. DEVINE. PROGRESSE.',
     compass: 'hybrid'
   },
   midnight: {
@@ -25,10 +25,8 @@ const THEMES = {
 };
 
 function readTheme() {
-  try {
-    const v = localStorage.getItem(KEY);
-    return THEMES[v] ? v : 'arcade';
-  } catch (_) { return 'arcade'; }
+  // V6 uses one strong visual identity. Legacy theme preferences are ignored.
+  return 'arcade';
 }
 
 function saveTheme(theme) {
@@ -85,7 +83,8 @@ function updatePicker(theme) {
 }
 
 function applyTheme(theme, persist = true) {
-  if (!THEMES[theme]) theme = 'arcade';
+  // V6: keep a single brand identity while preserving the legacy theme API.
+  theme = 'arcade';
   document.body.dataset.theme = theme;
   if (persist) saveTheme(theme);
   maybeSetInitialCompass(theme);
