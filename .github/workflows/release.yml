@@ -49,16 +49,16 @@ jobs:
           $excludedPrefixes = @(
             ".github/",
             "tools/",
-            "dist/"
+            "dist/",
+            "dev/",
+            "docs/",
+            "scripts/dev/"
           )
 
           $excludedFiles = @(
             ".gitignore",
             ".gitattributes",
-            "build-updater.bat",
-            "publish-release.bat",
-            "setup-updater.bat",
-            "UPDATER.md"
+            "publish-release.bat"
           )
 
           $trackedFiles = git ls-files

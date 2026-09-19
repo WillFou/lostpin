@@ -5,7 +5,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
-Version 6.0.6.
+Version 6.0.9.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.
@@ -24,8 +24,8 @@ Ne lance pas directement index.html : LostPin utilise un petit serveur local pou
 
 CLÉ GOOGLE MAPS
 ---------------
-La clé est stockée localement dans config.js. Le ZIP distribué ne contient pas de vraie clé.
-Pour la modifier plus tard, lance change-api-key.bat.
+La clé est stockée localement dans config\config.js. Le ZIP distribué ne contient pas de vraie clé.
+Pour la modifier plus tard, utilise le bouton de l'Updater ou scripts\runtime\change-api-key.bat.
 
 Référents conseillés dans Google Cloud :
 - http://localhost:8080/*
@@ -243,31 +243,29 @@ Le jeu ne démarre pas :
 - ne convertis pas start.bat en fins de ligne Unix : il doit rester au format Windows CRLF.
 
 Google Maps ne charge pas :
-- vérifie config.js ;
+- vérifie config\config.js ;
 - vérifie les restrictions de la clé dans Google Cloud ;
 - vérifie que Maps JavaScript API est activée.
 
-Le HUD est mal placé :
-- déverrouille-le puis utilise ↺ ;
-- ou redimensionne la fenêtre : LostPin recalcule automatiquement les ancrages.
-
-Une ancienne disposition HUD pose problème :
-- le moteur corrige normalement les doublons automatiquement ;
-- le bouton ↺ permet toujours de repartir de la disposition par défaut.
-
 FICHIERS PRINCIPAUX
 -------------------
-index.html       Interface principale.
-app.js           Gameplay solo et intégration Street View / carte.
-multiplayer.js   Multijoueur en ligne (pair-à-pair).
-challenge.js     Création, import, timer et historique des challenges.
-themes.css       Styles et thèmes.
-theme.js         Gestion de l'identité visuelle.
-music.js         Ambiance audio.
-config.js        Clé Google Maps locale.
-version.json     Source de vérité de la version.
-start.bat        Lanceur Windows.
-server.ps1       Serveur HTTP local.
+index.html                    Point d'entrée de l'interface.
+src\js\core\               Moteur principal et géographie.
+src\js\features\           Multijoueur, challenges, playlists, audio, statistiques.
+src\js\ui\                 Identité visuelle et comportements V6.
+src\css\                   Styles de l'application.
+assets\brand\              Logos et sprites d'icônes.
+assets\images\v6\          Visuels de la V6.
+config\config.js             Clé Google Maps locale.
+config\config.example.js     Exemple de configuration sans secret.
+scripts\runtime\           Scripts nécessaires au lancement local.
+scripts\dev\               Scripts de build et de publication.
+docs\                       Documentation technique.
+dev\qa\                    Captures et pages de contrôle visuel.
+dev\backups\               Sauvegardes de travail historiques.
+tools\LostPinUpdater\       Projet .NET de l'Updater.
+version.json                  Source de vérité de la version.
+start.bat                     Lanceur Windows.
 
 MISE À JOUR / UPDATER
 ---------------------

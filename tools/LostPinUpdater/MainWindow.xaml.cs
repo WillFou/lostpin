@@ -159,11 +159,11 @@ public partial class MainWindow : Window
 
     private void ConfigureApiButton_Click(object sender, RoutedEventArgs e)
     {
-        var path = Path.Combine(gameDirectory, "change-api-key.bat");
+        var path = Path.Combine(gameDirectory, "scripts", "runtime", "change-api-key.bat");
         if (!File.Exists(path))
         {
             MessageBox.Show(
-                "Game\\change-api-key.bat est introuvable.",
+                "Game\\scripts\\runtime\\change-api-key.bat est introuvable.",
                 "LostPin Updater",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);

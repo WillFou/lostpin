@@ -9,7 +9,9 @@ internal sealed class UpdateService
     private static readonly HashSet<string> ProtectedFiles = new(StringComparer.OrdinalIgnoreCase)
     {
         "config.js",
-        "config.local.js"
+        "config.local.js",
+        "config/config.js",
+        "config/config.local.js"
     };
 
     private readonly GitHubReleaseService github;

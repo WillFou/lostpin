@@ -1,4 +1,21 @@
-# LostPin V6.0.6
+# LostPin - Changelog
+
+## 6.0.8 - Boucle de jeu V6 / UX
+- résultat de manche transformé en vraie étape centrale : fenêtre agrandie et centrée, verdict, progression de manche, métriques plus lisibles et CTA principal renforcé
+- touche Entrée disponible sur le résultat pour passer rapidement à la manche suivante
+- nouvel écran de fin de partie V6 plein écran avec score, barre de progression, meilleure manche, distances, récapitulatif et détail des manches
+- écran de fin Exploration adapté avec métriques propres (distance parcourue et temps moyen)
+- parcours de lancement simplifié : choisir une collection ramène aux modes, puis cliquer sur Classique / Blitz / No Move lance directement la partie avec la sélection courante
+- le terrain sélectionné est rappelé à côté des modes pour rendre le parcours terrain → mode → jeu explicite
+- les réglages avancés restent disponibles via le configurateur complet
+
+## 6.0.7 - Ajustements UX ciblés
+- écran de résultat solo recentré, agrandi et rendu bien plus lisible
+- bouton "Manche suivante" renforcé visuellement pour clarifier l’action principale
+- métriques (distance / points) et liens d’exploration agrandis
+- visuel hero V6 recadré plus haut pour mieux montrer les panneaux de direction et éviter l’effet "écran à venir"
+
+## 6.0.6
 
 - Boussole : le conteneur global reste transparent, mais le cadran et le petit badge de cap retrouvent chacun un fond propre semi-transparent pour rester lisibles sur Street View.
 - Les styles circulaires/réalistes conservent leur cadran détaillé au lieu d’être aplatis par le thème V6.
@@ -424,8 +441,21 @@
 - Ajout des identités visuelles sélectionnables.
 - Conservation de la musique, du multijoueur local et du multijoueur en ligne bêta de la V3.9.
 
-## 6.0.7 - Ajustements UX ciblés
-- écran de résultat solo recentré, agrandi et rendu bien plus lisible
-- bouton "Manche suivante" renforcé visuellement pour clarifier l’action principale
-- métriques (distance / points) et liens d’exploration agrandis
-- visuel hero V6 recadré plus haut pour mieux montrer les panneaux de direction et éviter l’effet "écran à venir"
+
+## 6.0.8 - Boucle de jeu V6 / UX
+- résultat de manche transformé en vraie étape centrale : fenêtre agrandie et centrée, verdict, progression de manche, métriques plus lisibles et CTA principal renforcé
+- touche Entrée disponible sur le résultat pour passer rapidement à la manche suivante
+- nouvel écran de fin de partie V6 plein écran avec score, barre de progression, meilleure manche, distances, récapitulatif et détail des manches
+- écran de fin Exploration adapté avec métriques propres (distance parcourue et temps moyen)
+- parcours de lancement simplifié : choisir une collection ramène aux modes, puis cliquer sur Classique / Blitz / No Move lance directement la partie avec la sélection courante
+- les réglages avancés restent disponibles via le configurateur complet
+
+## 6.0.9 - Reorganisation du projet
+- code JavaScript range par responsabilite dans `src/js/core`, `src/js/features` et `src/js/ui`
+- feuilles de style deplacees dans `src/css`
+- assets separes entre `assets/brand` et `assets/images/v6`
+- configuration locale deplacee dans `config/` avec migration automatique depuis l'ancien `config.js`
+- scripts separes entre runtime et outils developpeur
+- documentation centralisee dans `docs/`
+- previews, captures QA et backups ranges dans `dev/` et exclus du package de release
+- Updater et workflow GitHub adaptes a la nouvelle arborescence
