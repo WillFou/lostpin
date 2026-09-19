@@ -64,7 +64,6 @@ class ChallengeController {
   bindUI() {
     $('challengeButton')?.addEventListener('click',()=>this.open());
     $('closeChallenge')?.addEventListener('click',()=>this.close());
-    $('challengeModal')?.addEventListener('click',e=>{ if (e.target===$('challengeModal') && !this.generating) this.close(); });
     $('createChallenge')?.addEventListener('click',()=>this.create());
     $('copyChallengeCode')?.addEventListener('click',()=>this.copyGenerated());
     $('playCreatedChallenge')?.addEventListener('click',()=>this.playDescriptor(this.generated));
@@ -75,6 +74,12 @@ class ChallengeController {
     $('copyChallengeAgain')?.addEventListener('click',()=>this.copyCurrentChallenge());
     $('compareChallengeResult')?.addEventListener('click',()=>this.compareReceivedResult());
     $('challengeResultInput')?.addEventListener('input',()=>this.clearCompareResult());
+    ['challengeZone','challengeMode','challengeVariant','challengeTimer','challengeRounds'].forEach(id=>{
+      $(id)?.addEventListener('change',()=>{
+        if (id==='challengeVariant') this.syncCreateRuleState();
+        this.refreshCreateSummary();
+      });
+    });
   }
 
   wrapGame() {
@@ -101,26 +106,85 @@ class ChallengeController {
   }
 
   open() {
+    this.populateCreateControls();
+    this.syncCreateRuleState();
     this.refreshCreateSummary();
     $('challengeModal')?.classList.remove('hidden');
   }
   close() { if (!this.generating) $('challengeModal')?.classList.add('hidden'); }
 
-  refreshCreateSummary() {
+  populateCreateControls() {
     const selection=this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
-    const selectionName=this.game.getSelectionName?.(selection) || this.api.ZONES[this.game.zoneId]?.name || this.game.zoneId;
+    const zoneSelect=$('challengeZone');
+    if (zoneSelect) {
+      zoneSelect.replaceChildren();
+      if (selection.type==='playlist') {
+        const option=document.createElement('option');
+        option.value='@current';
+        option.textContent=`Playlist actuelle · ${selection.name||'Playlist'}`;
+        zoneSelect.appendChild(option);
+      }
+      Object.entries(this.api.ZONES||{})
+        .sort((a,b)=>String(a[1]?.name||a[0]).localeCompare(String(b[1]?.name||b[0]),'fr',{sensitivity:'base'}))
+        .forEach(([id,zone])=>{
+          const option=document.createElement('option');
+          option.value=`zone:${id}`;
+          option.textContent=zone?.name||id;
+          zoneSelect.appendChild(option);
+        });
+      zoneSelect.value=selection.type==='playlist'?'@current':`zone:${selection.zoneId}`;
+      if (!zoneSelect.value) zoneSelect.selectedIndex=0;
+    }
+    if ($('challengeMode')) $('challengeMode').value=MODE_IDS.includes(this.game.mode)?this.game.mode:'explore';
+    if ($('challengeVariant')) $('challengeVariant').value=VARIANT_IDS.includes(this.game.gameVariant)?this.game.gameVariant:'classic';
+    if ($('challengeRounds')) $('challengeRounds').value='5';
+    if ($('challengeTimer')) {
+      const variant=$('challengeVariant')?.value||'classic';
+      $('challengeTimer').value=variant==='blitz'
+        ? String([15,20,30].includes(Number(this.game.blitzSeconds))?Number(this.game.blitzSeconds):20)
+        : '60';
+    }
+  }
+
+  getCreateSelection() {
+    const raw=String($('challengeZone')?.value||'');
+    if (raw==='@current') return this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
+    if (raw.startsWith('zone:')) {
+      const zoneId=raw.slice(5);
+      if (this.api.ZONES?.[zoneId]) return {type:'zone',zoneId};
+    }
+    return this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
+  }
+
+  syncCreateRuleState() {
+    const variant=VARIANT_IDS.includes($('challengeVariant')?.value)?$('challengeVariant').value:'classic';
+    const timer=$('challengeTimer');
+    if (!timer) return;
+    Array.from(timer.options).forEach(option=>{
+      const seconds=Number(option.value);
+      option.disabled=variant==='blitz' && ![15,20,30].includes(seconds);
+    });
+    if (variant==='blitz' && ![15,20,30].includes(Number(timer.value))) timer.value='20';
+  }
+
+  refreshCreateSummary() {
+    const selection=this.getCreateSelection();
+    const selectionName=this.game.getSelectionName?.(selection) || this.api.ZONES[selection.zoneId]?.name || selection.zoneId;
+    const mode=MODE_IDS.includes($('challengeMode')?.value)?$('challengeMode').value:this.game.mode;
+    const variant=VARIANT_IDS.includes($('challengeVariant')?.value)?$('challengeVariant').value:(this.game.gameVariant||'classic');
+    const timerSeconds=Number($('challengeTimer')?.value||0);
+    const roundCount=Number($('challengeRounds')?.value||5);
     const box=$('challengeCurrentSettings');
-    if (box) box.textContent=`${selection.type==='playlist'?'Playlist · ':''}${selectionName} · ${modeLabel(this.game.mode)} · ${variantLabel(this.game.gameVariant||'classic')}`;
-    if ((this.game.gameVariant||'classic')==='blitz' && $('challengeTimer')) $('challengeTimer').value=String([15,20,30].includes(Number(this.game.blitzSeconds))?Number(this.game.blitzSeconds):20);
+    if (box) box.textContent=`${selection.type==='playlist'?'Playlist · ':''}${selectionName} · ${modeLabel(mode)} · ${variantLabel(variant)} · ${roundCount} manches · ${timerLabel(timerSeconds)}`;
   }
 
   async create() {
     if (this.generating || !this.game.apiReady) return;
-    const selection=this.game.getSelectionDescriptor?.() || {type:'zone',zoneId:this.game.zoneId};
-    const mode=this.game.mode;
-    const variant=VARIANT_IDS.includes(this.game.gameVariant)?this.game.gameVariant:'classic';
+    const selection=this.getCreateSelection();
+    const mode=MODE_IDS.includes($('challengeMode')?.value)?$('challengeMode').value:'explore';
+    const variant=VARIANT_IDS.includes($('challengeVariant')?.value)?$('challengeVariant').value:'classic';
     let timerSeconds=Number($('challengeTimer')?.value||0);
-    if (variant==='blitz' && ![15,20,30].includes(timerSeconds)) timerSeconds=[15,20,30].includes(Number(this.game.blitzSeconds))?Number(this.game.blitzSeconds):20;
+    if (variant==='blitz' && ![15,20,30].includes(timerSeconds)) timerSeconds=20;
     const roundCount=Number($('challengeRounds')?.value||5);
     if (!TIMER_VALUES.includes(timerSeconds) || !ROUND_VALUES.includes(roundCount)) return;
     this.generating=true;

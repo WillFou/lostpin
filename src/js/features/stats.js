@@ -93,7 +93,6 @@ class StatsController {
   bindUI(){
     $('statsButton')?.addEventListener('click',()=>this.open());
     $('closeStats')?.addEventListener('click',()=>this.close());
-    $('statsModal')?.addEventListener('click',e=>{ if(e.target===$('statsModal')) this.close(); });
     $('resetStats')?.addEventListener('click',()=>this.reset());
     window.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('statsModal')?.classList.contains('hidden')) this.close(); });
   }

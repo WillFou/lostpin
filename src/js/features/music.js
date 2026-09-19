@@ -161,6 +161,29 @@ class ChillMusic {
     src.buffer = buffer; src.connect(hp); hp.connect(g); g.connect(this.master); src.start(time);
   }
 
+  countdownTick(remaining) {
+    if (!this.enabled || !Number.isFinite(Number(remaining))) return;
+    this.arm();
+    if (!this.ctx || !this.master || this.ctx.state !== 'running') return;
+    const n = Math.max(0, Math.round(Number(remaining)));
+    const now = this.ctx.currentTime + 0.01;
+    const makeTone = (freq, duration, level, start=now) => {
+      const o=this.ctx.createOscillator(); const g=this.ctx.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(freq,start);
+      g.gain.setValueAtTime(0.0001,start);
+      g.gain.exponentialRampToValueAtTime(level,start+0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001,start+duration);
+      o.connect(g); g.connect(this.master); o.start(start); o.stop(start+duration+0.02);
+    };
+    if (n === 0) {
+      makeTone(330,0.14,0.42,now); makeTone(220,0.22,0.34,now+0.12); return;
+    }
+    if (n > 10) return;
+    const freq = n <= 2 ? 1080 : n <= 5 ? 900 : 720;
+    const level = n <= 2 ? 0.34 : n <= 5 ? 0.26 : 0.17;
+    makeTone(freq,n <= 2 ? 0.11 : 0.075,level);
+  }
+
   setVolume(v) {
     this.volume = Math.max(0, Math.min(1, v));
     localStorage.setItem(VOLUME_KEY, String(this.volume));

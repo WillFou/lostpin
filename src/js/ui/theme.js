@@ -11,7 +11,7 @@ const THEMES = {
     mark: 'assets/brand/lostpin-arcade-mark.svg',
     icons: 'assets/brand/icons-arcade.svg',
     tagline: 'EXPLORE. DEVINE. PROGRESSE.',
-    compass: 'hybrid'
+    compass: 'circle'
   },
   midnight: {
     name: 'Midnight Explorer',

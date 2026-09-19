@@ -1282,3 +1282,11 @@ body[data-theme="midnight"] .zoneCatalogSearch,body[data-theme="midnight"] .zone
 .blitzOptions{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-card-soft,#ffffff05);width:max-content;max-width:100%}
 .blitzOptions label{font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}.blitzOptions select{border:1px solid #ffffff25;border-radius:10px;background:var(--theme-field,#0a111b);color:var(--text);padding:8px 10px;font-weight:800}
 @media(max-width:720px){.variantGrid{grid-template-columns:1fr}.variantCard{min-height:78px}}
+/* V6.0.14 - autonomous Challenge creator */
+.challengeRuleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.challengeField{display:flex;flex-direction:column;gap:6px;margin:0!important}
+.challengeFieldWide{grid-column:1/-1}
+.challengeField>span{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:900}
+.challengeField select{width:100%;min-height:42px}
+.challengeCurrentSettings{margin:12px 0 14px}
+@media(max-width:700px){.challengeRuleGrid{grid-template-columns:1fr}.challengeFieldWide{grid-column:auto}}

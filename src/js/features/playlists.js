@@ -113,7 +113,6 @@ class PlaylistController {
   bindUI(){
     $('playlistButton')?.addEventListener('click',()=>this.open());
     $('closePlaylist')?.addEventListener('click',()=>this.close());
-    $('playlistModal')?.addEventListener('click',e=>{ if(e.target===$('playlistModal')) this.close(); });
     $('saveCustomPlaylist')?.addEventListener('click',()=>this.saveCustom());
     $('cancelPlaylistEdit')?.addEventListener('click',()=>this.cancelEdit());
     window.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('playlistModal')?.classList.contains('hidden')) this.close(); });
@@ -195,6 +194,7 @@ class PlaylistController {
     this.game.setSelection(selection);
     this.game.showToast?.(`Playlist « ${item.name} » sélectionnée.`,1800);
     this.close();
+    document.dispatchEvent(new CustomEvent('lostpin:v6-route-home',{detail:{target:'v6Play'}}));
   }
 
   selectedZoneIds(){

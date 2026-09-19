@@ -5,7 +5,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
-Version 6.0.9.
+Version 6.0.14.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.

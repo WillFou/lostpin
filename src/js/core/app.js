@@ -9,8 +9,8 @@ const RECENT_KEY = 'guessr360-v3-recent';
 const BEST_KEY = 'guessr360-v3-best';
 const PERFECT_KEY = 'guessr360-v36-perfects';
 const COMPASS_STYLE_KEY = 'guessr360-v37-compass-style';
-const COMPASS_STYLES = ['band','circle','minimal','rose','pano','hybrid','real','vintage'];
-const COMPASS_STYLE_NAMES = {band:'Bandeau',circle:'Circulaire',minimal:'Minimaliste',rose:'Rose des vents',pano:'Panorama',hybrid:'Hybride',real:'Réelle stylisée',vintage:'Vintage'};
+const COMPASS_STYLES = ['circle','pano','real','vintage'];
+const COMPASS_STYLE_NAMES = {circle:'Circulaire',pano:'Panoramique',real:'Métal',vintage:'Vintage'};
 
 function haversine(a, b) {
   const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
@@ -298,8 +298,8 @@ class GuessrGame {
     this.parisContoursReady = false;
     this.parisContoursPromise = null;
     this.parisContoursSource = '';
-    this.compassStyle = readJSON(COMPASS_STYLE_KEY, 'band');
-    if (!COMPASS_STYLES.includes(this.compassStyle)) this.compassStyle = 'band';
+    this.compassStyle = readJSON(COMPASS_STYLE_KEY, 'circle');
+    if (!COMPASS_STYLES.includes(this.compassStyle)) this.compassStyle = 'circle';
     this.geo = window.LOSTPIN_GEOGRAPHY || null;
     this.geoState = {filter:'paris', continentId:null, countryId:null, query:''};
     this.bindUI();
@@ -343,6 +343,7 @@ class GuessrGame {
     $('backButton').addEventListener('click', () => this.goBack());
     $('turnButton').addEventListener('click', () => this.turnAround());
     $('homeButton').addEventListener('click', () => this.goHome());
+    $('returnStartButton')?.addEventListener('click', () => this.goHome());
     $('retryButton').addEventListener('click', () => { this.avoidPoint = null; this.loadRound(); });
     $('replaceButton').addEventListener('click', () => { this.avoidPoint = this.lastAttemptPoint; this.loadRound(); });
     $('expandMap').addEventListener('click', () => {
@@ -350,7 +351,7 @@ class GuessrGame {
       setTimeout(() => google.maps.event.trigger(this.map, 'resize'), 180);
     });
     $('quitButton').addEventListener('click', () => {
-      if (!this.results.length || window.confirm('Quitter cette partie ?')) this.showMenu();
+      if (window.confirm('Quitter la partie en cours ? La progression de cette partie sera perdue.')) this.showMenu();
     });
     for (const id of ['helpButton','helpGameButton']) $(id).addEventListener('click', () => $('helpModal').classList.remove('hidden'));
     $('closeHelp').addEventListener('click', () => $('helpModal').classList.add('hidden'));
@@ -366,12 +367,17 @@ class GuessrGame {
         return;
       }
       if (key.toLowerCase() === 'm') { e.preventDefault(); $('expandMap').click(); return; }
+      const navKeys=['ArrowUp','ArrowDown','Home'];
+      const nmpzKeys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','PageUp','PageDown','+','-','='];
+      if ((this.mode === 'nomove' && navKeys.includes(key)) || (this.mode === 'nmpz' && nmpzKeys.includes(key))) {
+        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation?.(); return;
+      }
       if (key === 'ArrowLeft' && this.mode !== 'nmpz') { e.preventDefault(); this.rotateView(-15); }
       else if (key === 'ArrowRight' && this.mode !== 'nmpz') { e.preventDefault(); this.rotateView(15); }
       else if (key === 'ArrowUp' && this.mode === 'explore') { e.preventDefault(); this.goForward(); }
       else if (key === 'ArrowDown' && this.mode === 'explore') { e.preventDefault(); this.goBack(); }
       else if (key === 'Home' && this.mode === 'explore') { e.preventDefault(); this.goHome(); }
-    });
+    }, true);
   }
 
   updateRoundResultUX(points, options={}) {
@@ -461,6 +467,7 @@ class GuessrGame {
         if ($('multiTimerValue')) $('multiTimerValue').textContent=`${mins}:${String(secs).padStart(2,'0')}`;
         box.classList.toggle('urgent',remaining>0 && remaining<=10);
         box.classList.toggle('critical',remaining>0 && remaining<=5);
+        if (remaining <= 10) window.guessrMusic?.countdownTick?.(remaining);
       }
       if (remaining<=0) {
         this.stopSoloBlitzTimer(false);
@@ -481,8 +488,9 @@ class GuessrGame {
   }
 
   lockRoundNavigation() {
-    if (!this.panorama) return;
-    this.panorama.setOptions({clickToGo:false,linksControl:false});
+    if (this.panorama) this.panorama.setOptions({clickToGo:false,linksControl:false});
+    $('panoInteractionLock')?.classList.remove('hidden');
+    $('returnStartButton')?.classList.add('hidden');
   }
 
   submitSoloTimeout() {
@@ -592,8 +600,7 @@ class GuessrGame {
     const button=document.createElement('button');
     button.type='button'; button.className='zoneNode';
     button.dataset.geoLevel=level; button.dataset.geoId=node.id;
-    const levelName=level==='continent'?'Continent':'Pays';
-    button.innerHTML=`<span>${levelName}</span><b>${this.escapeHTML(node.name)}</b><small>${count} ${count>1?'terrains disponibles':'terrain disponible'}</small>`;
+    button.innerHTML=`<b>${this.escapeHTML(node.name)}</b><small>${count} ${count>1?'terrains disponibles':'terrain disponible'}</small>`;
     button.addEventListener('click',()=>{
       if (level==='continent') { this.geoState.continentId=node.id; this.geoState.countryId=null; }
       else if (level==='country') this.geoState.countryId=node.id;
@@ -607,12 +614,12 @@ class GuessrGame {
     button.type='button'; button.className='mapCard'; button.dataset.zone=meta.zoneId;
     button.classList.toggle('selected',this.selection?.type==='zone' && this.selection.zoneId===meta.zoneId);
     const path=this.geo?.pathLabel?.(meta,{includeRegion:searching,includeDepartment:searching}) || '';
-    const kind=this.geo?.KIND_LABELS?.[meta.kind] || 'Map';
-    const icon=document.createElement('span'); icon.className='lpIcon'; icon.dataset.lpIcon=meta.icon||'world'; button.appendChild(icon);
-    const strong=document.createElement('strong'); strong.textContent=meta.name; button.appendChild(strong);
+    const title=document.createElement('span'); title.className='mapCardTitle';
+    const icon=document.createElement('span'); icon.className='lpIcon'; icon.dataset.lpIcon=meta.icon||'world'; title.appendChild(icon);
+    const strong=document.createElement('strong'); strong.textContent=meta.name; title.appendChild(strong);
+    button.appendChild(title);
     const small=document.createElement('small'); small.textContent=meta.description||''; button.appendChild(small);
     if (path) { const pathEl=document.createElement('span'); pathEl.className='zonePath'; pathEl.textContent=path; button.appendChild(pathEl); }
-    const badge=document.createElement('span'); badge.className='zoneKind'; badge.textContent=kind; button.appendChild(badge);
     button.addEventListener('click',()=>{
       this.setSelection({type:'zone',zoneId:meta.zoneId});
     });
@@ -688,8 +695,9 @@ class GuessrGame {
         maps=geo.mapsFor('country',{continentId});
       }
     } else {
-      const labels={paris:'Paris',continent:'Continents',world:'Monde',all:'Tous les terrains'};
-      this.renderGeoBreadcrumbs([{label:labels[filter]||'Terrains'}]);
+      // The active filter already names the category. A second tiny breadcrumb such as
+      // "Continents" or "Monde" only adds visual noise above the cards.
+      this.renderGeoBreadcrumbs([]);
       maps=geo.mapsFor(filter);
     }
 
@@ -1049,8 +1057,16 @@ class GuessrGame {
   }
 
   applyInteractionMode() {
+    const gameScreen=$('gameScreen');
+    const gameHidden=gameScreen?.classList.contains('hidden');
+    const roundFinished=gameScreen?.classList.contains('has-result');
     const lock = $('panoInteractionLock');
-    if (lock) lock.classList.toggle('hidden', this.mode !== 'nmpz' || $('gameScreen')?.classList.contains('hidden'));
+    if (lock) lock.classList.toggle('hidden', gameHidden || (!roundFinished && this.mode !== 'nmpz'));
+    const returnButton=$('returnStartButton');
+    if (returnButton) {
+      const showReturn=!gameHidden && !roundFinished && this.playType==='guess' && this.mode==='explore';
+      returnButton.classList.toggle('hidden',!showReturn);
+    }
   }
 
   openCompassPicker() {
@@ -1059,7 +1075,7 @@ class GuessrGame {
   }
 
   setCompassStyle(style, persist = true) {
-    if (!COMPASS_STYLES.includes(style)) style = 'band';
+    if (!COMPASS_STYLES.includes(style)) style = 'circle';
     this.compassStyle = style;
     if (persist) writeJSON(COMPASS_STYLE_KEY, style);
     if ($('compass')) $('compass').dataset.style = style;
@@ -1092,25 +1108,12 @@ class GuessrGame {
     if (!$('compass')) return;
     const pov = this.panorama?.getPov?.() || {heading:0};
     const h = normalizeHeading(pov.heading || 0);
-    const deg = Math.round(h) % 360;
-    const text = `${compassLabel(h)} · ${String(deg).padStart(3,'0')}°`;
-    $('compass').dataset.style = this.compassStyle || 'band';
-    this.updateCompassTrack('compassBandTrack', h, window.innerWidth <= 600 ? 52 : 64);
+    $('compass').dataset.style = this.compassStyle || 'circle';
     this.updateCompassTrack('compassPanoTrack', h, 78);
-    if ($('compassBandDegrees')) $('compassBandDegrees').textContent = `${String(deg).padStart(3,'0')}°`;
-    if ($('compassPanoDegree')) $('compassPanoDegree').textContent = `${String(deg).padStart(3,'0')}°`;
     if ($('compassCircleNeedle')) $('compassCircleNeedle').style.transform = `rotate(${h}deg)`;
-    if ($('compassCircleLabel')) $('compassCircleLabel').textContent = text;
-    if ($('compassMinimalLabel')) $('compassMinimalLabel').textContent = text;
-    if ($('compassRoseNeedle')) $('compassRoseNeedle').style.transform = `rotate(${h}deg)`;
-    if ($('compassRoseDegree')) $('compassRoseDegree').textContent = `${String(deg).padStart(3,'0')}°`;
-    if ($('compassHybridNeedle')) $('compassHybridNeedle').style.transform = `rotate(${h}deg)`;
-    if ($('compassHybridLabel')) $('compassHybridLabel').textContent = text;
-    // Real compass styles mimic a physical magnetic needle: north rotates opposite to the camera heading.
-    if ($('compassRealNeedle')) $('compassRealNeedle').style.transform = `translate(-50%,-50%) rotate(${-h}deg)`;
-    if ($('compassRealLabel')) $('compassRealLabel').textContent = text;
-    if ($('compassVintageNeedle')) $('compassVintageNeedle').style.transform = `translate(-50%,-50%) rotate(${-h}deg)`;
-    if ($('compassVintageLabel')) $('compassVintageLabel').textContent = text;
+    // Fixed cardinal dial: the red needle shows the direction the player is facing.
+    if ($('compassRealNeedle')) $('compassRealNeedle').style.transform = `translate(-50%,-50%) rotate(${h}deg)`;
+    if ($('compassVintageNeedle')) $('compassVintageNeedle').style.transform = `translate(-50%,-50%) rotate(${h}deg)`;
   }
 
   updateTravelUI() {
@@ -1546,6 +1549,8 @@ class GuessrGame {
     this.startPov = null;
     this.startTime = Date.now();
     $('gameScreen').classList.remove('has-result');
+    $('panoInteractionLock')?.classList.add('hidden');
+    $('returnStartButton')?.classList.add('hidden');
     $('resultPanel').classList.add('hidden');
     $('loadingPanel').classList.remove('hidden');
     $('loadingSpinner').classList.remove('hidden');
@@ -1807,6 +1812,7 @@ class GuessrGame {
     const validDistances = this.results.map(x => x.distance).filter(Number.isFinite);
     const avg = validDistances.reduce((s,x) => s + x,0) / Math.max(1,validDistances.length);
     const avgText = validDistances.length ? formatDistance(avg) : 'aucune réponse mesurée';
+    const best = this.results.reduce((current,r,index)=>!current || Number(r.points||0)>Number(current.r.points||0)?{r,index}:current,null);
     const key = this.variantRecordKey(selection);
     const isPerfect = this.total === 25000 && this.results.length === 5 && this.results.every(r => r.points === 5000);
 
@@ -1829,17 +1835,50 @@ class GuessrGame {
     $('endScreen').classList.toggle('perfectGame', isPerfect);
     $('endEyebrow').textContent = isPerfect ? 'PARTIE PARFAITE' : 'PARTIE TERMINÉE';
 
-    let comment;
+    const ratio = maxScore > 0 ? this.total / maxScore : 0;
+    const verdict = $('finalVerdict');
+    let verdictText = 'PARTIE TERMINÉE';
+    let verdictTier = 'low';
+    let comment = '';
+
     if (isPerfect) {
-      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move'} · ${variantLabel(this.gameVariant)}. 25 000 / 25 000 : les 5 lieux sont dans le rayon parfait de 25 m. Distance moyenne : ${avgText}.`;
-      if (newPrecisionRecord && perfect.count > 1) comment += ' Nouveau record de précision sur un 25 000 !';
+      verdictText = 'PARFAIT !';
+      verdictTier = 'perfect';
+      comment = 'Cinq lieux, cinq réponses parfaites. Tu n’as presque rien laissé au hasard.';
+      if (newPrecisionRecord && perfect.count > 1) comment += ' Et tu signes un nouveau record de précision sur un 25 000.';
+    } else if (ratio >= .92) {
+      verdictText = 'EXCEPTIONNEL !';
+      verdictTier = 'elite';
+      comment = 'Tu as lu les lieux avec une précision redoutable. Le 25 000 est clairement à portée.';
+    } else if (ratio >= .80) {
+      verdictText = 'TRÈS GROSSE PARTIE !';
+      verdictTier = 'great';
+      comment = 'Tu étais souvent tout près. Quelques ajustements et cette partie change complètement de dimension.';
+    } else if (ratio >= .65) {
+      verdictText = 'BIEN JOUÉ !';
+      verdictTier = 'good';
+      comment = 'Une partie solide : de bons indices repérés et peu de grosses erreurs.';
+    } else if (ratio >= .48) {
+      verdictText = 'PAS MAL DU TOUT !';
+      verdictTier = 'okay';
+      comment = 'Tu as de bonnes lectures, mais quelques manches coûtent cher. La revanche peut vite basculer.';
+    } else if (ratio >= .30) {
+      verdictText = 'ON SE RAPPROCHE !';
+      verdictTier = 'learning';
+      comment = 'Il y a déjà de bons réflexes. Quelques indices mieux exploités feront une grosse différence.';
     } else {
-      comment = `${selectionLabel} ${selectionName} - ${this.mode === 'nomove' ? 'No Move' : this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'Move'} · ${variantLabel(this.gameVariant)}. Distance moyenne : ${avgText}.`;
-      const ratio = maxScore > 0 ? this.total / maxScore : 0;
-      if (ratio >= .92) comment += ' Très grosse partie.';
-      else if (ratio >= .76) comment += ' Solide.';
-      else if (ratio >= .56) comment += ' Tu commences à bien lire les lieux.';
-      else comment += ' Il reste de la marge pour la revanche.';
+      verdictText = 'LE MONDE T’A PIÉGÉ !';
+      verdictTier = 'rough';
+      comment = 'Cette partie était rude. La prochaine fois, tu reconnaîtras déjà mieux certains pièges.';
+    }
+
+    if (!isPerfect && best && best.index === this.results.length - 1 && this.results.length > 1) {
+      comment += ' Et tu termines sur ta meilleure manche.';
+    }
+
+    if (verdict) {
+      verdict.textContent = verdictText;
+      verdict.dataset.tier = verdictTier;
     }
     $('finalComment').textContent = comment;
     this.updateFinalSummary(selectionName,maxScore);

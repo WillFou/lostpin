@@ -459,3 +459,52 @@
 - documentation centralisee dans `docs/`
 - previews, captures QA et backups ranges dans `dev/` et exclus du package de release
 - Updater et workflow GitHub adaptes a la nouvelle arborescence
+## 6.0.10 - Verdict de fin de partie
+- ajout d’un vrai verdict dynamique sur l’écran final selon le niveau de score
+- phrases de feedback plus courtes et plus orientées jeu ; les métadonnées techniques restent dans les cartes de statistiques
+- feedback supplémentaire lorsque la dernière manche est aussi la meilleure de la partie
+- mise en scène typographique renforcée de la colonne droite du récapitulatif
+
+## 6.0.11 - Recette V6 : corrections critiques
+- hero responsive : les panneaux de destinations restent visibles quand le ratio de fenêtre change
+- verrouillage complet de Street View dès qu'une manche est terminée (rotation/zoom/clic compris)
+- retour du bouton flottant `Départ` en mode Move pour revenir au panorama initial
+- correction d'une exception JavaScript sur l'écran de fin qui empêchait les statistiques et le détail des manches de s'afficher
+
+## 6.0.12 - Consolidation UX gameplay
+- mode Exploration retiré de l’interface et mis de côté pour refonte de game design ; prototype conservé dans le code
+- No Move : blocage des déplacements clavier (flèches haut/bas et Home)
+- NMPZ : curseur neutre à la place du symbole d’interdiction
+- Blitz et timers multijoueur : compte à rebours beaucoup plus visible dans les 10 dernières secondes
+- ajout de sons progressifs sur les 10 dernières secondes, avec signal distinct à 0 ; ils respectent le réglage audio existant
+- boussoles simplifiées : 4 styles validés uniquement (Circulaire, Panoramique, Métal, Vintage)
+- suppression de tous les badges de degrés ; les aiguilles Métal/Vintage indiquent désormais directement le cap regardé
+- retour au point de départ déplacé dans la barre d’actions de la carte réponse sous forme d’icône ↩ avec tooltip
+- hero responsive conservé tel quel après validation QA
+
+## 6.0.13 - Consolidation UX navigation
+- confirmation systématique avant de quitter une partie en cours, quel que soit le mode
+- confirmation avant de quitter une salle multijoueur
+- cartes hiérarchiques du catalogue simplifiées : suppression des libellés « Continent / Pays » répétés
+- suppression des badges de type redondants sur les cartes de terrain
+- compteurs « terrains disponibles » agrandis pour rester lisibles
+- Collections en vedette : état sélectionné explicite et nouveau panneau d’action « Jouer cette collection / Personnaliser »
+- un clic sur une collection ne téléporte plus silencieusement vers une autre section
+## 6.0.14 - Recette UX catalogue et Challenges
+- Catalogue : suppression des petits breadcrumbs redondants sur les catégories simples (Paris, Continents, Monde, Tous).
+- Catalogue : icône et nom d’un terrain sont désormais sur la même ligne ; descriptions et compteurs de terrains sont plus lisibles.
+- Challenges : la création devient autonome et permet de choisir directement le terrain, le déplacement (Move / No Move / NMPZ), le format (Classique / Blitz / Précision), le timer et le nombre de manches.
+- Challenges Blitz : seuls 15 / 20 / 30 secondes restent sélectionnables pour préserver la cohérence du format.
+- La refonte des grands panneaux hérités en vraies pages V6 avec navigation persistante est conservée comme chantier UX séparé.
+
+## 6.1.0 - Navigation V6 et pages applicatives
+- transforme les grandes modales héritées de V5 en vraies pages V6 sous la navbar persistante
+- ajoute une vraie page Jouer : catalogue des terrains + configuration de partie
+- ajoute une vraie page Collections / Playlists, avec les collections intégrées et les playlists personnelles
+- ajoute une vraie page Défis avec onglets Créer / Rejoindre / Comparer
+- ajoute une vraie page Multijoueur ; le terrain ou la collection peut désormais être choisi directement avant de créer la salle
+- ajoute une page Classements & records honnête, fondée sur les records locaux tant qu'aucun backend de classement global n'existe
+- transforme Statistiques en page Profil & progression avec records, badges, précision et historique
+- conserve les modales uniquement pour les actions ponctuelles (aide, audio, confirmations, erreurs)
+- la navigation Accueil / Jouer / Collections / Multijoueur / Défis / Classements / Profil reste visible et active sur ces pages
+- corrige le retour au lobby de revanche multijoueur avec la nouvelle architecture de pages

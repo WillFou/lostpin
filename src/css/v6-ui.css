@@ -726,17 +726,28 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
   .v6HeroBackdrop::after{inset:0 0 0 48%}
 }
 
-/* Keep the hero as one continuous photograph; the previous split-photo treatment
-   created the same empty/seamed effect reported on ultrawide screens. */
+/* Responsive hero art direction:
+   - a darkened cover layer fills every viewport
+   - a contained foreground copy stays pinned to the right so the destination signs
+     are never cropped away when the browser ratio changes. */
 .v6HeroBackdrop{
   background-image:
-    linear-gradient(90deg,#04101ff2 0%,#04101fda 19%,#061423a8 39%,#0614234d 58%,#06111f16 78%,#06111f24 100%),
-    linear-gradient(180deg,#06111f06 55%,#06111fef 100%),
+    linear-gradient(90deg,#04101ff4 0%,#04101fe2 22%,#061423b8 42%,#06142367 62%,#06111f24 82%,#06111f35 100%),
+    linear-gradient(180deg,#06111f08 55%,#06111fef 100%),
     url('../../assets/images/v6/hero-game.jpg');
   background-size:cover;
-  background-position:center 34%;
+  background-position:center 42%;
 }
-.v6HeroBackdrop::after{display:none!important}
+.v6HeroBackdrop::after{
+  display:block!important;
+  content:"";
+  position:absolute;
+  inset:0;
+  background:url('../../assets/images/v6/hero-game.jpg') right center / auto 100% no-repeat;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,transparent 54%,rgba(0,0,0,.18) 62%,#000 72%,#000 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,transparent 54%,rgba(0,0,0,.18) 62%,#000 72%,#000 100%);
+  pointer-events:none;
+}
 
 /* ========================================================================== */
 /* LostPin V6.0.4 - in-game HUD / Street View experience                     */
@@ -1358,13 +1369,204 @@ body[data-theme="arcade"],body[data-theme="midnight"]{font-size:16px;line-height
 .v6EndScoreBlock>small{display:block;color:#879caf;font-size:11px;font-weight:950;letter-spacing:.16em}
 .v6EndScoreLine{display:flex;align-items:flex-end;gap:14px;margin-top:5px}.v6EndScoreLine .finalScore{font:900 clamp(70px,8vw,116px)/.86 "Anton","Arial Black",sans-serif;letter-spacing:.01em;color:#fff;margin:0;text-shadow:0 12px 40px #0008}.v6EndScoreLine>span{padding-bottom:10px;color:#8da2b4;font-size:16px}.v6EndScoreLine>span b{color:#d7e2eb}
 .v6ScoreTrack{height:8px;margin-top:22px;border-radius:999px;background:#ffffff0d;overflow:hidden}.v6ScoreTrack i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ff245e,#ff4e7d 55%,#4bdcff);box-shadow:0 0 22px #ff2d6880;transition:width .8s cubic-bezier(.2,.8,.2,1)}
-.v6EndComment{margin:0;color:#c8d4df;font-size:18px;line-height:1.55;font-weight:650;max-width:640px}
+.v6EndFeedback{align-self:center;max-width:650px}.v6EndVerdict{font:900 clamp(34px,3.2vw,52px)/.96 "Anton","Arial Black",Impact,sans-serif;font-style:italic;letter-spacing:.015em;color:#fff;text-transform:uppercase;text-shadow:0 5px 0 #02081270,0 16px 42px #0007;margin-bottom:14px}.v6EndVerdict[data-tier="perfect"]{color:#ffd86b}.v6EndVerdict[data-tier="elite"],.v6EndVerdict[data-tier="great"]{color:#55ddff}.v6EndVerdict[data-tier="okay"],.v6EndVerdict[data-tier="learning"]{color:#ff4b7d}.v6EndVerdict[data-tier="rough"]{color:#ff8a66}.v6EndComment{margin:0;color:#c8d4df;font-size:18px;line-height:1.55;font-weight:650;max-width:640px}
 .v6EndSummaryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:8px 0 22px}.v6EndSummaryGrid article{min-height:126px;padding:18px;border:1px solid #ffffff16;border-radius:18px;background:linear-gradient(145deg,#0b1b2a,#081522);box-shadow:0 15px 40px #0002}.v6EndSummaryGrid small{display:block;font-size:10px;font-weight:950;letter-spacing:.12em;color:#7891a8}.v6EndSummaryGrid b{display:block;font:900 30px/1.05 "Space Grotesk",sans-serif;color:#fff;margin:9px 0 7px}.v6EndSummaryGrid span{font-size:12px;color:#90a4b6;line-height:1.35}
 #endScreen .perfectStats{grid-template-columns:repeat(2,minmax(0,1fr));margin:0 0 22px}.v6EndBreakdown{border:1px solid #ffffff15;background:#071522c9;border-radius:22px;padding:22px}.v6EndBreakdownHead{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:14px}.v6EndBreakdownHead small{display:block;color:#ff4779;font-size:10px;font-weight:950;letter-spacing:.16em}.v6EndBreakdownHead h2{margin:3px 0 0;font:900 23px/1.1 "Space Grotesk",sans-serif}.v6EndBreakdownHead>span{font-size:11px;color:#7f94a7}
 #endScreen .breakdown{margin:0;display:grid;grid-template-columns:1fr;gap:8px}#endScreen .breakRow{grid-template-columns:38px minmax(0,1fr) auto;min-height:64px;padding:11px 14px;border-radius:14px;background:#0b1d2e!important}#endScreen .breakRow strong{font-size:14px}#endScreen .breakRow small{font-size:11px;margin-top:2px}#endScreen .breakRow>b{font-size:14px;color:#fff;white-space:nowrap}
 .v6EndActions{display:flex;justify-content:flex-end;gap:10px;padding-top:18px}.v6EndActions .primary,.v6EndActions .secondary{min-height:50px;padding-inline:22px;font-size:14px}.v6EndActions .primary{min-width:220px}.v6EndActions .secondary{min-width:170px}
 #endScreen .challengeEndSummary{margin-top:18px;border:1px solid #ffffff17;border-radius:16px;background:#071522;padding:15px}
-@media(max-width:900px){.v6EndShell{width:min(100% - 28px,760px);padding-top:20px}.v6EndHero{grid-template-columns:1fr;gap:20px;padding-top:28px}.v6EndComment{font-size:16px}.v6EndSummaryGrid{grid-template-columns:1fr}.v6EndSummaryGrid article{min-height:0}.v6EndBreakdownHead{align-items:flex-start;flex-direction:column}.v6EndActions{justify-content:stretch}.v6EndActions .primary,.v6EndActions .secondary{flex:1;min-width:0}.v6EndHeader{align-items:flex-start}.v6EndEyebrow{margin-top:3px}}
+@media(max-width:900px){.v6EndShell{width:min(100% - 28px,760px);padding-top:20px}.v6EndHero{grid-template-columns:1fr;gap:20px;padding-top:28px}.v6EndVerdict{font-size:38px}.v6EndComment{font-size:16px}.v6EndSummaryGrid{grid-template-columns:1fr}.v6EndSummaryGrid article{min-height:0}.v6EndBreakdownHead{align-items:flex-start;flex-direction:column}.v6EndActions{justify-content:stretch}.v6EndActions .primary,.v6EndActions .secondary{flex:1;min-width:0}.v6EndHeader{align-items:flex-start}.v6EndEyebrow{margin-top:3px}}
 @media(max-width:560px){.v6EndShell{width:calc(100% - 20px)}.v6EndHeader{padding-bottom:14px}.v6EndBrand small{display:none}.v6EndScoreLine{gap:8px}.v6EndScoreLine>span{font-size:12px}.v6EndBreakdown{padding:14px}.v6EndBreakdownHead>span{display:none}#endScreen .breakRow{grid-template-columns:32px minmax(0,1fr)}#endScreen .breakRow>b{grid-column:2}.v6EndActions{flex-direction:column}.v6EndActions .primary,.v6EndActions .secondary{width:100%}}
 .v6PlayContext{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.v6PlayContext>span{font-size:12px;color:#8499ac;border:1px solid #ffffff15;background:#ffffff06;border-radius:999px;padding:7px 10px}.v6PlayContext>span b{color:#fff}.v6PlayContext .v6TextButton{padding:4px 2px}
 @media(max-width:760px){.v6PlayContext{width:100%;justify-content:flex-start}.v6SectionHeading.compact{flex-wrap:wrap}}
+
+
+/* V6.0.11 - gameplay QA fixes */
+#gameScreen.has-result #panoInteractionLock{display:block!important;cursor:default;background:transparent}
+.returnStartButton{
+  position:absolute;z-index:24;left:20px;bottom:20px;
+  display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 14px;
+  border:1px solid #80aac640;border-radius:14px;background:#071625e8;color:#f7fbff;
+  backdrop-filter:blur(14px) saturate(130%);box-shadow:0 12px 34px #0007;
+  font-size:13px;font-weight:900;transition:.15s ease;
+}
+.returnStartButton:hover{background:#0c2033f2;border-color:#74dff06b;transform:translateY(-1px)}
+.returnStartIcon{font-size:19px;line-height:1;color:#52def4}
+#gameScreen.has-result .returnStartButton{display:none!important}
+@media(max-width:760px){.returnStartButton{left:12px;bottom:12px;min-height:42px;padding:0 12px;font-size:12px}}
+
+
+/* ========================================================================== */
+/* LostPin V6.0.12 - consolidated gameplay UX                                 */
+/* ========================================================================== */
+
+/* Return-to-start belongs to the response map toolbar, not on the panorama. */
+#gameScreen .mapActions .mapToolButton{
+  flex:0 0 46px;min-width:46px;padding:0;display:grid;place-items:center;
+  font-size:22px;line-height:1;border-radius:12px;
+}
+#gameScreen .mapActions #returnStartButton{color:#59e0f6;font-weight:950}
+
+/* NMPZ is a game rule, not an error state. */
+#gameScreen #panoInteractionLock{cursor:default!important}
+
+/* Four approved compass families. The compass itself carries the information. */
+#gameScreen #compass .circleReadout,
+#gameScreen #compass .realReadout,
+#gameScreen #compass .vintageReadout,
+#gameScreen #compass .panoDegree,
+#gameScreen #compass .compassDegrees{display:none!important}
+
+/* The timer must be noticed without becoming a flashing alarm. */
+#gameScreen #multiTimer{
+  min-width:116px!important;min-height:58px!important;padding:7px 15px!important;
+  border:1px solid #80a8c63d!important;border-radius:15px!important;
+  background:#071625ec!important;box-shadow:0 10px 30px #0005!important;
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+#gameScreen #multiTimer small{display:block!important;font-size:10px!important;letter-spacing:.13em!important;color:#9bb1c5!important}
+#gameScreen #multiTimerValue{font-size:30px!important;line-height:1!important;font-weight:950!important;color:#fff!important}
+#gameScreen #multiTimer.urgent{
+  border-color:#ffb24da8!important;background:#261b0fed!important;
+  box-shadow:0 0 0 1px #ffb24d22 inset,0 10px 32px #0006,0 0 22px #ffb24d1f!important;
+}
+#gameScreen #multiTimer.urgent #multiTimerValue{color:#ffd36f!important}
+#gameScreen #multiTimer.critical{
+  border-color:#ff4770c9!important;background:#30101aed!important;
+  box-shadow:0 0 0 1px #ff47702e inset,0 10px 32px #0006,0 0 28px #ff365f38!important;
+  animation:lostpinTimerPulse .72s ease-in-out infinite alternate;
+}
+#gameScreen #multiTimer.critical #multiTimerValue{color:#ff7795!important}
+@keyframes lostpinTimerPulse{from{transform:scale(1)}to{transform:scale(1.045)}}
+@media(max-width:760px){
+  #gameScreen #multiTimer{min-width:82px!important;min-height:48px!important;padding:6px 10px!important}
+  #gameScreen #multiTimer small{display:none!important}
+  #gameScreen #multiTimerValue{font-size:22px!important}
+}
+
+/* ========================================================================== */
+/* LostPin V6.0.13 - UX terrain / collections                                 */
+/* ========================================================================== */
+.v6CatalogFrame .zoneNode{min-height:86px;padding:15px 16px}
+.v6CatalogFrame .zoneNode>b{margin-top:0;font-size:16px;line-height:1.2}
+.v6CatalogFrame .zoneNode>small{margin-top:7px;font-size:13px;line-height:1.3;color:#b7c6d3}
+.v6CatalogFrame .zoneNode>span{display:none!important}
+.v6CatalogFrame .zoneKind{display:none!important}
+.v6CatalogFrame .mapCard .zonePath{font-size:12px;line-height:1.35;margin-top:8px}
+
+.v6CollectionCard.selected{
+  border-color:#ff3b72;
+  box-shadow:0 0 0 2px #ff2d686d inset,0 16px 40px #ff2d681d;
+  transform:translateY(-2px);
+}
+.v6CollectionCard.selected:after{
+  content:"SÉLECTIONNÉE";
+  position:absolute;
+  z-index:4;
+  top:10px;
+  right:10px;
+  width:auto;
+  height:auto;
+  padding:5px 8px;
+  border:0;
+  border-radius:999px;
+  background:#ff2d68;
+  box-shadow:none;
+  color:#fff;
+  font:900 9px/1 "Nunito Sans",sans-serif;
+  letter-spacing:.06em;
+}
+.v6CollectionSelection{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:22px;
+  padding:17px 18px;
+  border:1px solid #ff477a55;
+  border-radius:16px;
+  background:linear-gradient(120deg,#23172c,#0b2032 62%,#092337);
+  box-shadow:0 14px 34px #0003;
+}
+.v6CollectionSelectionCopy{display:flex;flex-direction:column;min-width:0}
+.v6CollectionSelectionCopy>span{font-size:10px;letter-spacing:.14em;color:#5de0f5;font-weight:950}
+.v6CollectionSelectionCopy>strong{font-size:21px;line-height:1.15;margin-top:3px}
+.v6CollectionSelectionCopy>small{font-size:14px;line-height:1.35;color:#c3d0db;margin-top:4px}
+.v6CollectionSelectionActions{display:flex;gap:9px;flex:none}
+.v6CollectionSelectionActions button{min-height:45px;padding-inline:18px}
+@media(max-width:760px){
+  .v6CollectionSelection{align-items:stretch;flex-direction:column;gap:14px}
+  .v6CollectionSelectionActions{display:grid;grid-template-columns:1fr 1fr}
+  .v6CollectionSelectionActions button{width:100%;padding-inline:10px}
+}
+@media(max-width:480px){
+  .v6CollectionSelectionActions{grid-template-columns:1fr}
+}
+/* V6.0.14 - catalogue hierarchy cleanup */
+.v6CatalogFrame .mapCard .mapCardTitle{display:flex;align-items:center;gap:10px;margin-bottom:8px;min-width:0}
+.v6CatalogFrame .mapCard .mapCardTitle .lpIcon{display:block;flex:0 0 28px;width:28px;height:28px;margin:0}
+.v6CatalogFrame .mapCard .mapCardTitle strong{font-size:16px;line-height:1.15;min-width:0}
+.v6CatalogFrame .mapCard>small{font-size:13px;line-height:1.42;color:#aebdca}
+.v6CatalogFrame .zoneNode small{font-size:12px;line-height:1.35;color:#aebdca}
+
+/* ========================================================================== */
+/* V6.1 - real site navigation / full pages                                   */
+/* ========================================================================== */
+.v6RouteHost{min-height:0}
+.v6RoutePage{min-height:calc(100vh - 74px);padding:0;background:
+  radial-gradient(circle at 88% 2%,#243d7552,transparent 26%),
+  radial-gradient(circle at 5% 78%,#66173f38,transparent 24%),#06111f}
+.v6RoutePage.hidden{display:none!important}
+.v6RouteShell{width:min(1540px,calc(100% - 48px));margin:0 auto;padding:42px 0 84px;background:transparent!important;border:0!important;box-shadow:none!important;max-width:none!important;max-height:none!important;overflow:visible!important}
+.v6RouteHeader{position:relative!important;top:auto!important;z-index:1!important;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:0 0 28px!important;padding:0 0 22px!important;background:transparent!important;border-bottom:1px solid #7d9cb42d!important;backdrop-filter:none!important}
+.v6RouteHeader>div{max-width:850px}.v6RouteHeader .eyebrow{font-size:10px;letter-spacing:.22em;color:var(--v6-cyan);font-weight:950}.v6RouteHeader h2{margin:6px 0 6px!important;font-family:"Bungee",sans-serif;font-size:clamp(34px,4vw,58px)!important;line-height:1;letter-spacing:-.03em}.v6RouteHeader p{margin:0!important;color:#9fb4c5;font-size:15px!important;line-height:1.5}.v6RouteBack{min-width:118px;white-space:nowrap}
+.v6RouteLead{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:22px;margin:0 0 26px;padding:22px 24px;border:1px solid #7ca3bf32;border-radius:20px;background:linear-gradient(120deg,#0b1d31,#0a1726);box-shadow:0 18px 50px #0003}.v6RouteLead>div:first-child{max-width:780px}.v6RouteKicker{display:block;color:#ff6b92;font-size:9px;font-weight:950;letter-spacing:.2em}.v6RouteLead h3{margin:6px 0 5px;font-family:"Bungee",sans-serif;font-size:25px}.v6RouteLead p{margin:0;color:#9fb1c0;font-size:13px;line-height:1.5}.v6RouteStat{min-width:115px;padding:10px 14px;border-left:1px solid #ffffff14}.v6RouteStat b{display:block;font-family:"Bungee",sans-serif;font-size:26px;color:#fff}.v6RouteStat span{display:block;margin-top:2px;color:#8ea5b8;font-size:11px}
+.v6RouteTabs{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 22px;padding:5px;border:1px solid #799eb52d;border-radius:14px;background:#081726;width:max-content;max-width:100%}.v6RouteTabs button{min-height:38px;padding:0 18px;border:0;border-radius:10px;background:transparent;color:#94a9bb;font-weight:900;font-size:12px}.v6RouteTabs button:hover{color:#fff;background:#ffffff0b}.v6RouteTabs button.active{color:#fff;background:linear-gradient(120deg,#ff214f,#ff3f79);box-shadow:0 8px 24px #ff245a2d}
+
+/* Collections */
+#playlistModal .playlistColumns{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(380px,.8fr);gap:18px;align-items:start}
+#playlistModal .playlistPane{padding:22px;border:1px solid #789db735!important;background:linear-gradient(145deg,#0b1c2e,#081624)!important;border-radius:19px!important}
+#playlistModal .playlistSectionHead h3{font-size:22px;margin:0}#playlistModal .playlistSectionHead span{font-size:12px;color:#89a1b5}
+#playlistModal .playlistCard{padding:16px;border-radius:15px}#playlistModal .playlistCardTop b{font-size:15px}#playlistModal .playlistCardTop small{font-size:12px;line-height:1.45}#playlistModal .playlistMapChips i{font-size:10px}
+#playlistModal label{font-size:12px}#playlistModal input{font-size:14px}
+
+/* Challenges */
+#challengeModal .challengeColumns{display:block!important}#challengeModal .challengeBox,#challengeModal .challengeCompareBox{padding:24px;border:1px solid #789db735!important;background:linear-gradient(145deg,#0b1c2e,#081624)!important;border-radius:19px!important}
+#challengeModal .challengeBox h3,#challengeModal .challengeCompareBox h3{font-size:25px;margin:6px 0 8px}#challengeModal .challengeBox>p,#challengeModal .challengeCompareBox>p{font-size:14px;line-height:1.55}
+#challengeModal .challengeRuleGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}#challengeModal .challengeField span{font-size:11px}#challengeModal select,#challengeModal textarea{font-size:14px;min-height:44px}
+#challengeModal .challengeTechnicalNote{margin-top:20px;padding:16px 18px;border-radius:14px;background:#ffffff05;color:#8299ad;font-size:11px}
+
+/* Multiplayer */
+#multiplayerModal .multiModeGrid{display:block!important}#multiplayerModal .multiModeBox,#multiplayerModal .onlineLobbyBox,#multiplayerModal .onlineHistoryPanel{padding:24px;border:1px solid #789db735!important;background:linear-gradient(145deg,#0b1c2e,#081624)!important;border-radius:19px!important}
+#multiplayerModal .multiModeBox{display:grid;grid-template-columns:minmax(300px,.75fr) minmax(430px,1.25fr);gap:20px 30px;align-items:start}
+#multiplayerModal .multiModeBox>.multiHeading,#multiplayerModal .multiModeBox>p,#multiplayerModal .multiModeBox>.onlineIdentityPicker,#multiplayerModal .multiModeBox>.onlineField{grid-column:1}
+#multiplayerModal .onlineCreateOptions{grid-column:2;grid-row:1/span 5;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;padding:18px;border:1px solid #ffffff13;border-radius:15px;background:#061523}
+#multiplayerModal .onlineCreateOptions .competitionHint{grid-column:1/-1}#multiplayerModal .onlineCreateOptions label{font-size:10px;color:#839aaf}#multiplayerModal .onlineCreateOptions select{min-height:42px;font-size:13px}
+#multiplayerModal .multiButtons,#multiplayerModal .onlineJoinRow,#multiplayerModal #onlineStatus,#multiplayerModal .multiNote{grid-column:1}
+#multiplayerModal .onlineJoinRow{display:grid;grid-template-columns:1fr auto;gap:9px}#multiplayerModal .onlineField{min-height:44px;font-size:14px}
+#multiplayerModal .onlineHistoryPanel{margin-top:18px}.v6MultiLead{margin-bottom:22px}
+
+/* Profile / stats */
+#statsModal .statsOverview{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}#statsModal .statsMetric{min-height:110px;padding:15px;border-radius:15px}#statsModal .statsMetric small{font-size:10px}#statsModal .statsMetric b{font-size:23px}#statsModal .statsMetric span{font-size:11px}
+#statsModal .statsSectionHead{margin-top:32px;padding-top:24px}#statsModal .statsSectionHead h3{font-size:23px}#statsModal .statsSectionHead span{font-size:12px}
+#statsModal .statsAccuracyGrid{grid-template-columns:repeat(3,1fr)}#statsModal .statsRecords,#statsModal .statsHistory{font-size:13px}
+
+/* Rankings */
+.v6RankingsShell{min-height:calc(100vh - 74px)}.v6RankingList{display:grid;gap:9px}.v6RankingEmpty{padding:48px 22px;text-align:center;border:1px dashed #779bb63f;border-radius:18px;color:#8fa6b9;background:#071522}.v6RankingRow{display:grid;grid-template-columns:54px minmax(0,1.7fr) minmax(150px,.8fr) 120px 100px;gap:14px;align-items:center;min-height:76px;padding:12px 17px;border:1px solid #799db62c;border-radius:15px;background:linear-gradient(120deg,#0c1f32,#081725);transition:.15s}.v6RankingRow:hover{transform:translateY(-1px);border-color:#80b9d855}.v6RankingRow .rank{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#ff2d681a;color:#ff6f95;font:900 14px "Oxanium",sans-serif}.v6RankingRow:nth-child(1) .rank{background:#ffc65b22;color:#ffd676}.v6RankingRow .selection b{display:block;font-size:15px}.v6RankingRow .selection small,.v6RankingRow .mode small{display:block;color:#8fa4b6;font-size:11px}.v6RankingRow .mode b{font-size:13px}.v6RankingRow .score{font:900 18px "Oxanium",sans-serif;color:#fff}.v6RankingRow .perfect{color:#ffd271;font-weight:900;text-align:right}
+
+@media(max-width:1100px){
+  .v6RouteShell{width:min(100% - 32px,1540px)}
+  #playlistModal .playlistColumns{grid-template-columns:1fr}
+  #multiplayerModal .multiModeBox{grid-template-columns:1fr}#multiplayerModal .onlineCreateOptions{grid-column:1;grid-row:auto}
+  #statsModal .statsOverview{grid-template-columns:repeat(3,1fr)}
+  .v6RankingRow{grid-template-columns:48px minmax(0,1.5fr) 1fr 100px}.v6RankingRow .perfect{display:none}
+}
+@media(max-width:760px){
+  .v6RoutePage{min-height:calc(100vh - 106px)}.v6RouteShell{width:calc(100% - 24px);padding:26px 0 58px}.v6RouteHeader{align-items:flex-start;flex-direction:column}.v6RouteHeader h2{font-size:34px!important}.v6RouteBack{align-self:flex-start}
+  .v6RouteLead{grid-template-columns:1fr 1fr}.v6RouteLead>div:first-child{grid-column:1/-1}.v6RouteStat{border-left:0;border-top:1px solid #ffffff13;padding-left:0}
+  #challengeModal .challengeRuleGrid{grid-template-columns:1fr}
+  #statsModal .statsOverview{grid-template-columns:1fr 1fr}.v6RankingRow{grid-template-columns:42px 1fr auto}.v6RankingRow .mode{display:none}.v6RankingRow .score{font-size:15px}
+}
+.v6RoutePage{overflow:visible!important}
+#multiplayerModal .onlineCreateOptions label[for="onlineSelection"],#multiplayerModal #onlineSelection{grid-column:1/-1}
+#multiplayerModal #onlineSelection{min-height:46px;border-color:#2ed9ff4d!important;background:#0b2135!important;font-weight:800}
