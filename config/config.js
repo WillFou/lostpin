@@ -1,1 +1,1 @@
-window.PG_CONFIG = { googleMapsApiKey: "AIzaSyAP4GHftxxzlya2TIMwJGBusemK8PrcY54" };
+window.PG_CONFIG = { googleMapsApiKey: "AIzaSyAfdO9nkxyyHyJc6ylcs_TXJeJ8tBGM2iw" };

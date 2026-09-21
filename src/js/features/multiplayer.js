@@ -92,6 +92,7 @@ class MultiplayerController {
     this.timerInterval = null;
     this.roundDeadline = 0;
     this.lastTimerSecond = null;
+    this.timerDuration = 0;
     this.onlineRoundSeconds = DEFAULT_ONLINE_ROUND_SECONDS;
     this.onlineRoundCount = DEFAULT_ONLINE_ROUND_COUNT;
     this.onlineMovementMode = 'explore';
@@ -196,7 +197,8 @@ class MultiplayerController {
       const minY = getBarHeight() + 8;
       const maxX = Math.max(minX, window.innerWidth - width - 8);
       const maxY = Math.max(minY, window.innerHeight - height - 8);
-      return { x:Math.min(maxX, Math.max(minX, x)), y:Math.min(maxY, Math.max(minY, y)) };
+      const clamped = { x:Math.min(maxX, Math.max(minX, x)), y:Math.min(maxY, Math.max(minY, y)) };
+      return window.lostPinHUD?.constrainJR(clamped, width, height) || clamped;
     };
     const applyPosition = (position=this.multiCompactPosition, persist=false) => {
       if (!position) {
@@ -599,6 +601,7 @@ class MultiplayerController {
   }
 
   async prepareShell() {
+    window.lostPinHUD?.restoreMap();
     if (this.isHost && this.game.roundZoneIds?.[this.round] && this.api.ZONES[this.game.roundZoneIds[this.round]]) this.game.zoneId=this.game.roundZoneIds[this.round];
     await this.game.prepareSelectedZone();
     this.game.ensureGoogleObjects();
@@ -636,6 +639,11 @@ class MultiplayerController {
   }
 
   resetRoundView(player) {
+    window.lostPinHUD?.prepareRound();
+    this.game.roundLocked = false;
+    this.game.round = this.round;
+    this.game.gameVariant = this.onlineVariant;
+    this.game.updateGameHudMode();
     if (this.roundInfo?.zoneId && this.api.ZONES[this.roundInfo.zoneId]) this.game.zoneId=this.roundInfo.zoneId;
     const zone = this.api.ZONES[this.game.zoneId];
     this.guessLocked=false;
@@ -658,6 +666,7 @@ class MultiplayerController {
     this.game.applyInteractionMode?.();
     this.game.updateTravelUI(); this.game.updateCompass();
     $('multiRoundPanel')?.classList.add('hidden'); $('multiWaiting')?.classList.add('hidden'); this.clearNotices();
+    window.lostPinHUD?.onRoundReady();
   }
 
 
@@ -710,6 +719,8 @@ class MultiplayerController {
     if (this.kind==='online' && !this.isHost) { next.classList.add('hidden'); $('multiWaiting').classList.remove('hidden'); $('multiWaiting').textContent="En attente de l'hôte..."; }
     else { next.classList.remove('hidden'); next.textContent=this.shouldEndGameAfterRound()?'Voir le classement final':'Manche suivante'; }
     if (fromNetwork) this.game.total=this.myPlayer()?.total||0;
+    this.game.lockRoundNavigation();
+    window.lostPinHUD?.showMultiResult(entries);
   }
 
   renderOverallRanking() {
@@ -743,7 +754,7 @@ class MultiplayerController {
   clearMultiMarkers(){ this.multiMarkers.forEach(m=>m.setMap(null)); this.multiMarkers=[]; }
 
   advanceAfterRound() {
-    if (!this.active) return;
+    if (!this.active || !this.roundClosed || this.gameEnded) return;
     if (this.kind==='online' && !this.isHost) return;
     if (this.shouldEndGameAfterRound()) {
       this.gameEnded=true;
@@ -778,8 +789,9 @@ class MultiplayerController {
       }
       this.renderRematchStatus();
     }
+    window.lostPinHUD?.showMultiFinal(list);
   }
-  hideMultiEnd(){ $('multiEndScreen')?.classList.add('hidden'); }
+  hideMultiEnd(){ $('multiEndScreen')?.classList.add('hidden'); window.lostPinHUD?.restoreMap(); }
 
   // ---------------- Online peer-to-peer ----------------
   ensurePeerAvailable(){ if (!window.Peer) throw new Error("Le module multijoueur en ligne n'a pas pu être chargé. Vérifie ta connexion Internet."); }
@@ -998,6 +1010,8 @@ class MultiplayerController {
     this.renderOnlineStatus({submitted:data.submitted||[]});
     if (data.wasSubmitted) {
       this.guessLocked=true;
+      this.game.lockRoundNavigation();
+      window.lostPinHUD?.onAnswerSent();
       $('guessButton').disabled=true; $('guessButton').textContent='Réponse envoyée';
       this.game.panorama?.setOptions({clickToGo:false,linksControl:false});
     }
@@ -1132,9 +1146,11 @@ class MultiplayerController {
     const me=this.myPlayer(); if (!me || (this.onlineGameMode==='elimination' && me.eliminated) || this.roundClosed || this.guessLocked || this.submissions.has(me.id)) return;
     const payload={type:'guess',round:this.round,guess:{...this.game.guess},seconds:Math.max(1,Math.round((Date.now()-this.game.startTime)/1000)),moves:this.game.moveCount||0,travel:this.game.maxTravel||0};
     this.guessLocked=true;
+    this.game.lockRoundNavigation();
+    window.lostPinHUD?.onAnswerSent();
     const visibleSubmitted=new Set(this.submittedIds); visibleSubmitted.add(me.id);
     $('guessButton').disabled=true; $('guessButton').textContent='Réponse envoyée';
-    // The position is locked, but the player can keep looking around. In Move mode, navigation is disabled after validation.
+    // The submitted view is frozen until the shared round result is received.
     this.game.panorama?.setOptions({clickToGo:false,linksControl:false});
     this.renderOnlineStatus({submitted:Array.from(visibleSubmitted)});
     if (this.isHost) this.recordOnlineGuess(me.id,payload); else { this.hostConn?.send(payload); $('multiWaiting').classList.remove('hidden'); $('multiWaiting').textContent='Réponse envoyée · en attente des autres joueurs...'; }
@@ -1165,7 +1181,7 @@ class MultiplayerController {
     this.roundClosed=true; this.guessLocked=true; this.clearRoundTimer();
     entries.forEach(e=>{
       e.player.total=(e.player.total||0)+e.points;
-      e.player.rounds[this.round]={points:e.points,distance:e.distance,timedOut:!!e.timedOut};
+      e.player.rounds[this.round]={points:e.points,distance:e.distance,timedOut:!!e.timedOut,seconds:e.seconds||0,guess:e.guess ? {...e.guess} : null,answer:{...this.roundInfo.answer},description:this.roundInfo.description||'',pano:this.roundInfo.pano||'',heading:this.roundInfo.heading||0};
     });
     this.lastModeEvent=this.applyOnlineGameModeOutcome(entries);
     entries.forEach(e=>{ if (e.player.rounds[this.round]) { e.player.rounds[this.round].hpAfter=e.player.hp; e.player.rounds[this.round].eliminatedAfter=!!e.player.eliminated; } });
@@ -1213,6 +1229,7 @@ class MultiplayerController {
 
   startRoundTimer(seconds, deadline=null) {
     this.clearRoundTimer(false);
+    this.timerDuration = Math.max(1, Number(seconds) || 1);
     this.roundDeadline=Number.isFinite(Number(deadline)) && Number(deadline)>Date.now() ? Number(deadline) : Date.now()+Math.max(0,seconds)*1000;
     this.lastTimerSecond=null;
     $('multiTimer')?.classList.remove('hidden');
@@ -1222,6 +1239,7 @@ class MultiplayerController {
       if (remaining>0) return;
       if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval=null; }
       this.guessLocked=true;
+      this.game.lockRoundNavigation();
       if ($('guessButton')) { $('guessButton').disabled=true; if (!$('guessButton').textContent.includes('envoyée')) $('guessButton').textContent='Temps écoulé'; }
       if (!this.isHost && this.active && !this.roundClosed) { $('multiWaiting')?.classList.remove('hidden'); if ($('multiWaiting')) $('multiWaiting').textContent='Temps écoulé · en attente des résultats...'; }
       if (this.isHost && this.active && !this.roundClosed) this.expireOnlineRound();
@@ -1236,6 +1254,7 @@ class MultiplayerController {
     box.classList.toggle('urgent',seconds>0 && seconds<=10);
     box.classList.toggle('critical',seconds>0 && seconds<=5);
     if (seconds <= 10) window.guessrMusic?.countdownTick?.(seconds);
+    window.lostPinHUD?.paintTimer(seconds, this.timerDuration);
   }
 
   clearRoundTimer(hide=true) {
@@ -1350,6 +1369,8 @@ class MultiplayerController {
     this.peer=null; this.hostConn=null; this.closingPeer=false; this.reconnectAttempts=0;
   }
   cleanup(closePeer=true) {
+    window.lostPinHUD?.closeSession();
+    this.game.roundLocked = false;
     this.clearRoundTimer(); this.clearReconnectTimer(); this.clearMultiMarkers(); this.active=false; this.started=false; this.gameEnded=false; this.roundClosed=false; this.guessLocked=false; this.submittedIds.clear(); this.submissions.clear(); this.lastRoundResults=null; this.lastModeEvent=null; this.rematchRequests.clear();
     if (this.emoteHideTimer) clearTimeout(this.emoteHideTimer); this.emoteHideTimer=null; this.clearNotices();
     $('gameScreen')?.classList.remove('multiplayer-active'); $('multiHud')?.classList.add('hidden'); $('multiOnlineStatus')?.classList.add('hidden'); $('multiEmoteBar')?.classList.add('hidden'); $('multiEmoteToast')?.classList.add('hidden'); $('multiRoundPanel')?.classList.add('hidden'); $('multiWaiting')?.classList.add('hidden'); this.hideMultiEnd(); $('panoInteractionLock')?.classList.add('hidden');

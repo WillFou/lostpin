@@ -1,0 +1,221 @@
+/* LostPin V6.2.0 - deliberate gameplay layout. Homepage and site routes are unchanged. */
+#gameScreen.hud-v62{--game-bar-h:88px;--result-dock-h:220px;--rank-width:370px;--hud-cyan:#3bdcf4;--hud-pink:#ff2d68;font-family:"Space Grotesk","Nunito Sans",system-ui,sans-serif}
+.hud-v62 button:focus-visible,.hud-v62-end button:focus-visible,.hud-v62-multi-end button:focus-visible,.breakRow:focus-visible{outline:3px solid #4adeff!important;outline-offset:4px}
+#gameScreen.hud-v62 .gameTop{height:auto;min-height:88px;padding:10px clamp(12px,1.6vw,30px);display:grid;grid-template-columns:minmax(0,1fr) 170px minmax(0,1fr);gap:clamp(12px,1.8vw,32px);align-items:center;background:linear-gradient(110deg,#051423fc,#081b2cfa 60%,#051321fc);box-shadow:0 8px 24px #0003;z-index:60;border-bottom:1px solid #87b2ce30}
+#gameScreen.hud-v62 .hudIdentity{display:flex;align-items:center;gap:22px;min-width:0}
+#gameScreen.hud-v62 .gameBrand{padding-right:20px;border-right:1px solid #b5d6ed29;gap:8px;min-width:0}
+#gameScreen.hud-v62 .gameBrand img{width:36px;height:36px}
+#gameScreen.hud-v62 .gameBrand strong{font-size:22px}
+#gameScreen.hud-v62 .gameBrand small{display:none}
+#gameScreen.hud-v62 #mapHud.hudContext{display:flex!important;min-width:0;max-width:300px;flex:1}
+#gameScreen.hud-v62 #mapHud .hudContextCopy{display:grid;gap:4px;min-width:0;width:100%}
+#gameScreen.hud-v62 .hudContextCopy small{display:none}
+#gameScreen.hud-v62 .hudContextCopy b{font:800 17px/1.25 "Space Grotesk",system-ui,sans-serif;white-space:nowrap;margin:0}
+#gameScreen.hud-v62 #gameModeLabel{font:600 13px/1.2 "Space Grotesk",system-ui,sans-serif;color:#9ab8d0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;display:block}
+.hudTimerSlot{width:170px;display:flex;align-items:center;justify-content:center}
+/* Restored from the pre-V6 stylized capsule (themes.css): cyan arcs, radial dial. */
+#gameScreen.hud-v62 #multiTimer{position:relative!important;display:block;inset:auto!important;transform:none!important;min-width:160px!important;min-height:64px!important;width:160px;padding:8px 22px!important;border:2px solid #27c9e18c!important;border-radius:999px!important;text-align:center;background:radial-gradient(circle at 50% 35%,#153047 0,#0a1d2d 42%,#06131f 76%,#030b12 100%)!important;box-shadow:0 5px 20px #0006,inset 0 0 0 3px #03101a,inset 0 0 22px #00b8d51a!important;overflow:visible;animation:none;flex-shrink:0}
+#gameScreen.hud-v62 #multiTimer.hidden{display:none!important}
+#gameScreen.hud-v62 #multiTimer:before,#gameScreen.hud-v62 #multiTimer:after{display:block!important;content:"";position:absolute;top:11px;bottom:11px;width:9px;border:4px solid #00d8f1;filter:drop-shadow(0 0 4px #00cdec66);pointer-events:none}
+#gameScreen.hud-v62 #multiTimer:before{left:6px;border-right:0;border-radius:18px 0 0 18px}
+#gameScreen.hud-v62 #multiTimer:after{right:6px;border-left:0;border-radius:0 18px 18px 0}
+#gameScreen.hud-v62 #multiTimer small{display:block!important;font:700 11px/1.1 "Space Grotesk",system-ui,sans-serif!important;letter-spacing:.02em!important;color:#a8c7da!important;margin:0 0 3px}
+#gameScreen.hud-v62 #multiTimerValue{display:block;font:900 31px/1 "Space Grotesk",system-ui,sans-serif!important;color:#fff!important;font-variant-numeric:tabular-nums;letter-spacing:0;text-shadow:0 2px 10px #0008}
+#gameScreen.hud-v62 #multiTimer.urgent{border-color:#ffc56d!important;background:radial-gradient(circle at 50% 35%,#463721,#20180d 65%,#090d12)!important;box-shadow:0 0 16px #ffb24d24,inset 0 0 0 3px #100d09!important}
+#gameScreen.hud-v62 #multiTimer.urgent:before,#gameScreen.hud-v62 #multiTimer.urgent:after{border-color:#ffbd60;filter:drop-shadow(0 0 6px #ffbd6088)}
+#gameScreen.hud-v62 #multiTimer.urgent #multiTimerValue{color:#ffe1a5!important}
+#gameScreen.hud-v62 #multiTimer.critical{border-color:#ff527e!important;background:radial-gradient(circle at 50% 35%,#492030,#210d19 65%,#090d12)!important;box-shadow:0 0 22px #ff37652e,inset 0 0 0 3px #100812!important;animation:hudTimerUrgency .75s ease-in-out infinite alternate}
+#gameScreen.hud-v62 #multiTimer.critical:before,#gameScreen.hud-v62 #multiTimer.critical:after{border-color:#ff527e;filter:drop-shadow(0 0 7px #ff527e88)}
+#gameScreen.hud-v62 #multiTimer.critical #multiTimerValue{color:#ffb3c5!important}
+@keyframes hudTimerUrgency{to{filter:brightness(1.2)}}
+.hudUntimed{display:flex;gap:10px;align-items:center;padding:12px 4px;color:#adc7d7}
+.hudUntimed small{display:block;font-size:10px;letter-spacing:.12em;margin-bottom:4px;color:#6f95ad}.hudUntimed b{font-size:13px;color:#d9ebf7;white-space:nowrap}.hudLiveDot{width:7px;height:7px;border-radius:50%;background:#3bdcf4;box-shadow:0 0 10px #3bdcf444}
+.hudRight{display:flex;justify-content:flex-end;align-items:center;gap:18px;min-width:0}
+.hudProgressArea{display:flex;align-items:center;gap:18px;min-width:0}
+.hudRoundHistory{display:flex;gap:5px;list-style:none;margin:0;padding:0;min-width:0}
+.hudRoundCell{display:grid;align-content:center;gap:3px;min-width:64px;height:62px;text-align:center;border:1px solid #88bdd117;border-radius:9px;background:#15304619;padding:4px 6px;color:#718ca1;position:relative}
+.hudRoundCell>span{font-size:11px;font-weight:800;letter-spacing:.06em}.hudRoundCell b{font-size:15px;font-weight:800;line-height:1.1;white-space:nowrap}.hudRoundCell small{font-size:11px;line-height:1.1;white-space:nowrap}
+.hudRoundCell.complete{color:#cbe0ef;background:#132e4260;border-color:#71a2bf25}.hudRoundCell.complete b{color:#fff}.hudRoundCell.current{border-color:#ff41758c;background:linear-gradient(150deg,#491b3766,#10243899)}.hudRoundCell.current>span{color:#ff7ea2}.hudRoundCell.current b{font-size:12px;color:#fff}.hudRoundCell.current.complete b{font-size:15px}.hudRoundCell.current:after{content:"";position:absolute;left:18px;right:18px;bottom:-1px;height:2px;background:#ff2d68;box-shadow:0 0 10px #ff2d6866;border-radius:3px}
+.hudHistoryToggle{display:none;align-items:center;column-gap:8px;border:1px solid #81b3cf32;border-radius:10px;background:#112b3f77;padding:9px 12px;min-width:87px;color:#fff;min-height:52px}
+.hudHistoryToggle small{font-size:12px;color:#9fbed3}.hudHistoryToggle b{font-size:18px;font-variant-numeric:tabular-nums}.hudHistoryToggle>span{font-size:11px;color:#8cacc4}
+.hudTotal{display:grid;grid-template-columns:auto auto;align-items:baseline;gap:1px 5px;min-width:96px;border-left:1px solid #b5d6ed24;padding-left:18px}.hudTotal small{grid-column:1/-1;font-size:10px;letter-spacing:.1em;color:#8babbe;font-weight:800;white-space:nowrap}.hudTotal strong{font-size:25px;line-height:1.2;color:#ffe1a1;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}.hudTotal>span{font-size:12px;color:#9db5c8}
+#gameScreen.hud-v62 .topActions{margin:0;grid-column:auto!important;grid-row:auto!important}.hud-v62 .topButtonGroup{gap:6px}
+#gameScreen.hud-v62 .topActions .icon{width:37px;height:37px;border-radius:10px;background:#10263a88;box-shadow:none}
+#gameScreen.hud-v62 .quitGameButton{min-width:40px;gap:0!important;padding:0 10px!important;background:#37152866!important}
+#gameScreen.hud-v62 .quitGameLabel{display:none}
+#gameScreen.hud-v62.round-reveal #hudUntimed{visibility:hidden}
+#gameScreen.hud-v62 #pano{top:0;transition:opacity .2s}
+#gameScreen.hud-v62 .panoShade{background:linear-gradient(180deg,#06132144,transparent 18%,transparent 85%,#03101d20);pointer-events:none}
+/* Compasses retain their four approved artworks and transparent outer wrapper. */
+#gameScreen.hud-v62 #compass{top:calc(var(--game-bar-h) + 12px)!important}
+#gameScreen.hud-v62 #panoInteractionLock{top:var(--game-bar-h);cursor:default!important}
+/* No dimension changes at hover: only contrast/opacity are adjusted on interaction. */
+#gameScreen.hud-v62 #mapPanel{position:absolute;left:auto;top:auto;right:18px;bottom:18px;width:clamp(330px,25vw,410px);height:clamp(290px,38vh,360px);max-height:calc(100dvh - var(--game-bar-h) - 40px);min-width:0;border:1px solid #a4d4e24d;border-radius:15px;background:#071725c7;box-shadow:0 18px 42px #0007;overflow:hidden;z-index:28;transition:width .22s ease,height .22s ease,box-shadow .18s,top .22s,bottom .22s,right .22s;border-bottom:2px solid #7fa2b430;filter:none}
+#gameScreen.hud-v62 #mapPanel #guessMap{position:relative;opacity:.94;background:transparent;transition:opacity .15s;flex:1;min-height:0}
+#gameScreen.hud-v62 #mapPanel:hover #guessMap,#gameScreen.hud-v62 #mapPanel:focus-within #guessMap,#gameScreen.hud-v62 #mapPanel.expanded #guessMap{opacity:1}
+#gameScreen.hud-v62 #mapPanel.expanded{width:min(800px,calc(100vw - 36px));height:min(650px,calc(100dvh - var(--game-bar-h) - 40px))}
+#gameScreen.hud-v62 .mapHeader{height:57px;flex:0 0 57px;padding:8px 11px;gap:10px;background:#0b2132e8;border-color:#92b7d12b}
+#gameScreen.hud-v62 .mapHeader>div{min-width:0;gap:4px}
+#gameScreen.hud-v62 .mapHeader>div:first-child{flex:1}
+#gameScreen.hud-v62 .mapHeader span{font-size:10px;letter-spacing:.09em;color:#95b5ce}
+#gameScreen.hud-v62 .mapHeader b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+#gameScreen.hud-v62 .mapHeader .mapHeaderTools{display:flex;gap:6px;align-items:center}
+#gameScreen.hud-v62 .mapToolButton{display:grid;place-items:center;width:36px;height:36px;min-height:0;padding:0;border:1px solid #92b8cc3d;border-radius:8px;background:#112f4366;font:600 23px/1 system-ui,sans-serif;color:#e5f5ff;flex:none}
+#gameScreen.hud-v62 .mapActions{height:60px;flex:0 0 60px;padding:8px;background:#061726e8}
+#gameScreen.hud-v62 .mapActions .primary{min-height:42px;padding:8px;font:800 15px/1.2 "Space Grotesk",system-ui,sans-serif;border-radius:9px;box-shadow:0 4px 18px #ff2d682c}
+#gameScreen.hud-v62 .mapActions .primary:disabled{background:#172e3e;color:#afc4d4;box-shadow:none}
+#gameScreen.hud-v62 .mapFooterHint{height:23px;flex:0 0 23px;display:grid;font:500 11px/1.2 "Space Grotesk",system-ui,sans-serif;color:#9bb4c7;background:#081725ee;border:0}
+/* Multiplayer: J/R alone remains draggable. Notices use a separate safe lane. */
+#gameScreen.hud-v62.multiplayer-active #multiCompactPanel{width:min(350px,calc(100vw - 24px))!important;left:12px!important;top:calc(var(--game-bar-h) + 16px)!important;max-height:calc(100dvh - var(--game-bar-h) - 40px);overflow:auto;overscroll-behavior:contain}
+#gameScreen.hud-v62.multiplayer-active #multiCompactPanel.is-user-positioned{left:var(--multi-panel-left)!important;top:var(--multi-panel-top)!important}
+#gameScreen.hud-v62 #multiNoticeStack,#gameScreen.hud-v62 #multiEmoteToast{left:auto!important;right:12px!important;top:var(--notice-top,calc(var(--game-bar-h) + 20px))!important;bottom:auto!important;transform:none!important;width:min(350px,calc(100vw - 24px));max-height:170px;overflow:hidden;pointer-events:none;z-index:34}
+#gameScreen.hud-v62 .multiNotice{font-size:14px;line-height:1.4;padding:12px 15px}
+#gameScreen.hud-v62 #toast,#gameScreen.hud-v62 #busyBadge{left:auto;right:12px;top:var(--notice-top,calc(var(--game-bar-h) + 150px));transform:none;max-width:350px;font-size:14px;z-index:33}
+#gameScreen.hud-v62 #multiWaiting{position:absolute;left:16px;bottom:18px;top:auto;right:auto;z-index:32;margin:0;width:min(380px,calc(100vw - 32px));padding:12px 16px;border:1px solid #7ab3c64f;background:#091d2df2;border-radius:12px;color:#d9ecf7;font-size:14px;pointer-events:none}
+/* Reveal map gets its own usable rectangle; Google attribution is never covered by the dock. */
+#gameScreen.hud-v62.round-reveal #pano,#gameScreen.hud-v62.round-reveal .panoShade{opacity:0;pointer-events:none}
+#gameScreen.hud-v62.round-reveal #compass,#gameScreen.hud-v62.round-reveal #multiCompactPanel,#gameScreen.hud-v62.round-reveal #multiNoticeStack,#gameScreen.hud-v62.round-reveal #multiEmoteToast,#gameScreen.hud-v62.round-reveal #toast,#gameScreen.hud-v62.round-reveal #busyBadge,#gameScreen.hud-v62.round-reveal #panoInteractionLock{display:none!important}
+#gameScreen.hud-v62.round-reveal #mapPanel{display:flex!important;top:var(--game-bar-h);left:0;right:0;bottom:var(--result-dock-h);height:auto;max-height:none;width:auto;max-width:none;border:0;border-radius:0;box-shadow:none;filter:none;background:#c2d6de;z-index:25}
+#gameScreen.hud-v62.round-reveal #mapPanel #guessMap{opacity:1}
+#gameScreen.hud-v62.round-reveal .mapHeader,#gameScreen.hud-v62.round-reveal .mapActions,#gameScreen.hud-v62.round-reveal .mapFooterHint{display:none}
+#gameScreen.hud-v62 #resultPanel{position:absolute;z-index:40;left:0;right:0;bottom:0;top:auto;transform:none;width:100%;min-width:0;max-height:min(46dvh,340px);overflow:auto;padding:16px clamp(20px,5vw,100px) 14px;border:0;border-top:1px solid #83b7d443;border-radius:0;background:linear-gradient(110deg,#071c2b,#0a2437 58%,#091928);backdrop-filter:none;box-shadow:0 -8px 24px #0003;animation:none}
+#gameScreen.hud-v62 .resultHeading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:12px}
+#gameScreen.hud-v62 .resultHeadingCopy{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+#gameScreen.hud-v62 .resultTitle{display:none}
+#gameScreen.hud-v62 .roundVerdict{font:900 22px/1.1 "Space Grotesk",system-ui,sans-serif;color:#fff;margin:0}
+#gameScreen.hud-v62 .roundProgress{font:700 12px/1.15 "Space Grotesk",system-ui,sans-serif;padding:5px 9px;border-color:#5fa8c43c;color:#a8d2e6;background:#0a334566;letter-spacing:0}
+#gameScreen.hud-v62 .resultPlace{font:600 14px/1.25 "Space Grotesk",system-ui,sans-serif;letter-spacing:0;text-transform:none;max-width:100%;margin:0;color:#aec6d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+.resultLegend{display:flex;align-items:center;gap:14px;font:500 13px/1.2 "Space Grotesk",system-ui,sans-serif;color:#b8d1e3;margin:0;white-space:nowrap}
+.legendItem{display:flex;align-items:center;gap:7px}.legendDot.guess{background:#ff2d68}.legendDot.answer{background:#3bdcf4}.legendDot{width:12px;height:12px;border-width:2px;flex:none}
+#gameScreen.hud-v62 .resultMain{display:grid;grid-template-columns:1fr minmax(240px,340px) 1fr;gap:24px;align-items:center}
+#gameScreen.hud-v62 .resultMetric small{display:block;font-size:11px;letter-spacing:.12em;color:#93b5ce;font-weight:800}
+#gameScreen.hud-v62 .resultMetric b{display:block;font:900 clamp(29px,2.8vw,44px)/1.15 "Space Grotesk",system-ui,sans-serif;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
+#gameScreen.hud-v62 .resultMetricScore{text-align:right}.hud-v62 .resultMetricScore b:after{content:" pts";font:600 17px/1 "Space Grotesk",system-ui,sans-serif;color:#91b5cc}
+#gameScreen.hud-v62 .resultMetricScore b{color:#57dfff}
+#gameScreen.hud-v62 .resultActionCore{display:flex;flex-direction:column;align-items:stretch;gap:5px;text-align:center}
+#gameScreen.hud-v62 .resultActionCore .primary{min-height:48px;border-radius:11px;padding:10px 16px;font:800 16px/1.3 "Space Grotesk",system-ui,sans-serif;background:linear-gradient(115deg,#ff1756,#ff3c7b);box-shadow:0 6px 25px #ff2d6838}
+#gameScreen.hud-v62 .resultKeyboardHint{font:500 12px/1.2 "Space Grotesk",system-ui,sans-serif;letter-spacing:0;text-transform:none;color:#92aec3;margin:0}
+#gameScreen.hud-v62 .resultKeyboardHint kbd{font:600 11px/1.2 "Space Grotesk",system-ui,sans-serif;padding:1px 4px;border:1px solid #badff533;border-radius:3px;color:#c5dfef}
+#gameScreen.hud-v62 #hudNextWaiting{min-height:48px;display:grid;place-items:center;color:#c4dfee;font:600 15px/1.3 "Space Grotesk",system-ui,sans-serif;background:#15324677;border:1px solid #8ab6cc35;border-radius:10px}
+#gameScreen.hud-v62 .resultSecondary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:11px;padding-top:10px;border-top:1px solid #8fb8cf1e}
+#gameScreen.hud-v62 .travelInfo{font-size:12px;color:#a1bbc9;line-height:1.3;margin:0;padding:0;max-width:50%}
+#gameScreen.hud-v62 .resultLinks{display:flex;gap:14px;flex-wrap:wrap;margin:0;font-size:12px;align-items:center}
+#gameScreen.hud-v62 .resultLinks a,#gameScreen.hud-v62 .resultLinks button{font:600 12px/1.4 "Space Grotesk",system-ui,sans-serif;color:#b9d4e4;border:0;background:transparent;text-decoration:none;padding:0;white-space:nowrap}
+#gameScreen.hud-v62 .resultLinks button:hover,#gameScreen.hud-v62 .resultLinks a:hover{color:white;text-decoration:underline}
+#gameScreen.hud-v62 #resultPanel.perfect-result{border-top-color:#ffd36eaa;background:radial-gradient(ellipse at 50% 110%,#80602626,transparent 75%),linear-gradient(110deg,#0e202b,#142b36,#081927)}
+#gameScreen.hud-v62 .perfect-result .roundVerdict,#gameScreen.hud-v62 .perfect-result .resultMetricScore b{color:#ffd36e}
+/* Online results: ranking beside the map (not over its markers). */
+#gameScreen.hud-v62.multiplayer-active.round-reveal #mapPanel{right:var(--rank-width)}
+#gameScreen.hud-v62 #multiRoundPanel{position:absolute;top:var(--game-bar-h);right:0;bottom:var(--result-dock-h);left:auto;width:var(--rank-width);min-width:0;max-height:none;margin:0;border:0;border-left:1px solid #8cb3ce34;border-radius:0;transform:none;padding:20px 16px;background:#081b2cf7;z-index:32;box-shadow:none;overflow:auto;backdrop-filter:none}
+#gameScreen.hud-v62 #multiRoundTitle{font:800 19px/1.3 "Space Grotesk",system-ui,sans-serif;margin:7px 0 8px}
+#gameScreen.hud-v62 #multiRoundPlace{font-size:13px;color:#9db8ce}
+#gameScreen.hud-v62 #multiRoundRanking{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+#gameScreen.hud-v62 .multiRankRow{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px;align-items:center;padding:10px 8px;font-size:13px;border-radius:10px}
+#gameScreen.hud-v62 .multiRankRow .multiPlayerIdentity{min-width:0}.hud-v62 .multiRankRow strong{font-size:14px}.hud-v62 .multiRankRow b{font-size:13px}.hud-v62 .multiRankRow small{font-size:12px}.hud-v62 .multiRankRow em{grid-column:2/-1;font-size:12px;color:#92b3c7;font-style:normal}
+#gameScreen.hud-v62 .multiOverallTitle{font-size:13px;margin-top:17px}.hud-v62 .multiOverallRow b{font-size:13px}.hud-v62 .multiOverallRow strong{font-size:13px}
+#gameScreen.hud-v62 #closeRoundRanking{display:none}
+.hudConfetti{position:absolute;inset:var(--game-bar-h) 0 0;overflow:hidden;pointer-events:none;z-index:58}
+.hudConfetti i{position:absolute;top:12%;left:var(--x);width:7px;height:12px;background:var(--color);border-radius:2px;opacity:0;animation:lpConfetti 1.8s var(--delay) ease-out forwards}
+@keyframes lpConfetti{0%{opacity:0;transform:translate(0,-20px) rotate(0deg)}15%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(var(--drift),380px) rotate(560deg)}}
+/* End of game: retained verdict + real map recap, no fabricated XP or global rank. */
+#endScreen.hud-v62-end{padding:0!important;background:radial-gradient(ellipse at 10% 0,#0e3d5140,transparent 60%),#061421;overflow:auto}
+.hud-v62-end .v6EndShell{width:min(1660px,calc(100% - 64px));padding:24px 0 32px}
+.hud-v62-end .v6EndHeader{padding-bottom:17px}.hud-v62-end .v6EndBrand small{font-size:10px}.hud-v62-end .v6EndEyebrow{font-size:12px}
+.hud-v62-end .v6EndHero{padding:24px 0 18px;grid-template-columns:minmax(260px,.75fr) minmax(300px,1.25fr);gap:48px;align-items:center}
+.hud-v62-end .v6EndScoreLine .finalScore{font-size:clamp(64px,6vw,96px)}.hud-v62-end .v6EndScoreLine>span{font-size:17px;white-space:nowrap}
+.hud-v62-end .v6EndVerdict{font-size:clamp(28px,3vw,46px);margin-bottom:10px}.hud-v62-end .v6EndComment{font-size:16px;line-height:1.45;font-weight:500}
+.hud-v62-end .v6EndSummaryGrid{grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 22px}.hud-v62-end .v6EndSummaryGrid article{min-height:0;padding:14px 18px;border-radius:14px;box-shadow:none}.hud-v62-end .v6EndSummaryGrid b{font-size:25px;margin:5px 0}.hud-v62-end .v6EndSummaryGrid small{font-size:11px}.hud-v62-end .v6EndSummaryGrid span{font-size:12px}
+.finalMapLayout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(310px,.8fr);gap:18px;align-items:stretch}
+.finalMapBoard{border:1px solid #76a5be38;border-radius:16px;background:#0b2031;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.finalMapBoard>header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;min-height:72px;background:#092035}
+.finalMapBoard>header small{font:700 10px/1.2 "Space Grotesk",system-ui,sans-serif;letter-spacing:.12em;color:#6ad5ed;display:block;margin-bottom:4px}
+.finalMapBoard>header h2{font:800 18px/1.2 "Space Grotesk",system-ui,sans-serif;color:#fff;margin:0}
+.finalMapBoard>header button{font:600 13px/1.2 "Space Grotesk",system-ui,sans-serif;border-radius:9px;padding:10px 12px;white-space:nowrap}
+.finalMapBoard>header button.active{color:#72e8fb;border-color:#4bdaf359;background:#1a73822a}
+.finalMapHost{height:clamp(350px,47vh,590px);min-height:320px;position:relative;background:#b4cbd4;flex:1}
+.finalMapHost #guessMap{position:absolute;inset:0;width:100%;height:100%;opacity:1!important}
+.finalMapHost #finalMapEmpty{position:absolute;inset:0;display:grid;place-items:center;background:#112535;color:#adc6d6;font-size:15px;z-index:1;padding:20px;text-align:center}
+.finalMapBoard>footer{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:45px;padding:12px 16px;background:#081c2f;flex-wrap:wrap}
+#finalMapCaption{font-size:12px;color:#a8c5d4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52%}
+.hud-v62-end .v6EndBreakdown{padding:18px 15px;border-radius:16px;min-width:0;background:#071b2b}
+.hud-v62-end .v6EndBreakdownHead{gap:7px;display:block;margin-bottom:13px}.hud-v62-end .v6EndBreakdownHead h2{font-size:22px}.hud-v62-end .v6EndBreakdownHead small{font-size:11px}.hud-v62-end .v6EndBreakdownHead>span{font-size:12px;display:block;margin-top:6px;color:#92b8d1}
+.hud-v62-end #breakdown{margin:0;max-height:520px;overflow:auto;gap:8px}
+.hud-v62-end .breakRow,.hud-v62-multi-end .breakRow{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:9px;text-align:left;align-items:center;padding:12px 10px;border-radius:10px;cursor:pointer;font-size:13px;transition:background .12s,border-color .12s;position:relative}
+.hud-v62-end .breakRow>span:nth-child(2){min-width:0}.hud-v62-end .breakRow strong{font-size:13px;line-height:1.35;display:block}.hud-v62-end .breakRow small{font-size:12px;color:#98b6cd;margin-top:5px}.hud-v62-end .breakRow>b{font-size:14px;white-space:nowrap}.hud-v62-end .roundNum{font-size:12px}
+.hud-v62-end .breakRow.selected-round,.hud-v62-multi-end .breakRow.selected-round{background:#204058!important;border-color:#5ce4fd99!important;box-shadow:inset 3px 0 #3bdcf4}.hud-v62-end .breakRow.selected-round:after,.hud-v62-multi-end .breakRow.selected-round:after{display:none}
+.hud-v62-end .v6EndActions{position:sticky;bottom:0;padding:18px 0 8px;background:linear-gradient(0deg,#061421 80%,#06142100);gap:12px}.hud-v62-end .v6EndActions button{font:800 15px/1.3 "Space Grotesk",system-ui,sans-serif;border-radius:11px;min-height:48px}
+.hud-v62-end .challengeEndSummary{grid-column:1/-1}
+.finalCelebration{position:fixed;inset:0;z-index:110;display:grid;place-items:center;background:#03101cef;backdrop-filter:blur(8px);padding:24px}
+.finalCelebrationCard{text-align:center;width:min(680px,100%);padding:45px 25px;border-top:2px solid #ff2d68;background:radial-gradient(ellipse at center,#10304b8c,transparent 75%);animation:lpFinishIn .35s ease-out}
+.finalCelebrationCard .resultTitle{font-size:13px;color:#54def4;letter-spacing:.13em}.finalCelebrationCard h2{font:italic 900 clamp(30px,4vw,54px)/1.1 "Anton",system-ui,sans-serif;margin:22px 0;color:#fff}.finalCelebrationCard>b{display:block;font:900 clamp(68px,10vw,120px)/1 "Anton",system-ui,sans-serif;letter-spacing:-.02em;color:#fff}.finalCelebrationCard p{font-size:18px;color:#a5c3d7}.finalCelebrationCard button{font:800 16px/1.2 "Space Grotesk",system-ui,sans-serif;padding:15px 24px;margin-top:14px;border-radius:12px}
+@keyframes lpFinishIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+#multiEndScreen.hud-v62-multi-end{padding:24px;overflow:auto;background:#071725}
+#multiEndScreen.hud-v62-multi-end .multiEndHero{width:min(1500px,100%);max-width:1500px}
+.hudMultiRecap{margin-top:28px;border-top:1px solid #97b8c430;padding-top:20px;text-align:left}.multiRecapToolbar{display:flex;gap:20px;justify-content:space-between;align-items:center;margin-bottom:14px}.multiRecapToolbar h2{font-size:24px;margin:0}.multiRecapToolbar label{font-size:14px;display:flex;gap:10px;align-items:center}.multiRecapToolbar select{padding:9px 12px;border:1px solid #aac8d64a;border-radius:8px;background:#0b2237;color:#fff;font:inherit}.multiRecapList{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:8px;margin-top:12px;max-height:280px;overflow:auto}.hud-v62-multi-end .breakRow{border:1px solid #779eb637;background:#102335;color:#ecf7ff}.hud-v62-multi-end .breakRow small{display:block;color:#a7c5d8;font-size:12px;margin-top:4px}
+@media(max-width:1650px){
+ #gameScreen.hud-v62 .gameBrand>span{display:none}#gameScreen.hud-v62 .gameBrand{padding-right:12px}.hud-v62 .hudIdentity{gap:14px}
+ #gameScreen.hud-v62 .gameTop{grid-template-columns:minmax(0,1fr) 162px minmax(0,1fr);gap:16px}
+ .hudRoundCell{min-width:60px}.hudProgressArea{gap:12px}.hudTotal{padding-left:12px}
+}
+@media(max-width:1490px){
+ .hud-v62 .hudHistoryToggle{display:grid;grid-template-columns:auto auto}.hudHistoryToggle small{grid-column:1/-1}.hudHistoryToggle>span{grid-row:2;grid-column:2}
+ .hud-v62 .hudRoundHistory{display:none}
+ #gameScreen.hud-v62 .gameTop{grid-template-columns:minmax(0,1fr) 164px minmax(0,1fr);gap:18px}
+ #gameScreen.hud-v62.hud-history-open .hudRoundHistory{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;position:absolute;top:calc(100% + 10px);right:18px;width:370px;padding:12px;background:#091e31fa;border:1px solid #719fb74d;border-radius:14px;box-shadow:0 14px 40px #0008;z-index:100}
+}
+#gameScreen.hud-v62.history-many .hudHistoryToggle{display:flex}
+#gameScreen.hud-v62.history-many .hudRoundHistory{display:none}
+#gameScreen.hud-v62.history-many.hud-history-open .hudRoundHistory{display:grid;grid-template-columns:repeat(5,1fr);position:absolute;top:calc(100% + 10px);right:18px;gap:6px;width:380px;padding:12px;background:#091e31fa;border:1px solid #719fb74d;border-radius:14px;box-shadow:0 14px 40px #0008;z-index:100}
+@media(max-width:1080px){
+ #gameScreen.hud-v62{--rank-width:330px}
+ #gameScreen.hud-v62.multiplayer-active.round-reveal #mapPanel{right:0}
+ #gameScreen.hud-v62.round-reveal #multiRoundPanel{display:none}
+ #gameScreen.hud-v62.round-reveal.show-ranking #multiRoundPanel{display:block;box-shadow:-8px 0 25px #0005}
+ #gameScreen.hud-v62 #closeRoundRanking{display:grid;float:right;width:32px;height:32px;font-size:22px}
+ .hud-v62-end .finalMapLayout{grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);gap:12px}.hud-v62-end .v6EndShell{width:calc(100% - 36px)}.hud-v62-end .v6EndHero{gap:28px}
+}
+@media(max-width:840px){
+ #gameScreen.hud-v62 .gameTop{grid-template-columns:minmax(135px,1fr) 144px auto;gap:10px;padding:9px 12px;min-height:82px}
+ #gameScreen.hud-v62 .hudTimerSlot{width:144px}#gameScreen.hud-v62 #multiTimer{min-width:134px!important;width:134px;min-height:60px!important;padding:7px 20px!important}#gameScreen.hud-v62 #multiTimerValue{font-size:28px!important}
+ #gameScreen.hud-v62 .hudIdentity{gap:8px}#gameScreen.hud-v62 .gameBrand{display:none}#gameScreen.hud-v62 .hudContextCopy b{font-size:15px}
+ #gameScreen.hud-v62 .hudProgressArea{justify-content:flex-end;gap:8px}.hudTotal{min-width:74px;padding-left:10px}.hudTotal strong{font-size:21px}.hudTotal small{font-size:9px}.hudTotal>span{display:none}
+ #gameScreen.hud-v62 .topActions{position:static;z-index:62}#gameScreen.hud-v62 .topActions .icon{background:#061b2ded}
+ #gameScreen.hud-v62 #mapPanel{width:340px;height:310px}
+ #gameScreen.hud-v62 #resultPanel{padding:13px 20px;max-height:48dvh}.hud-v62 .resultHeading{gap:12px}
+ #gameScreen.hud-v62 .resultMain{grid-template-columns:1fr minmax(200px,240px) 1fr;gap:12px}
+ #gameScreen.hud-v62 .resultMetric b{font-size:30px}.hud-v62 .resultMetricScore b:after{font-size:12px}
+ #gameScreen.hud-v62 .resultSecondary{flex-wrap:wrap}.hud-v62 .travelInfo{max-width:none!important}
+ .finalMapLayout{display:flex!important;flex-direction:column}.finalMapHost{height:400px;flex:none}.hud-v62-end #breakdown{max-height:none}.hud-v62-end .v6EndHero{grid-template-columns:1fr 1.15fr;gap:18px}.hud-v62-end .v6EndScoreLine .finalScore{font-size:64px}.hud-v62-end .v6EndComment{font-size:15px}.hud-v62-end .v6EndSummaryGrid article{padding:12px}.hud-v62-end .v6EndSummaryGrid b{font-size:21px}.hud-v62-end .v6EndSummaryGrid span{font-size:12px}
+}
+@media(max-width:600px){
+ #gameScreen.hud-v62 .gameTop{grid-template-columns:minmax(0,1fr) 128px;min-height:110px;padding:9px 12px;gap:8px 14px}
+ #gameScreen.hud-v62 .hudRight{display:contents}#gameScreen.hud-v62 .hudIdentity{grid-column:1;grid-row:1}#gameScreen.hud-v62 .hudTimerSlot{grid-column:2;grid-row:1;width:128px;justify-content:flex-end}
+ #gameScreen.hud-v62 .hudProgressArea{grid-column:1;grid-row:2;justify-content:flex-start;gap:10px}
+ #gameScreen.hud-v62 .hudHistoryToggle{padding:4px 8px;min-width:70px;min-height:36px;display:flex;gap:6px}.hudHistoryToggle small{display:none}.hudHistoryToggle b{font-size:15px}
+ #gameScreen.hud-v62 .hudTotal{display:flex;align-items:baseline;gap:4px;padding-left:8px;min-width:0}.hudTotal small{display:none}.hudTotal strong{font-size:18px}.hudTotal>span{display:inline;font-size:11px}
+ #gameScreen.hud-v62 #multiTimer{width:128px;min-width:128px!important;min-height:61px!important}#gameScreen.hud-v62 #multiTimer small{font-size:10px!important}#gameScreen.hud-v62 #multiTimerValue{font-size:28px!important}
+ #gameScreen.hud-v62 .topActions{position:static;grid-column:2!important;grid-row:2!important;justify-self:end}#gameScreen.hud-v62 .topButtonGroup{flex-direction:row;gap:6px}#gameScreen.hud-v62 .topActions .icon{width:31px;height:31px;border-radius:8px}#gameScreen.hud-v62 .quitGameButton{min-width:31px}
+ #gameScreen.hud-v62 #compass{top:calc(var(--game-bar-h) + 10px)!important}#gameScreen.hud-v62 #compass[data-style="pano"]{max-width:calc(100vw - 100px)}#gameScreen.hud-v62 .compassPanoViewport{max-width:calc(100vw - 100px)}
+ #gameScreen.hud-v62 #mapPanel{right:8px;bottom:8px;width:min(320px,calc(100vw - 16px));height:min(290px,40dvh);border-radius:12px;max-height:calc(100dvh - var(--game-bar-h) - 100px)}
+ #gameScreen.hud-v62 #mapPanel.expanded{width:calc(100vw - 16px);height:calc(100dvh - var(--game-bar-h) - 110px)}
+ #gameScreen.hud-v62 .mapHeader{height:50px;flex-basis:50px}.hud-v62 .mapHeader b{font-size:13px!important}.hud-v62 .mapHeader span{font-size:9px!important}#gameScreen.hud-v62 .mapFooterHint{display:none}#gameScreen.hud-v62 .mapActions{height:56px;flex-basis:56px}
+ #gameScreen.hud-v62.multiplayer-active #multiCompactPanel{max-height:125px;width:calc(100vw - 64px)!important;left:48px!important;top:calc(var(--game-bar-h) + 155px)!important}
+ #gameScreen.hud-v62.multiplayer-active #multiCompactPanel.is-user-positioned{left:var(--multi-panel-left)!important;top:var(--multi-panel-top)!important}
+ #gameScreen.hud-v62 #multiWaiting{left:48px;bottom:auto;top:calc(var(--game-bar-h) + 120px);width:calc(100vw - 64px);font-size:12px}
+ #gameScreen.hud-v62 .multiNotice{font-size:12px;padding:8px 12px}
+ #gameScreen.hud-v62.round-reveal #mapPanel{top:var(--game-bar-h);left:0;right:0;bottom:var(--result-dock-h);width:auto;max-height:none;height:auto}
+ #gameScreen.hud-v62 #resultPanel{padding:12px 14px;max-height:51dvh}.hud-v62 .resultHeading .resultLegend{display:none}#gameScreen.hud-v62 .resultHeadingCopy{gap:7px}.hud-v62 .roundVerdict{font-size:19px!important}.hud-v62 .resultPlace{font-size:13px!important}.hud-v62 .roundProgress{font-size:11px!important}
+ #gameScreen.hud-v62 .resultMain{grid-template-columns:1fr 1fr;gap:10px}#gameScreen.hud-v62 .resultActionCore{grid-column:1/-1;grid-row:2}#gameScreen.hud-v62 .resultMetric b{font-size:27px}#gameScreen.hud-v62 .resultActionCore .primary{min-height:44px;font-size:15px}
+ #gameScreen.hud-v62 .resultKeyboardHint{display:none}#gameScreen.hud-v62 .resultSecondary{margin-top:7px;padding-top:7px;gap:5px}#gameScreen.hud-v62 .travelInfo{font-size:11px}#gameScreen.hud-v62 .resultLinks{gap:10px}#gameScreen.hud-v62 .resultLinks button,#gameScreen.hud-v62 .resultLinks a{font-size:11px}#gameScreen.hud-v62 #streetViewLink{display:none}
+ #gameScreen.hud-v62.round-reveal #multiRoundPanel{width:100%;max-width:none}.hud-v62.round-reveal .topActions{display:flex!important}
+ #gameScreen.hud-v62.hud-history-open .hudRoundHistory,#gameScreen.hud-v62.history-many.hud-history-open .hudRoundHistory{width:calc(100vw - 24px);right:12px;top:calc(100% + 10px);grid-template-columns:repeat(5,minmax(0,1fr));padding:8px;gap:4px}.hudRoundCell{min-width:0;padding:4px}.hudRoundCell b{font-size:13px}.hudRoundCell small{font-size:10px}
+ .hud-v62-end .v6EndShell{width:calc(100% - 24px);padding-top:16px}.hud-v62-end .v6EndHero{grid-template-columns:1fr;gap:18px;padding:20px 0}.hud-v62-end .v6EndComment{font-size:15px}.hud-v62-end .v6EndSummaryGrid{grid-template-columns:1fr;gap:8px}.hud-v62-end .v6EndSummaryGrid article{display:grid;grid-template-columns:1fr auto;gap:0 12px}.hud-v62-end .v6EndSummaryGrid small{align-self:center}.hud-v62-end .v6EndSummaryGrid span{grid-column:1/-1;margin-top:2px}.hud-v62-end .v6EndSummaryGrid b{font-size:24px;margin:0}.finalMapBoard>header{padding:12px;min-height:68px}.finalMapBoard>header h2{font-size:15px}.finalMapBoard>header button{font-size:12px;white-space:normal;max-width:105px}.finalMapHost{height:330px;min-height:250px}.finalMapBoard>footer{padding:10px 12px}.finalMapBoard .resultLegend{font-size:12px}#finalMapCaption{max-width:100%;font-size:11px}.hud-v62-end .v6EndActions{flex-direction:row;gap:8px}.hud-v62-end .v6EndActions button{min-width:0;flex:1;font-size:13px;padding:12px}
+ #multiEndScreen.hud-v62-multi-end{padding:12px}.multiRecapToolbar{align-items:flex-start;flex-direction:column;gap:10px}.multiRecapList{grid-template-columns:1fr}
+}
+@media(max-height:650px) and (min-width:601px){
+ #gameScreen.hud-v62 .gameTop{min-height:72px;padding-block:6px}#gameScreen.hud-v62 #multiTimer{min-height:56px!important;padding-block:5px!important}#gameScreen.hud-v62 #multiTimerValue{font-size:28px!important}.hudRoundCell{height:56px}
+ #gameScreen.hud-v62 #mapPanel{height:280px}#gameScreen.hud-v62 #resultPanel{padding-top:10px;padding-bottom:8px;max-height:44dvh}#gameScreen.hud-v62 .resultHeading{margin-bottom:8px}#gameScreen.hud-v62 .resultSecondary{margin-top:7px;padding-top:7px}#gameScreen.hud-v62 .resultMetric b{font-size:30px}.hud-v62 .resultPlace{font-size:13px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #gameScreen.hud-v62 *,#endScreen.hud-v62-end *{animation:none!important;transition:none!important;scroll-behavior:auto!important}.hudConfetti{display:none}
+}

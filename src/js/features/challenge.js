@@ -85,7 +85,7 @@ class ChallengeController {
   wrapGame() {
     const originalSubmit=this.game.submitGuess.bind(this.game);
     this.game.submitGuess=()=>{
-      if (this.current) this.stopTimer();
+      if (this.current && this.game.guess && this.game.answer && $('resultPanel')?.classList.contains('hidden')) this.stopTimer();
       return originalSubmit();
     };
     const originalShowMenu=this.game.showMenu.bind(this.game);
@@ -375,8 +375,10 @@ class ChallengeController {
         this.lastSecond=remaining;
         const mins=Math.floor(remaining/60), secs=remaining%60;
         if ($('multiTimerValue')) $('multiTimerValue').textContent=`${mins}:${String(secs).padStart(2,'0')}`;
-        box.classList.toggle('urgent',remaining>0 && remaining<=20);
+        box.classList.toggle('urgent',remaining>0 && remaining<=10);
         box.classList.toggle('critical',remaining>0 && remaining<=5);
+        window.lostPinHUD?.paintTimer(remaining, seconds);
+        if (remaining <= 10) window.guessrMusic?.countdownTick?.(remaining);
       }
       if (remaining<=0) {
         this.stopTimer(false);

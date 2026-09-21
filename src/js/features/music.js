@@ -184,6 +184,23 @@ class ChillMusic {
     makeTone(freq,n <= 2 ? 0.11 : 0.075,level);
   }
 
+  perfectRound() {
+    if (!this.enabled || this.volume <= 0) return;
+    this.arm();
+    if (!this.ctx || !this.master || this.ctx.state !== 'running') return;
+    [523.25,659.25,783.99,1046.5].forEach((frequency,index) => {
+      const start=this.ctx.currentTime+0.015+index*0.08;
+      const oscillator=this.ctx.createOscillator(), gain=this.ctx.createGain();
+      oscillator.type='sine'; oscillator.frequency.value=frequency;
+      gain.gain.setValueAtTime(0.0001,start);
+      gain.gain.exponentialRampToValueAtTime(0.18,start+0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001,start+0.4);
+      oscillator.connect(gain); gain.connect(this.master);
+      oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
+      oscillator.start(start); oscillator.stop(start+0.42);
+    });
+  }
+
   setVolume(v) {
     this.volume = Math.max(0, Math.min(1, v));
     localStorage.setItem(VOLUME_KEY, String(this.volume));

@@ -256,6 +256,7 @@ class GuessrGame {
     this.roundCount = 5;
     this.total = 0;
     this.results = [];
+    this.roundLocked = false;
     this.guess = null;
     this.answer = null;
     this.startPano = null;
@@ -347,8 +348,8 @@ class GuessrGame {
     $('retryButton').addEventListener('click', () => { this.avoidPoint = null; this.loadRound(); });
     $('replaceButton').addEventListener('click', () => { this.avoidPoint = this.lastAttemptPoint; this.loadRound(); });
     $('expandMap').addEventListener('click', () => {
-      $('mapPanel').classList.toggle('expanded');
-      setTimeout(() => google.maps.event.trigger(this.map, 'resize'), 180);
+      if (window.lostPinHUD) window.lostPinHUD.toggleMap();
+      else { $('mapPanel').classList.toggle('expanded'); setTimeout(() => google.maps.event.trigger(this.map, 'resize'), 180); }
     });
     $('quitButton').addEventListener('click', () => {
       if (window.confirm('Quitter la partie en cours ? La progression de cette partie sera perdue.')) this.showMenu();
@@ -357,15 +358,17 @@ class GuessrGame {
     $('closeHelp').addEventListener('click', () => $('helpModal').classList.add('hidden'));
     $('helpModal').addEventListener('click', e => { if (e.target === $('helpModal')) $('helpModal').classList.add('hidden'); });
     window.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { $('helpModal').classList.add('hidden'); $('compassModal').classList.add('hidden'); return; }
+      if (e.key === 'Escape') { if (window.lostPinHUD?.onEscape()) { e.preventDefault(); return; } $('helpModal').classList.add('hidden'); $('compassModal').classList.add('hidden'); return; }
       if ($('gameScreen').classList.contains('hidden') || !$('helpModal').classList.contains('hidden') || !$('compassModal').classList.contains('hidden')) return;
       const active = document.activeElement;
+      if (this.roundLocked && !active?.closest('#guessMap') && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','PageUp','PageDown','+','-','='].includes(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); return; }
       if (active && ($('guessMap').contains(active) || ['INPUT','SELECT','TEXTAREA','BUTTON','A'].includes(active.tagName))) return;
       const key = e.key;
       if (!$('resultPanel').classList.contains('hidden')) {
-        if (key === 'Enter') { e.preventDefault(); $('nextButton')?.click(); }
+        if (key === 'Enter' && !e.repeat) { e.preventDefault(); window.lostPinHUD ? window.lostPinHUD.continueRound() : $('nextButton')?.click(); }
         return;
       }
+      if (this.roundLocked) return;
       if (key.toLowerCase() === 'm') { e.preventDefault(); $('expandMap').click(); return; }
       const navKeys=['ArrowUp','ArrowDown','Home'];
       const nmpzKeys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','PageUp','PageDown','+','-','='];
@@ -385,6 +388,7 @@ class GuessrGame {
     const progress=$('roundProgress');
     if (progress) progress.textContent=`${this.playType==='exploration'?'Mission':'Manche'} ${this.round+1} / ${this.roundCount || (this.playType==='exploration'?3:5)}`;
     if (!verdict) return;
+    if (points === 5000 && !options.timedOut) { verdict.textContent='PARFAIT !'; return; }
     if (options.timedOut) { verdict.textContent='Temps écoulé'; return; }
     if (this.playType==='exploration' || options.exploration) {
       verdict.textContent = points >= 4500 ? 'Mission parfaite' : points >= 3500 ? 'Cible atteinte' : points >= 2500 ? 'Bien joué' : 'Objectif atteint';
@@ -468,6 +472,7 @@ class GuessrGame {
         box.classList.toggle('urgent',remaining>0 && remaining<=10);
         box.classList.toggle('critical',remaining>0 && remaining<=5);
         if (remaining <= 10) window.guessrMusic?.countdownTick?.(remaining);
+        window.lostPinHUD?.paintTimer(remaining, seconds);
       }
       if (remaining<=0) {
         this.stopSoloBlitzTimer(false);
@@ -488,6 +493,7 @@ class GuessrGame {
   }
 
   lockRoundNavigation() {
+    this.roundLocked = true;
     if (this.panorama) this.panorama.setOptions({clickToGo:false,linksControl:false});
     $('panoInteractionLock')?.classList.remove('hidden');
     $('returnStartButton')?.classList.add('hidden');
@@ -497,7 +503,7 @@ class GuessrGame {
     if (this.playType==='exploration' || !this.answer || !$('resultPanel')?.classList.contains('hidden')) return;
     const zone=ZONES[this.zoneId];
     const seconds=[15,20,30].includes(Number(this.blitzSeconds))?Number(this.blitzSeconds):20;
-    this.results.push({distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
+    this.results.push({...this.roundSnapshot(),distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
     $('scoreLabel').textContent=this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent='Aucune réponse';
     $('roundScoreLabel').textContent='0';
@@ -513,6 +519,7 @@ class GuessrGame {
     this.answerMarker=new google.maps.Marker({map:this.map,position:this.answer,title:'Lieu réel',zIndex:3,label:{text:'R',color:'#ffffff',fontWeight:'900',fontSize:'12px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:11,fillColor:'#e53935',fillOpacity:1,strokeColor:'#ffffff',strokeOpacity:1,strokeWeight:3}});
     this.map.setCenter(this.answer); this.map.setZoom(Math.max(5,zone.zoom||10));
     $('nextButton').textContent=this.round===(this.roundCount||5)-1?'Voir le score final':'Manche suivante';
+    this.presentRoundResult();
   }
 
   setPlayType(type, options={}) {
@@ -1051,7 +1058,7 @@ class GuessrGame {
     });
     this.map.addListener('click', e => {
       if (this.playType === 'exploration') return;
-      if (!e.latLng || !$('resultPanel').classList.contains('hidden')) return;
+      if (!e.latLng || this.roundLocked || $('gameScreen').classList.contains('hidden') || !$('resultPanel').classList.contains('hidden')) return;
       this.setGuess({lat:e.latLng.lat(),lng:e.latLng.lng()});
     });
   }
@@ -1059,7 +1066,7 @@ class GuessrGame {
   applyInteractionMode() {
     const gameScreen=$('gameScreen');
     const gameHidden=gameScreen?.classList.contains('hidden');
-    const roundFinished=gameScreen?.classList.contains('has-result');
+    const roundFinished=this.roundLocked || gameScreen?.classList.contains('has-result');
     const lock = $('panoInteractionLock');
     if (lock) lock.classList.toggle('hidden', gameHidden || (!roundFinished && this.mode !== 'nmpz'));
     const returnButton=$('returnStartButton');
@@ -1505,6 +1512,7 @@ class GuessrGame {
       $('startButton').textContent = startButtonText || 'Lancer la partie';
     }
     this.ensureGoogleObjects();
+    window.lostPinHUD?.beginSession();
     this.avoidPoint = null;
     this.lastAttemptPoint = null;
     this.round = 0;
@@ -1521,6 +1529,8 @@ class GuessrGame {
   }
 
   async loadRound() {
+    window.lostPinHUD?.prepareRound();
+    this.roundLocked = false;
     const challengeRound=this.challengeConfig?.rounds?.[this.round] || null;
     const roundZoneId=(challengeRound?.zoneId && ZONES[challengeRound.zoneId]) ? challengeRound.zoneId : (this.roundZoneIds?.[this.round] && ZONES[this.roundZoneIds[this.round]] ? this.roundZoneIds[this.round] : this.zoneId);
     if (roundZoneId && ZONES[roundZoneId]) this.zoneId=roundZoneId;
@@ -1662,6 +1672,8 @@ class GuessrGame {
         if (token === this.currentRoundToken) {
           $('loadingPanel').classList.add('hidden');
           if (!mission) {
+            this.startTime = Date.now();
+            window.lostPinHUD?.onRoundReady();
             if (window.lostPinChallenges?.current) window.lostPinChallenges.onRoundReady?.(this.round);
             else this.startSoloBlitzTimer();
           }
@@ -1678,14 +1690,14 @@ class GuessrGame {
 
   submitGuess() {
     if (this.playType === 'exploration') return;
-    if (!this.guess || !this.answer || !$('resultPanel').classList.contains('hidden')) return;
+    if (this.roundLocked || !this.guess || !this.answer || !$('resultPanel').classList.contains('hidden')) return;
     this.stopSoloBlitzTimer(false);
     const zone = ZONES[this.zoneId];
     const distance = haversine(this.guess, this.answer);
     const points = this.scoreForCurrentVariant(distance, zone);
     this.total += points;
     const seconds = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
-    this.results.push({distance,points,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
+    this.results.push({...this.roundSnapshot(),distance,points,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent = formatDistance(distance);
     $('roundScoreLabel').textContent = points.toLocaleString('fr-FR');
@@ -1718,13 +1730,14 @@ class GuessrGame {
     bounds.extend(this.guess); bounds.extend(this.answer);
     this.map.fitBounds(bounds, 65);
     $('nextButton').textContent = this.round === (this.roundCount || 5) - 1 ? 'Voir le score final' : 'Manche suivante';
+    this.presentRoundResult();
   }
 
   submitChallengeTimeout() {
     if (!this.answer || !$('resultPanel').classList.contains('hidden')) return;
     const zone = ZONES[this.zoneId];
     const seconds = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
-    this.results.push({distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
+    this.results.push({...this.roundSnapshot(),distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent = 'Aucune réponse';
     $('roundScoreLabel').textContent = '0';
@@ -1753,6 +1766,17 @@ class GuessrGame {
     this.map.setCenter(this.answer);
     this.map.setZoom(Math.max(5, zone.zoom || 10));
     $('nextButton').textContent = this.round === (this.roundCount || 5) - 1 ? 'Voir le score final' : 'Manche suivante';
+    this.presentRoundResult();
+  }
+
+  roundSnapshot() {
+    return { answer:this.answer ? {...this.answer} : null, guess:this.guess ? {...this.guess} : null,
+      pano:this.startPano || '', heading:this.startPov?.heading || 0 };
+  }
+
+  presentRoundResult() {
+    this.roundLocked = true;
+    window.lostPinHUD?.showSoloResult(this.results[this.results.length-1]);
   }
 
   async nextRound() {
@@ -1815,6 +1839,7 @@ class GuessrGame {
     const best = this.results.reduce((current,r,index)=>!current || Number(r.points||0)>Number(current.r.points||0)?{r,index}:current,null);
     const key = this.variantRecordKey(selection);
     const isPerfect = this.total === 25000 && this.results.length === 5 && this.results.every(r => r.points === 5000);
+    const perfectSession = this.total === maxScore && this.results.length === (this.roundCount || 5) && this.results.every(r => r.points === 5000);
 
     const perfects = readJSON(PERFECT_KEY, {});
     let perfect = perfects[key] || null;
@@ -1832,8 +1857,8 @@ class GuessrGame {
       writeJSON(PERFECT_KEY, perfects);
     }
 
-    $('endScreen').classList.toggle('perfectGame', isPerfect);
-    $('endEyebrow').textContent = isPerfect ? 'PARTIE PARFAITE' : 'PARTIE TERMINÉE';
+    $('endScreen').classList.toggle('perfectGame', perfectSession);
+    $('endEyebrow').textContent = perfectSession ? 'PARTIE PARFAITE' : 'PARTIE TERMINÉE';
 
     const ratio = maxScore > 0 ? this.total / maxScore : 0;
     const verdict = $('finalVerdict');
@@ -1841,15 +1866,15 @@ class GuessrGame {
     let verdictTier = 'low';
     let comment = '';
 
-    if (isPerfect) {
+    if (perfectSession) {
       verdictText = 'PARFAIT !';
       verdictTier = 'perfect';
-      comment = 'Cinq lieux, cinq réponses parfaites. Tu n’as presque rien laissé au hasard.';
+      comment = `${this.results.length} lieux, ${this.results.length} réponses parfaites. Tu n’as presque rien laissé au hasard.`;
       if (newPrecisionRecord && perfect.count > 1) comment += ' Et tu signes un nouveau record de précision sur un 25 000.';
     } else if (ratio >= .92) {
       verdictText = 'EXCEPTIONNEL !';
       verdictTier = 'elite';
-      comment = 'Tu as lu les lieux avec une précision redoutable. Le 25 000 est clairement à portée.';
+      comment = `Tu as lu les lieux avec une précision redoutable. Le ${maxScore.toLocaleString('fr-FR')} est clairement à portée.`;
     } else if (ratio >= .80) {
       verdictText = 'TRÈS GROSSE PARTIE !';
       verdictTier = 'great';
@@ -1916,6 +1941,7 @@ class GuessrGame {
       bests[key] = Math.max(bests[key] || 0, this.total);
       writeJSON(BEST_KEY, bests);
     }
+    window.lostPinHUD?.showFinal();
   }
 
   escapeHTML(text) {
@@ -1923,6 +1949,8 @@ class GuessrGame {
   }
 
   showMenu() {
+    window.lostPinHUD?.closeSession();
+    this.roundLocked = false;
     this.currentRoundToken++;
     this.stopExplorationClock();
     this.stopSoloBlitzTimer(true);

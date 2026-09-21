@@ -1,3 +1,7 @@
+# Mise à jour V6.2.0
+
+La spécification du HUD actif est dans [HUD_V6_2.md](HUD_V6_2.md). La recette est dans [QA_V6_2.md](QA_V6_2.md). Les notes ci-dessous conservent l’historique des choix précédents.
+
 # LostPin V6 - direction UI/UX
 
 La V6 est une vraie rupture visuelle par rapport a la V5.5.1. Le moteur de jeu reste en place, mais l experience autour de lui est reconstruite comme un vrai site de jeu.

@@ -51,6 +51,7 @@ jobs:
             "tools/",
             "dist/",
             "dev/",
+            "benchmark guessers/",
             "docs/",
             "scripts/dev/"
           )

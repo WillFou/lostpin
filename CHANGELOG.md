@@ -1,5 +1,20 @@
 # LostPin - Changelog
 
+## 6.2.0 - HUD, révélation et carte récapitulative
+
+- Bandeau de partie réorganisé : contexte, timer stylisé avec arcs cyan, historique des manches et score total. Les 3/5/10 manches restent consultables dans un volet compact sur petite largeur.
+- Carte de réponse légèrement translucide au repos, opaque pendant l’interaction. Agrandissement uniquement volontaire (bouton / M), réduction par Échap. Aucun agrandissement au survol.
+- Quatre boussoles conservées sans degrés. J/R reste déplaçable avec repositionnement hors boussole et carte. Notifications dans leur zone dédiée.
+- Résultat de manche : grande carte, marqueurs T/R, liaison animée, cadrage automatique et bandeau inférieur distance / suite / points. L’action suivante n’est pas bloquée pendant l’animation.
+- 5 000 points : accent doré, particules courtes et son distinct respectant le réglage audio. Animations limitées lorsque le système demande moins de mouvement.
+- Fin solo : verdict existant conservé, conclusion courte et passable, puis carte des réponses et des vrais lieux. Cliquer une manche la cadre ; « Toutes les manches » restaure la vue globale.
+- Résultats multijoueurs : carte et classement côte à côte sur grand écran, classement ouvrable sur petite largeur ; passage suivant réservé à l’hôte. Carte finale par joueur ou pour tous.
+- Conservation des coordonnées et du temps dans les résultats solo/multi. Aucune fausse position n’est créée en cas de non-réponse ou d’ancien historique incomplet.
+- La même instance de carte est réutilisée pour le jeu, la révélation et la fin. Animations et marqueurs nettoyés au changement de manche ou à la sortie.
+- No Move, NMPZ, retour au départ, sons Blitz, confirmations Quitter et chrono multi Classique conservés. Vue verrouillée aussi lors d’une reprise multi déjà soumise ou d’un timeout invité.
+- Homepage, hero, routes V6.1 et intégration Google inchangés. `/benchmark guessers/` exclu explicitement du packaging GitHub, même s’il a été suivi par Git auparavant.
+- QA : voir `docs/QA_V6_2.md` pour les vérifications effectuées et les tests réels restant à faire.
+
 ## 6.0.8 - Boucle de jeu V6 / UX
 - résultat de manche transformé en vraie étape centrale : fenêtre agrandie et centrée, verdict, progression de manche, métriques plus lisibles et CTA principal renforcé
 - touche Entrée disponible sur le résultat pour passer rapidement à la manche suivante
