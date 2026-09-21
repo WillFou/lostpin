@@ -2,3 +2,21 @@
 /dev/backups/
 /benchmark guessers/
 /dev/qa/artifacts/
+
+# Local configuration: never commit real keys (legacy + current layout).
+config.js
+config.local.js
+/config/*.local.js
+.env
+.env.*
+!.env.example
+
+# Local IDE and build output
+.vs/
+**/bin/
+**/obj/
+*.user
+
+# Python QA cache
+__pycache__/
+*.pyc

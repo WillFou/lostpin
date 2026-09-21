@@ -1,3 +1,9 @@
+V6.2.1 - IMPORTANT
+Le ZIP source ne contient volontairement pas config/config.js.
+start.bat le cree localement si absent. Ne jamais le versionner.
+Lire docs/SECURITY_CONFIG.md avant publication et docs/HUD_V6_2_1.md pour les changements.
+Recette : docs/QA_V6_2_1.md.
+
 LostPin
 =======
 

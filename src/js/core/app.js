@@ -9,6 +9,8 @@ const RECENT_KEY = 'guessr360-v3-recent';
 const BEST_KEY = 'guessr360-v3-best';
 const PERFECT_KEY = 'guessr360-v36-perfects';
 const COMPASS_STYLE_KEY = 'guessr360-v37-compass-style';
+const CLASSIC_TIMER_KEY = 'lostpin-classic-timer-v1';
+const CLASSIC_TIMER_OPTIONS = [0,60,120,180];
 const COMPASS_STYLES = ['circle','pano','real','vintage'];
 const COMPASS_STYLE_NAMES = {circle:'Circulaire',pano:'Panoramique',real:'Métal',vintage:'Vintage'};
 
@@ -249,6 +251,9 @@ class GuessrGame {
     this.playType = 'guess';
     this.gameVariant = 'classic';
     this.blitzSeconds = 20;
+    const savedClassicTimer=Number(readJSON(CLASSIC_TIMER_KEY,0));
+    this.classicTimerSeconds=CLASSIC_TIMER_OPTIONS.includes(savedClassicTimer)?savedClassicTimer:0;
+    this.activeSoloTimerSeconds=0;
     this.soloTimerInterval = null;
     this.soloDeadline = 0;
     this.soloLastSecond = null;
@@ -319,7 +324,9 @@ class GuessrGame {
       const seconds=Number($('blitzSeconds')?.value||20);
       this.blitzSeconds=[15,20,30].includes(seconds)?seconds:20;
       this.refreshVariantUI();
+      this.refreshSoloRules();
     });
+    $('classicSeconds')?.addEventListener('change',()=>this.setClassicTimerSeconds($('classicSeconds').value));
     document.querySelectorAll('.modeCard').forEach(card => card.addEventListener('click', () => {
       if (this.playType === 'exploration') return;
       document.querySelectorAll('.modeCard').forEach(x => x.classList.remove('selected'));
@@ -422,6 +429,7 @@ class GuessrGame {
       this.blitzSeconds=[15,20,30].includes(requested)?requested:20;
     }
     this.refreshVariantUI();
+    this.refreshSoloRules();
     this.updateSelectionBanner();
     this.updateBest();
     if (!options.silent) document.dispatchEvent(new CustomEvent('lostpin:variant-change',{detail:{variant:this.gameVariant,blitzSeconds:this.blitzSeconds}}));
@@ -434,6 +442,23 @@ class GuessrGame {
     const blitzOptions=$('blitzOptions');
     blitzOptions?.classList.toggle('hidden',this.gameVariant!=='blitz' || exploration);
     if ($('blitzSeconds')) $('blitzSeconds').value=String(this.blitzSeconds);
+    $('classicTimerOptions')?.classList.toggle('hidden',this.gameVariant!=='classic' || exploration);
+    if ($('classicSeconds')) $('classicSeconds').value=String(this.classicTimerSeconds);
+  }
+
+  setClassicTimerSeconds(value) {
+    const seconds=Number(value);
+    this.classicTimerSeconds=CLASSIC_TIMER_OPTIONS.includes(seconds)?seconds:0;
+    writeJSON(CLASSIC_TIMER_KEY,this.classicTimerSeconds);
+    this.refreshVariantUI();this.refreshSoloRules();this.updateSelectionBanner();
+  }
+
+  getSoloTimerSeconds() {
+    // Challenges and multiplayer own their clocks: never inherit this solo preference.
+    if (this.playType!=='guess' || this.challengeConfig || window.lostPinChallenges?.current || window.guessrMultiplayer?.active) return 0;
+    if (this.gameVariant==='blitz') return [15,20,30].includes(Number(this.blitzSeconds))?Number(this.blitzSeconds):20;
+    if (this.gameVariant==='classic') return CLASSIC_TIMER_OPTIONS.includes(Number(this.classicTimerSeconds))?Number(this.classicTimerSeconds):0;
+    return 0;
   }
 
   updateGameHudMode() {
@@ -458,12 +483,18 @@ class GuessrGame {
 
   startSoloBlitzTimer() {
     this.stopSoloBlitzTimer(false);
-    if (this.playType!=='guess' || this.gameVariant!=='blitz' || this.challengeConfig || window.guessrMultiplayer?.active) return;
-    const seconds=[15,20,30].includes(Number(this.blitzSeconds))?Number(this.blitzSeconds):20;
+    // Keep the historical method name for feature compatibility; it now handles solo Classic too.
+    const seconds=this.getSoloTimerSeconds();
+    this.activeSoloTimerSeconds=seconds;
+    if (!seconds) return;
     const box=$('multiTimer'); if (!box) return;
+    const roundToken=this.currentRoundToken;
     box.classList.remove('hidden','urgent','critical');
     this.soloDeadline=Date.now()+seconds*1000;
     const tick=()=>{
+      if (roundToken!==this.currentRoundToken || this.roundLocked || $('gameScreen').classList.contains('hidden')) {
+        this.stopSoloBlitzTimer(false);return;
+      }
       const remaining=Math.max(0,Math.ceil((this.soloDeadline-Date.now())/1000));
       if (remaining!==this.soloLastSecond) {
         this.soloLastSecond=remaining;
@@ -500,16 +531,17 @@ class GuessrGame {
   }
 
   submitSoloTimeout() {
-    if (this.playType==='exploration' || !this.answer || !$('resultPanel')?.classList.contains('hidden')) return;
+    if (this.roundLocked || this.playType==='exploration' || !this.answer || !$('resultPanel')?.classList.contains('hidden')) return;
+    this.stopSoloBlitzTimer(false);
     const zone=ZONES[this.zoneId];
-    const seconds=[15,20,30].includes(Number(this.blitzSeconds))?Number(this.blitzSeconds):20;
+    const seconds=this.activeSoloTimerSeconds || this.getSoloTimerSeconds();
     this.results.push({...this.roundSnapshot(),distance:null,points:0,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,timedOut:true,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
     $('scoreLabel').textContent=this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent='Aucune réponse';
     $('roundScoreLabel').textContent='0';
     this.updateRoundResultUX(0,{timedOut:true});
     $('resultPlace').textContent=this.startDescription || zone.name;
-    $('travelInfo').textContent=`Blitz ${seconds} s · temps écoulé · aucune réponse validée.`;
+    $('travelInfo').textContent=`${variantLabel(this.gameVariant)} ${seconds} s · temps écoulé · aucune réponse validée.`;
     const source=new URL('https://www.google.com/maps/@'); source.searchParams.set('api','1'); source.searchParams.set('map_action','pano'); source.searchParams.set('pano',this.startPano||'');
     if (this.startPov) source.searchParams.set('heading',String(Math.round(this.startPov.heading)));
     $('streetViewLink').href=source.toString();
@@ -547,13 +579,18 @@ class GuessrGame {
       button.disabled=exploration;
       button.title=exploration ? 'Disponible en Géolocalisation. Exploration multijoueur arrivera plus tard.' : '';
     }
+    this.refreshSoloRules();
+    if (this.apiReady && $('startButton')) $('startButton').textContent = exploration ? `Lancer l'exploration` : 'Lancer la partie';
+  }
+
+  refreshSoloRules() {
+    const exploration=this.playType==='exploration';
     if ($('soloRulesText')) {
       if (exploration) $('soloRulesText').innerHTML='<b>3 missions &middot; 15 000 points.</b> Rejoins physiquement chaque cible dans Street View. Chrono, déplacements et distance parcourue sont mesurés.';
       else if (this.gameVariant==='blitz') $('soloRulesText').innerHTML=`<b>Blitz · 5 manches · ${this.blitzSeconds} s par manche.</b> Le barème classique reste utilisé, mais chaque réponse doit être validée avant la fin du chrono.`;
       else if (this.gameVariant==='precision') $('soloRulesText').innerHTML='<b>Précision · 5 manches.</b> Le score décroît linéairement avec la distance : chaque mètre compte davantage, sans courbe exponentielle.';
-      else $('soloRulesText').innerHTML=`<b>5 manches &middot; 25 000 points.</b> Les panoramas proviennent de Google Street View. Le jeu n'est affilié ni à Google ni à GeoGuessr. Ta clé API reste uniquement dans le dossier local sur ton PC.`;
+      else $('soloRulesText').innerHTML=`<b>Classique · 5 manches · ${this.classicTimerSeconds?`${this.classicTimerSeconds} s par manche`:'sans limite de temps'}.</b> ${this.classicTimerSeconds?'Au terme du chrono, le point posé est validé automatiquement ; sans point, la manche rapporte 0.':'Prends le temps de lire les indices.'} Les panoramas proviennent de Google Street View.`;
     }
-    if (this.apiReady && $('startButton')) $('startButton').textContent = exploration ? `Lancer l'exploration` : 'Lancer la partie';
   }
 
   bindGeographyUI() {
@@ -910,7 +947,7 @@ class GuessrGame {
     if (detail) {
       if (this.playType==='exploration') detail.textContent=selection.type==='playlist' ? `${selection.zoneIds.length} maps · 3 missions · une map tirée par mission` : '3 missions sur ce terrain';
       else {
-        const prefix=this.gameVariant==='blitz'?`Blitz ${this.blitzSeconds} s`:this.gameVariant==='precision'?'Précision':'Classique';
+        const prefix=this.gameVariant==='blitz'?`Blitz ${this.blitzSeconds} s`:this.gameVariant==='precision'?'Précision':`Classique · ${this.classicTimerSeconds?`${this.classicTimerSeconds} s`:'sans chrono'}`;
         detail.textContent=selection.type==='playlist' ? `${prefix} · ${selection.zoneIds.length} maps · une map tirée par manche` : `${prefix} · 5 manches sur le même terrain`;
       }
     }
@@ -1542,6 +1579,7 @@ class GuessrGame {
     this.startDescription = '';
     this.stopExplorationClock();
     this.stopSoloBlitzTimer(false);
+    this.activeSoloTimerSeconds=0;
     this.maxTravel = 0;
     this.currentTravel = 0;
     this.travelDistance = 0;
@@ -1696,14 +1734,15 @@ class GuessrGame {
     const distance = haversine(this.guess, this.answer);
     const points = this.scoreForCurrentVariant(distance, zone);
     this.total += points;
-    const seconds = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
+    const elapsed = Math.max(1, Math.round((Date.now() - this.startTime) / 1000));
+    const seconds = this.activeSoloTimerSeconds ? Math.min(elapsed,this.activeSoloTimerSeconds) : elapsed;
     this.results.push({...this.roundSnapshot(),distance,points,description:this.startDescription,seconds,travel:this.maxTravel,moves:this.moveCount,zoneId:this.zoneId,zoneName:zone.name,variant:this.gameVariant});
     $('scoreLabel').textContent = this.total.toLocaleString('fr-FR');
     $('distanceLabel').textContent = formatDistance(distance);
     $('roundScoreLabel').textContent = points.toLocaleString('fr-FR');
     this.updateRoundResultUX(points);
     $('resultPlace').textContent = this.startDescription || zone.name;
-    const variantText=this.gameVariant==='precision'?' · Précision linéaire':this.gameVariant==='blitz'?` · Blitz ${this.blitzSeconds} s`:'';
+    const variantText=this.gameVariant==='precision'?' · Précision linéaire':this.gameVariant==='blitz'?` · Blitz ${this.blitzSeconds} s`:this.activeSoloTimerSeconds?` · Classique ${this.activeSoloTimerSeconds} s`:'';
     $('travelInfo').textContent = (this.mode === 'explore'
       ? `Move : ${this.moveCount} déplacement${this.moveCount === 1 ? '' : 's'}, jusqu'à ${formatDistance(this.maxTravel)} du départ - ${seconds} s`
       : `${this.mode === 'nmpz' ? 'No Move + No Pan/Zoom' : 'No Move'} - ${seconds} s`) + variantText;

@@ -125,6 +125,7 @@ class StatsController {
       score:Number(this.game.total)||0,
       roundCount:Number(this.game.roundCount)||results.length||5,
       challengeId:challenge?.id||null,
+      timerSeconds:Number(challenge?.timerSeconds ?? this.game.activeSoloTimerSeconds)||0,
       results
     };
   }
@@ -138,7 +139,7 @@ class StatsController {
     const summary={
       id:game.id,date:game.date,zoneId:game.zoneId,zoneName:game.zoneName,selectionType:game.selectionType||'zone',playlistId:game.playlistId||null,mode:game.mode,variant:normalizeVariant(game.variant),
       score:game.score,maxScore,roundCount:game.roundCount,perfectRounds,
-      averageDistance,challengeId:game.challengeId||null
+      averageDistance,challengeId:game.challengeId||null,timerSeconds:Number(game.timerSeconds)||0
     };
     this.data.games.unshift(summary);
     this.data.games=this.data.games.slice(0,MAX_GAMES);

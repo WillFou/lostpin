@@ -281,6 +281,11 @@ class GameplayUI {
     if(shown){
       const header=screen.querySelector('.gameTop').getBoundingClientRect();this.setVar(screen,'--game-bar-h',`${Math.ceil(header.height)}px`);
       if(this.state==='result'){this.setVar(screen,'--result-dock-h',`${Math.ceil($('resultPanel').getBoundingClientRect().height)}px`);}
+      if(this.state!=='result'){
+        const compass=$('compass');
+        const safeTop=Math.max(header.bottom+12,visible(compass)?compass.getBoundingClientRect().bottom+12:0);
+        this.setVar(screen,'--map-expanded-top',`${Math.ceil(safeTop)}px`);
+      }
       this.placeNotices();
       if(!this.multi?.multiCompactDrag&&visible($('multiCompactPanel'))&&this.isMulti){
         const panel=$('multiCompactPanel'),r=panel.getBoundingClientRect();const pos=this.constrainJR({x:r.left,y:r.top},r.width,r.height);

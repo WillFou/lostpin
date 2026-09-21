@@ -1,3 +1,7 @@
+## V6.2.1 - Protection configuration et version
+
+La configuration locale est exclue explicitement de la Release. Le workflow controle que le tag correspond a version.json, refuse les configurations suivies et les motifs de cle Google, puis verifie le dossier de packaging. Le source ne livre pas de binaire dist/ ; les scripts de build et de publication sont inclus. Voir SECURITY_CONFIG.md.
+
 # LostPin Updater
 
 Ce kit ajoute un launcher/updater Windows a LostPin sans imposer Git, Python ou .NET aux testeurs.

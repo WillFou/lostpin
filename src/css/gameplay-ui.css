@@ -50,9 +50,9 @@
 #gameScreen.hud-v62 #compass{top:calc(var(--game-bar-h) + 12px)!important}
 #gameScreen.hud-v62 #panoInteractionLock{top:var(--game-bar-h);cursor:default!important}
 /* No dimension changes at hover: only contrast/opacity are adjusted on interaction. */
-#gameScreen.hud-v62 #mapPanel{position:absolute;left:auto;top:auto;right:18px;bottom:18px;width:clamp(330px,25vw,410px);height:clamp(290px,38vh,360px);max-height:calc(100dvh - var(--game-bar-h) - 40px);min-width:0;border:1px solid #a4d4e24d;border-radius:15px;background:#071725c7;box-shadow:0 18px 42px #0007;overflow:hidden;z-index:28;transition:width .22s ease,height .22s ease,box-shadow .18s,top .22s,bottom .22s,right .22s;border-bottom:2px solid #7fa2b430;filter:none}
-#gameScreen.hud-v62 #mapPanel #guessMap{position:relative;opacity:.94;background:transparent;transition:opacity .15s;flex:1;min-height:0}
-#gameScreen.hud-v62 #mapPanel:hover #guessMap,#gameScreen.hud-v62 #mapPanel:focus-within #guessMap,#gameScreen.hud-v62 #mapPanel.expanded #guessMap{opacity:1}
+#gameScreen.hud-v62 #mapPanel{position:absolute;left:auto;top:auto;right:18px;bottom:18px;width:clamp(330px,25vw,410px);height:clamp(290px,38vh,360px);max-height:calc(100dvh - var(--game-bar-h) - 40px);min-width:0;border:1px solid #a4d4e24d;border-radius:15px;background:transparent;backdrop-filter:none;box-shadow:0 18px 42px #0007;overflow:hidden;z-index:28;transition:width .22s ease,height .22s ease,box-shadow .18s,top .22s,bottom .22s,right .22s;border-bottom:2px solid #7fa2b430;filter:none}
+#gameScreen.hud-v62 #mapPanel #guessMap{position:relative;opacity:.90;background:transparent;transition:opacity .15s;flex:1;min-height:0}
+#gameScreen.hud-v62 #mapPanel:hover #guessMap,#gameScreen.hud-v62 #mapPanel:has(:focus-visible) #guessMap,#gameScreen.hud-v62 #mapPanel.expanded #guessMap{opacity:1}
 #gameScreen.hud-v62 #mapPanel.expanded{width:min(800px,calc(100vw - 36px));height:min(650px,calc(100dvh - var(--game-bar-h) - 40px))}
 #gameScreen.hud-v62 .mapHeader{height:57px;flex:0 0 57px;padding:8px 11px;gap:10px;background:#0b2132e8;border-color:#92b7d12b}
 #gameScreen.hud-v62 .mapHeader>div{min-width:0;gap:4px}
@@ -218,4 +218,93 @@
 }
 @media(prefers-reduced-motion:reduce){
  #gameScreen.hud-v62 *,#endScreen.hud-v62-end *{animation:none!important;transition:none!important;scroll-behavior:auto!important}.hudConfetti{display:none}
+}
+
+
+/* V6.2.1 - map ergonomics and full-viewport recap. No changes to home/hero. */
+#gameScreen.hud-v62:not(.round-reveal) #mapPanel.expanded {
+  width:min(max(680px,54vw),calc(100vw - 36px));
+  top:var(--map-expanded-top,calc(var(--game-bar-h) + 120px));
+  bottom:18px;
+  height:calc(100dvh - var(--map-expanded-top,calc(var(--game-bar-h) + 120px)) - 18px);
+  max-height:none;
+}
+#gameScreen.hud-v62 .mapActions {display:flex;align-items:center;gap:8px}
+#gameScreen.hud-v62 .mapBottomTools {display:flex;align-items:center;gap:5px;flex:none}
+#gameScreen.hud-v62 .mapBottomTools .mapToolButton {width:38px;height:40px;line-height:1;font-size:23px}
+#gameScreen.hud-v62 .mapActions #guessButton {flex:1;min-width:0}
+/* Controls live below map tiles: they never obscure Google's logo/attribution. */
+.classicTimerOptions {display:flex;justify-content:space-between;align-items:center;gap:18px;padding:16px;margin-top:14px;border:1px solid #5da1bf4d;border-radius:12px;background:#0b2133}
+.classicTimerOptions label {display:block;font-weight:800;font-size:16px;color:#eff8ff}
+.classicTimerOptions small {display:block;font-size:13px;color:#afc5d7;line-height:1.45;margin-top:5px;max-width:520px}
+.classicTimerOptions select {flex-shrink:0;min-height:44px;padding:10px 13px;border:1px solid #7bb7d15c;border-radius:9px;background:#132d42;color:#fff;font:700 15px/1.3 system-ui,sans-serif}
+.classicTimerOptions select:focus-visible {outline:3px solid #3bdcf4;outline-offset:3px}
+#endScreen.hud-v62-end {align-items:stretch;justify-content:flex-start;overflow:auto}
+#endScreen.hud-v62-end .v6EndShell {
+  width:100%;max-width:none;margin:0;flex:1 0 auto;
+  height:100dvh;min-height:760px;
+  padding:clamp(16px,1.5vw,38px);
+  display:flex;flex-direction:column;
+}
+#endScreen.hud-v62-end .v6EndHeader {flex:none;padding-bottom:14px}
+#endScreen.hud-v62-end .v6EndHero {flex:none;padding:20px 0;gap:clamp(24px,4vw,90px);grid-template-columns:minmax(250px,.7fr) minmax(320px,1.3fr)}
+#endScreen.hud-v62-end .v6EndScoreLine .finalScore {font-size:clamp(66px,4.5vw,120px)}
+#endScreen.hud-v62-end .v6EndScoreLine>span {font-size:clamp(16px,1.1vw,22px)}
+#endScreen.hud-v62-end .v6EndFeedback {max-width:none;min-width:0}
+#endScreen.hud-v62-end .v6EndVerdict {font-size:clamp(30px,2.6vw,58px);text-wrap:balance}
+#endScreen.hud-v62-end .v6EndComment {font-size:clamp(16px,1vw,20px);max-width:90ch}
+#endScreen.hud-v62-end .v6EndSummaryGrid {flex:none;margin:0 0 18px;gap:16px}
+#endScreen.hud-v62-end .v6EndSummaryGrid article {padding:14px 18px}
+#endScreen.hud-v62-end .v6EndSummaryGrid small {font-size:13px}
+#endScreen.hud-v62-end .v6EndSummaryGrid b {font-size:clamp(27px,1.9vw,40px)}
+#endScreen.hud-v62-end .v6EndSummaryGrid span {font-size:14px}
+#endScreen.hud-v62-end .finalMapLayout {flex:1;min-height:340px;grid-template-columns:minmax(0,1fr) clamp(320px,26vw,600px);gap:clamp(14px,1.2vw,28px)}
+#endScreen.hud-v62-end .finalMapBoard {min-height:0}
+#endScreen.hud-v62-end .finalMapBoard>header {flex:none;min-height:64px;padding:12px 18px}
+#endScreen.hud-v62-end .finalMapBoard>header h2 {font-size:clamp(18px,1.1vw,25px)}
+#endScreen.hud-v62-end .finalMapHost {height:auto;min-height:240px;flex:1}
+#endScreen.hud-v62-end .finalMapBoard>footer {flex:none}
+#endScreen.hud-v62-end .v6EndBreakdown {display:flex;flex-direction:column;min-height:0;padding:18px}
+#endScreen.hud-v62-end .v6EndBreakdownHead {flex:none}
+#endScreen.hud-v62-end .v6EndBreakdownHead>span {font-size:14px}
+#endScreen.hud-v62-end #breakdown {flex:1;min-height:0;max-height:none;overflow:auto;align-content:start;grid-auto-rows:minmax(68px,auto);gap:10px}
+#endScreen.hud-v62-end .breakRow {padding:14px 12px;grid-template-columns:32px minmax(0,1fr) auto;gap:12px}
+#endScreen.hud-v62-end .breakRow strong {font-size:clamp(14px,.9vw,19px)}
+#endScreen.hud-v62-end .breakRow small {font-size:clamp(13px,.75vw,16px)}
+#endScreen.hud-v62-end .breakRow>b {font-size:clamp(15px,1vw,22px)}
+#endScreen.hud-v62-end .v6EndActions {position:static;flex:none;padding:16px 0 0;background:none}
+#endScreen.hud-v62-end .v6EndActions button {font-size:16px}
+#multiEndScreen.hud-v62-multi-end {padding:clamp(16px,1.5vw,38px)}
+#multiEndScreen.hud-v62-multi-end .multiEndHero {width:100%;max-width:none}
+#multiEndScreen.hud-v62-multi-end .finalMapHost {height:58dvh;min-height:320px}
+@media(max-width:1100px) {
+ #endScreen.hud-v62-end .v6EndShell {height:auto;min-height:100dvh}
+ #endScreen.hud-v62-end .v6EndHero {gap:24px;grid-template-columns:1fr 1.2fr}
+ #endScreen.hud-v62-end .finalMapLayout {grid-template-columns:minmax(0,1fr) 320px}
+ #endScreen.hud-v62-end .finalMapHost {height:48dvh;min-height:300px}
+}
+@media(max-width:840px) {
+ #gameScreen.hud-v62:not(.round-reveal) #mapPanel.expanded {width:calc(100vw - 24px);right:12px;bottom:12px;height:calc(100dvh - var(--map-expanded-top,210px) - 12px)}
+ #endScreen.hud-v62-end .v6EndHero {grid-template-columns:1fr;gap:16px}
+ #endScreen.hud-v62-end .v6EndScoreLine .finalScore {font-size:76px}
+ #endScreen.hud-v62-end .finalMapLayout {display:flex;min-height:0}
+ #endScreen.hud-v62-end .finalMapHost {height:52dvh;min-height:300px;flex:none}
+ #endScreen.hud-v62-end #breakdown {overflow:visible}
+ #endScreen.hud-v62-end .v6EndBreakdownHead {margin-bottom:15px}
+}
+@media(max-width:600px) {
+ .classicTimerOptions {align-items:stretch;flex-direction:column;gap:12px}
+ .classicTimerOptions select {width:100%}
+ #endScreen.hud-v62-end .v6EndShell {padding:12px}
+ #endScreen.hud-v62-end .v6EndSummaryGrid {gap:8px}
+ #endScreen.hud-v62-end .v6EndSummaryGrid article {padding:12px}
+ #endScreen.hud-v62-end .v6EndSummaryGrid b {font-size:26px}
+ #endScreen.hud-v62-end .breakRow {grid-template-columns:30px minmax(0,1fr);padding:12px 8px}
+ #endScreen.hud-v62-end .breakRow>b {grid-column:2}
+ #endScreen.hud-v62-end .v6EndActions {gap:8px}
+ #endScreen.hud-v62-end .v6EndActions button {font-size:14px;white-space:normal;min-width:0;padding-inline:12px}
+}
+@media(max-height:780px) and (min-width:1101px) {
+ #endScreen.hud-v62-end .v6EndShell {height:auto;min-height:100dvh}
+ #endScreen.hud-v62-end .finalMapHost {height:46dvh;min-height:290px;flex:none}
 }

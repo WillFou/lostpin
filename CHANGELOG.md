@@ -1,5 +1,18 @@
 # LostPin - Changelog
 
+## 6.2.1 - Carte, chrono Classique, récapitulatif et sécurité
+
+- Carte agrandie : environ 54 % de la largeur sur desktop et hauteur adaptée sous la boussole, sans agrandissement au survol.
+- Transparence réelle de la carte réduite (90 %, parent transparent), retour opaque pendant l'interaction et les résultats ; focus souris de la réduction corrigé.
+- Boutons retour au départ / agrandissement déplacés en bas à gauche du cadre, hors tuiles et attributions Google.
+- Chrono solo Classique mémorisé : Off / 60 / 120 / 180 secondes. Timer stylisé et sons existants ; point placé soumis à expiration, sinon zéro. Durée enregistrée plafonnée en cas de callback tardif.
+- Chronos Blitz, défis et multijoueur indépendants ; Précision inchangé (descriptif du barème clarifié).
+- Récapitulatif plein espace : score, verdict, stats, carte et manches conservés ; carte dominante, panneau latéral et empilement sur petites fenêtres.
+- Sécurité : exclusions Git config/.env restaurées ; aucun config.js livré. Contrôles index/package, hook optionnel avant commit, garde-fou tag/version et refus de remplacer les tags.
+- Scripts dev de build/publication réintégrés dans le source. ZIP source sans dist/Updater compilé, backups, artefacts QA ni benchmark guessers.
+- 118 assertions navigateur simulées et 12 tests de géométrie passants. Voir docs/QA_V6_2_1.md pour les limites (Google/PeerJS réels et Windows/Actions non exécutés ici).
+- Incident de clé : la correction ne retire pas une clé de l'historique Git et ne la révoque pas. Suivre docs/SECURITY_CONFIG.md.
+
 ## 6.2.0 - HUD, révélation et carte récapitulative
 
 - Bandeau de partie réorganisé : contexte, timer stylisé avec arcs cyan, historique des manches et score total. Les 3/5/10 manches restent consultables dans un volet compact sur petite largeur.

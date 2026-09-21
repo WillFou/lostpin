@@ -16,6 +16,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate version and credentials
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          ./scripts/dev/Test-Release.ps1 -Version $env:RELEASE_TAG
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
@@ -48,6 +56,7 @@ jobs:
 
           $excludedPrefixes = @(
             ".github/",
+            ".githooks/",
             "tools/",
             "dist/",
             "dev/",
@@ -59,12 +68,19 @@ jobs:
           $excludedFiles = @(
             ".gitignore",
             ".gitattributes",
-            "publish-release.bat"
+            "publish-release.bat",
+            "config.js",
+            "config/config.js",
+            "config.local.js",
+            "config/config.local.js"
           )
 
-          $trackedFiles = git ls-files
+          $trackedFiles = git -c core.quotepath=false ls-files
           foreach ($file in $trackedFiles) {
             $normalized = $file.Replace('\', '/')
+            # Defense in depth: never rely on .gitignore to sanitize a release.
+            $leaf = ($normalized -split '/')[-1]
+            if ($leaf -match '^config(?:\.local)?\.js$' -or ($leaf -match '^\.env(?:\..*)?$' -and $leaf -ne '.env.example')) { continue }
             $skip = $false
 
             foreach ($prefix in $excludedPrefixes) {
@@ -121,6 +137,9 @@ jobs:
 
           Le jeu se trouve dans le dossier Game.
           "@ | Set-Content -LiteralPath (Join-Path $stage "LISEZ-MOI.txt") -Encoding UTF8
+
+          ./scripts/dev/Test-Package.ps1 -Path $stage
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
           Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zip -CompressionLevel Optimal
 
