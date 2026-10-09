@@ -1,0 +1,39 @@
+{
+  "total": 8,
+  "passed": 8,
+  "checks": [
+    {
+      "name": "Hosted error message: Google Maps non configure par administrateur.",
+      "passed": true
+    },
+    {
+      "name": "Hosted mode does not ask player for a key",
+      "passed": true
+    },
+    {
+      "name": "No game start without configured Google",
+      "passed": true
+    },
+    {
+      "name": "Hosted error message: Maintenance du service.",
+      "passed": true
+    },
+    {
+      "name": "Hosted mode does not ask player for a key",
+      "passed": true
+    },
+    {
+      "name": "No game start without configured Google",
+      "passed": true
+    },
+    {
+      "name": "Portable error remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "Help distinguishes Online and portable",
+      "passed": true
+    }
+  ],
+  "limits": "Browser and Google stub only; no .NET process."
+}

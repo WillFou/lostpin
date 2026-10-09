@@ -21,3 +21,9 @@ config.local.js
 # Python QA cache
 __pycache__/
 *.pyc
+
+# Secrets et sorties de publication V7
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/secrets.json
+/publish/

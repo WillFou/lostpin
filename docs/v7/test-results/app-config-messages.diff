@@ -1,0 +1,19 @@
+--- /mnt/data/lostpin_v7_baseline/LostPin/src/js/core/app.js	2026-10-09 20:06:05.479324106 +0000
++++ /mnt/data/lostpin_v7_001/LostPin/src/js/core/app.js	2026-10-09 20:08:54.800745141 +0000
+@@ -767,10 +767,14 @@
+   async loadGoogle() {
+     const key = window.PG_CONFIG && String(window.PG_CONFIG.googleMapsApiKey || '').trim();
+     if (!key || key.includes('PASTE_')) {
+-      this.failApi("Aucune clé n'est configurée. Ferme cette page puis relance start.bat : il te demandera la clé Google Maps.");
++      this.failApi(window.PG_CONFIG?.hosting === 'aspnet-core'
++        ? (window.PG_CONFIG.serviceMessage || "Service indisponible. Contacte l'administrateur de LostPin.")
++        : "Aucune clé n'est configurée. Ferme cette page puis relance start.bat : il te demandera la clé Google Maps.");
+       return;
+     }
+-    window.gm_authFailure = () => this.failApi("Google a refusé la clé. Vérifie les référents localhost/127.0.0.1, la restriction Maps JavaScript API et la facturation du projet.");
++    window.gm_authFailure = () => this.failApi(window.PG_CONFIG?.hosting === 'aspnet-core'
++      ? "Google Maps est indisponible. L'administrateur doit vérifier la clé navigateur, le domaine autorisé et la facturation."
++      : "Google a refusé la clé. Vérifie les référents localhost/127.0.0.1, la restriction Maps JavaScript API et la facturation du projet.");
+     try {
+       await new Promise((resolve, reject) => {
+         const callbackName = '__guessrGoogleMapsReady';

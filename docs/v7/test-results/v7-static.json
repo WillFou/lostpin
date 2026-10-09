@@ -1,0 +1,94 @@
+{
+  "total": 19,
+  "passed": 19,
+  "checks": [
+    {
+      "name": "All V6.2.3 baseline files retained",
+      "passed": true
+    },
+    {
+      "name": "Only declared baseline files changed",
+      "passed": true
+    },
+    {
+      "name": "All CSS unchanged",
+      "passed": true
+    },
+    {
+      "name": "All gameplay and feature JS unchanged except configuration messages",
+      "passed": true
+    },
+    {
+      "name": "Portable baseline version retained",
+      "passed": true
+    },
+    {
+      "name": "No accelerated navigation controller added",
+      "passed": true
+    },
+    {
+      "name": "Server targets net10.0",
+      "passed": true
+    },
+    {
+      "name": "Server alpha version is explicit",
+      "passed": true
+    },
+    {
+      "name": "No external server PackageReference",
+      "passed": true
+    },
+    {
+      "name": "No full repository wildcard in public assets",
+      "passed": true
+    },
+    {
+      "name": "No config.js or version.json physical copy",
+      "passed": true
+    },
+    {
+      "name": "No private directories in public assets",
+      "passed": true
+    },
+    {
+      "name": "No browser key in appsettings",
+      "passed": true
+    },
+    {
+      "name": "Host filter local by default",
+      "passed": true
+    },
+    {
+      "name": "SDK restricted to stable .NET 10",
+      "passed": true
+    },
+    {
+      "name": "pre-commit LF and process execution policy",
+      "passed": true
+    },
+    {
+      "name": "pre-push LF and process execution policy",
+      "passed": true
+    },
+    {
+      "name": "Corrected source path in BAT",
+      "passed": true
+    },
+    {
+      "name": "No executable JS import in launch script",
+      "passed": true
+    }
+  ],
+  "changed_baseline_files": [
+    ".githooks/pre-commit",
+    ".githooks/pre-push",
+    ".gitignore",
+    "index.html",
+    "scripts/dev/Test-Release.ps1",
+    "scripts/dev/sync-to-repo.ps1",
+    "src/js/core/app.js",
+    "sync-to-repo.bat"
+  ],
+  "missing_baseline_files": [],
+  "limits": "Source checks only. C# build, PowerShell execution and HTTP runtime tests not run here."
+}

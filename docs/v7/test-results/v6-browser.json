@@ -1,0 +1,974 @@
+{
+  "checks": [
+    {
+      "name": "Page and production controllers initialize",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic settings offer exactly Off / 60 / 120 / 180",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 0: timer visibility",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 0: active duration",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 0: preference persisted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 60: timer visibility",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 60: active duration",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 60: preference persisted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 60: stylized time text",
+      "passed": true,
+      "detail": "1:00"
+    },
+    {
+      "name": "Classic 120: timer visibility",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 120: active duration",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 120: preference persisted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 120: stylized time text",
+      "passed": true,
+      "detail": "2:00"
+    },
+    {
+      "name": "Classic 180: timer visibility",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 180: active duration",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 180: preference persisted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 180: stylized time text",
+      "passed": true,
+      "detail": "3:00"
+    },
+    {
+      "name": "Invalid timer falls back to Off",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Reduced map actually translucent over transparent parent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Hover never enlarges map",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Reduced map remains translucent on hover",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Expanded map inside 1366x768",
+      "passed": true,
+      "detail": {
+        "x": 610.375,
+        "y": 182,
+        "width": 737.625,
+        "height": 568
+      }
+    },
+    {
+      "name": "Expanded map clear of compass at 1366x768",
+      "passed": true,
+      "detail": [
+        {
+          "x": 610.375,
+          "y": 182,
+          "width": 737.625,
+          "height": 568
+        },
+        {
+          "x": 648,
+          "y": 100,
+          "width": 70,
+          "height": 70
+        }
+      ]
+    },
+    {
+      "name": "Expanded map substantial width at 1366",
+      "passed": true,
+      "detail": 0.5399890190336749
+    },
+    {
+      "name": "Controls below map and left-aligned at 1366",
+      "passed": true,
+      "detail": [
+        {
+          "x": 619.375,
+          "y": 675.5,
+          "width": 97,
+          "height": 40
+        },
+        {
+          "x": 611.375,
+          "y": 240,
+          "width": 735.625,
+          "height": 425
+        }
+      ]
+    },
+    {
+      "name": "Expanded map inside 1920x1080",
+      "passed": true,
+      "detail": {
+        "x": 865.203125,
+        "y": 182,
+        "width": 1036.796875,
+        "height": 880
+      }
+    },
+    {
+      "name": "Expanded map clear of compass at 1920x1080",
+      "passed": true,
+      "detail": [
+        {
+          "x": 865.203125,
+          "y": 182,
+          "width": 1036.796875,
+          "height": 880
+        },
+        {
+          "x": 925,
+          "y": 100,
+          "width": 70,
+          "height": 70
+        }
+      ]
+    },
+    {
+      "name": "Expanded map substantial width at 1920",
+      "passed": true,
+      "detail": 0.5399983723958334
+    },
+    {
+      "name": "Controls below map and left-aligned at 1920",
+      "passed": true,
+      "detail": [
+        {
+          "x": 874.203125,
+          "y": 987.5,
+          "width": 97,
+          "height": 40
+        },
+        {
+          "x": 866.203125,
+          "y": 240,
+          "width": 1034.796875,
+          "height": 737
+        }
+      ]
+    },
+    {
+      "name": "Expanded map inside 2560x1600",
+      "passed": true,
+      "detail": {
+        "x": 1159.609375,
+        "y": 182,
+        "width": 1382.390625,
+        "height": 1400
+      }
+    },
+    {
+      "name": "Expanded map clear of compass at 2560x1600",
+      "passed": true,
+      "detail": [
+        {
+          "x": 1159.609375,
+          "y": 182,
+          "width": 1382.390625,
+          "height": 1400
+        },
+        {
+          "x": 1245,
+          "y": 100,
+          "width": 70,
+          "height": 70
+        }
+      ]
+    },
+    {
+      "name": "Expanded map substantial width at 2560",
+      "passed": true,
+      "detail": 0.539996337890625
+    },
+    {
+      "name": "Controls below map and left-aligned at 2560",
+      "passed": true,
+      "detail": [
+        {
+          "x": 1168.609375,
+          "y": 1507.5,
+          "width": 97,
+          "height": 40
+        },
+        {
+          "x": 1160.609375,
+          "y": 240,
+          "width": 1380.390625,
+          "height": 1257
+        }
+      ]
+    },
+    {
+      "name": "Expanded map inside 3200x2000",
+      "passed": true,
+      "detail": {
+        "x": 1454,
+        "y": 182,
+        "width": 1728,
+        "height": 1800
+      }
+    },
+    {
+      "name": "Expanded map clear of compass at 3200x2000",
+      "passed": true,
+      "detail": [
+        {
+          "x": 1454,
+          "y": 182,
+          "width": 1728,
+          "height": 1800
+        },
+        {
+          "x": 1565,
+          "y": 100,
+          "width": 70,
+          "height": 70
+        }
+      ]
+    },
+    {
+      "name": "Expanded map substantial width at 3200",
+      "passed": true,
+      "detail": 0.54
+    },
+    {
+      "name": "Controls below map and left-aligned at 3200",
+      "passed": true,
+      "detail": [
+        {
+          "x": 1463,
+          "y": 1907.5,
+          "width": 97,
+          "height": 40
+        },
+        {
+          "x": 1455,
+          "y": 240,
+          "width": 1726,
+          "height": 1657
+        }
+      ]
+    },
+    {
+      "name": "Expanded map inside 3840x2160",
+      "passed": true,
+      "detail": {
+        "x": 1748.40625,
+        "y": 182,
+        "width": 2073.59375,
+        "height": 1960
+      }
+    },
+    {
+      "name": "Expanded map clear of compass at 3840x2160",
+      "passed": true,
+      "detail": [
+        {
+          "x": 1748.40625,
+          "y": 182,
+          "width": 2073.59375,
+          "height": 1960
+        },
+        {
+          "x": 1885,
+          "y": 100,
+          "width": 70,
+          "height": 70
+        }
+      ]
+    },
+    {
+      "name": "Expanded map substantial width at 3840",
+      "passed": true,
+      "detail": 0.5399983723958334
+    },
+    {
+      "name": "Controls below map and left-aligned at 3840",
+      "passed": true,
+      "detail": [
+        {
+          "x": 1757.40625,
+          "y": 2067.5,
+          "width": 97,
+          "height": 40
+        },
+        {
+          "x": 1749.40625,
+          "y": 240,
+          "width": 2071.59375,
+          "height": 1817
+        }
+      ]
+    },
+    {
+      "name": "Expanded map inside 1024x768",
+      "passed": true,
+      "detail": {
+        "x": 326,
+        "y": 182,
+        "width": 680,
+        "height": 568
+      }
+    },
+    {
+      "name": "Expanded map clear of compass at 1024x768",
+      "passed": true,
+      "detail": [
+        {
+          "x": 326,
+          "y": 182,
+          "width": 680,
+          "height": 568
+        },
+        {
+          "x": 477,
+          "y": 100,
+          "width": 70,
+          "height": 70
+        }
+      ]
+    },
+    {
+      "name": "Controls below map and left-aligned at 1024",
+      "passed": true,
+      "detail": [
+        {
+          "x": 335,
+          "y": 675.5,
+          "width": 97,
+          "height": 40
+        },
+        {
+          "x": 327,
+          "y": 240,
+          "width": 678,
+          "height": 425
+        }
+      ]
+    },
+    {
+      "name": "Expanded map inside 768x1024",
+      "passed": true,
+      "detail": {
+        "x": 12,
+        "y": 177,
+        "width": 744,
+        "height": 835
+      }
+    },
+    {
+      "name": "Expanded map clear of compass at 768x1024",
+      "passed": true,
+      "detail": [
+        {
+          "x": 12,
+          "y": 177,
+          "width": 744,
+          "height": 835
+        },
+        {
+          "x": 349,
+          "y": 95,
+          "width": 70,
+          "height": 70
+        }
+      ]
+    },
+    {
+      "name": "Controls below map and left-aligned at 768",
+      "passed": true,
+      "detail": [
+        {
+          "x": 21,
+          "y": 937.5,
+          "width": 97,
+          "height": 40
+        },
+        {
+          "x": 13,
+          "y": 235,
+          "width": 742,
+          "height": 692
+        }
+      ]
+    },
+    {
+      "name": "Expanded map inside 390x844",
+      "passed": true,
+      "detail": {
+        "x": 12,
+        "y": 216,
+        "width": 366,
+        "height": 616
+      }
+    },
+    {
+      "name": "Expanded map clear of compass at 390x844",
+      "passed": true,
+      "detail": [
+        {
+          "x": 12,
+          "y": 216,
+          "width": 366,
+          "height": 616
+        },
+        {
+          "x": 160,
+          "y": 134,
+          "width": 70,
+          "height": 70
+        }
+      ]
+    },
+    {
+      "name": "Controls below map and left-aligned at 390",
+      "passed": true,
+      "detail": [
+        {
+          "x": 21,
+          "y": 782.5,
+          "width": 97,
+          "height": 40
+        },
+        {
+          "x": 13,
+          "y": 267,
+          "width": 364,
+          "height": 507
+        }
+      ]
+    },
+    {
+      "name": "Mouse focus left on reduce does not keep map opaque",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "M expands deliberately",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Escape reduces map",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Return at bottom left retains accessible label",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Return button returns to start panorama",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 60: timeout without point is exactly one zero",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 60: recorded duration correct",
+      "passed": true,
+      "detail": 60
+    },
+    {
+      "name": "Classic 60: timer cleared and panorama locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 60: duplicate timeout ignored",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 120: timeout without point is exactly one zero",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 120: recorded duration correct",
+      "passed": true,
+      "detail": 120
+    },
+    {
+      "name": "Classic 120: timer cleared and panorama locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 120: duplicate timeout ignored",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 180: timeout without point is exactly one zero",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 180: recorded duration correct",
+      "passed": true,
+      "detail": 180
+    },
+    {
+      "name": "Classic 180: timer cleared and panorama locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic 180: duplicate timeout ignored",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Timeout with a placed point scores it automatically",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Late background callback cannot inflate recorded time",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Result fills map and is fully opaque",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Classic final ten seconds use existing audio callback",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Early answer stops timer and prevents duplicate scoring",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Off leaves no solo interval",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nomove: Classic clock works",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nomove: no panorama movement option",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nomove: return command hidden",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nmpz: Classic clock works",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nmpz: no panorama movement option",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nmpz: return command hidden",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "NMPZ overlay remains locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Blitz retains independent 20-second setting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Precision rules/timer remain unchanged",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Challenge clock remains independent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Multiplayer clock remains independent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Precision remains linear, Classic exponential",
+      "passed": true,
+      "detail": [
+        {
+          "distance": 25,
+          "classic": 5000,
+          "precision": 5000
+        },
+        {
+          "distance": 1000,
+          "classic": 3964,
+          "precision": 3839
+        },
+        {
+          "distance": 3000,
+          "classic": 2462,
+          "precision": 1458
+        },
+        {
+          "distance": 4225,
+          "classic": 1839,
+          "precision": 0
+        }
+      ]
+    },
+    {
+      "name": "Five-round completion shows all details",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Same Google Map instance reused throughout",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Final results equal sum of rounds",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Recap uses full width at 1366x768",
+      "passed": true,
+      "detail": {
+        "x": 0,
+        "y": 0,
+        "width": 1366,
+        "height": 950.421875
+      }
+    },
+    {
+      "name": "Recap no horizontal overflow at 1366x768",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Recap map dominant at 1366",
+      "passed": true,
+      "detail": {
+        "x": 20.484375,
+        "y": 353.046875,
+        "width": 953.484375,
+        "height": 509.09375
+      }
+    },
+    {
+      "name": "Recap uses full width at 1920x1080",
+      "passed": true,
+      "detail": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    {
+      "name": "Recap no horizontal overflow at 1920x1080",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Recap map dominant at 1920",
+      "passed": true,
+      "detail": {
+        "x": 28.796875,
+        "y": 388.859375,
+        "width": 1340.1875,
+        "height": 594.546875
+      }
+    },
+    {
+      "name": "Recap uses available vertical space at 1920",
+      "passed": true,
+      "detail": {
+        "x": 28.796875,
+        "y": 388.859375,
+        "width": 1340.1875,
+        "height": 594.546875
+      }
+    },
+    {
+      "name": "Recap uses full width at 2560x1600",
+      "passed": true,
+      "detail": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1600
+      }
+    },
+    {
+      "name": "Recap no horizontal overflow at 2560x1600",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Recap map dominant at 2560",
+      "passed": true,
+      "detail": {
+        "x": 38,
+        "y": 426.53125,
+        "width": 1856,
+        "height": 1067.671875
+      }
+    },
+    {
+      "name": "Recap uses available vertical space at 2560",
+      "passed": true,
+      "detail": {
+        "x": 38,
+        "y": 426.53125,
+        "width": 1856,
+        "height": 1067.671875
+      }
+    },
+    {
+      "name": "Recap uses full width at 3200x2000",
+      "passed": true,
+      "detail": {
+        "x": 0,
+        "y": 0,
+        "width": 3200,
+        "height": 2000
+      }
+    },
+    {
+      "name": "Recap no horizontal overflow at 3200x2000",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Recap map dominant at 3200",
+      "passed": true,
+      "detail": {
+        "x": 38,
+        "y": 430.65625,
+        "width": 2496,
+        "height": 1463.546875
+      }
+    },
+    {
+      "name": "Recap uses available vertical space at 3200",
+      "passed": true,
+      "detail": {
+        "x": 38,
+        "y": 430.65625,
+        "width": 2496,
+        "height": 1463.546875
+      }
+    },
+    {
+      "name": "Recap uses full width at 3840x2160",
+      "passed": true,
+      "detail": {
+        "x": 0,
+        "y": 0,
+        "width": 3840,
+        "height": 2160
+      }
+    },
+    {
+      "name": "Recap no horizontal overflow at 3840x2160",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Recap map dominant at 3840",
+      "passed": true,
+      "detail": {
+        "x": 38,
+        "y": 430.65625,
+        "width": 3136,
+        "height": 1623.546875
+      }
+    },
+    {
+      "name": "Recap uses available vertical space at 3840",
+      "passed": true,
+      "detail": {
+        "x": 38,
+        "y": 430.65625,
+        "width": 3136,
+        "height": 1623.546875
+      }
+    },
+    {
+      "name": "Recap uses full width at 1024x768",
+      "passed": true,
+      "detail": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 941.453125
+      }
+    },
+    {
+      "name": "Recap no horizontal overflow at 1024x768",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Recap uses full width at 768x1024",
+      "passed": true,
+      "detail": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 1687.515625
+      }
+    },
+    {
+      "name": "Recap no horizontal overflow at 768x1024",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Recap uses full width at 390x844",
+      "passed": true,
+      "detail": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 1940.5
+      }
+    },
+    {
+      "name": "Recap no horizontal overflow at 390x844",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Click round focuses recap",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "All rounds restores overview",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Replay restores map to gameplay panel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Replay keeps configured Classic timer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "No uncaught JavaScript errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "total": 118,
+  "passed": 118,
+  "errors": [],
+  "precision_examples": [
+    {
+      "distance": 25,
+      "classic": 5000,
+      "precision": 5000
+    },
+    {
+      "distance": 1000,
+      "classic": 3964,
+      "precision": 3839
+    },
+    {
+      "distance": 3000,
+      "classic": 2462,
+      "precision": 1458
+    },
+    {
+      "distance": 4225,
+      "classic": 1839,
+      "precision": 0
+    }
+  ],
+  "environment": "Chromium; production UI/controllers; Google Maps/Street View and transport not connected"
+}

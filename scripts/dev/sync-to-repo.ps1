@@ -40,7 +40,10 @@ Get-ChildItem -LiteralPath $Source -File -Recurse -Force | ForEach-Object {
     $sourcePrefix = $Source.TrimEnd('\') + '\'
     $relative = $_.FullName.Substring($sourcePrefix.Length).Replace('\', '/')
     $leaf = $_.Name
-    $blocked = $skipExact -contains $relative
+    $blocked = ($skipExact -contains $relative) -or
+        ($relative -match '(?i)(?:^|/)(?:bin|obj|node_modules|\.vs|dist|publish)(?:/|$)') -or
+        ($relative -like 'dev/qa/artifacts/*') -or
+        ($leaf -match '(?i)^(?:secrets\.json|appsettings(?:\..+)?\.local\.json)$')
     if (-not $blocked) {
         foreach ($prefix in $skipPrefixes) {
             if ($relative.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {

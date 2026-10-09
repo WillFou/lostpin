@@ -48,6 +48,10 @@ try {
             $problems.Add("Local configuration is tracked: $normalized. Run git rm --cached -- `"$normalized`".")
             continue
         }
+        if ($leaf -match '(?i)^(?:secrets\.json|appsettings(?:\..+)?\.local\.json)$') {
+            $problems.Add("Local ASP.NET configuration is tracked: $normalized")
+            continue
+        }
         if ($normalized -like 'benchmark guessers/*') {
             $problems.Add("Benchmark material is tracked: $normalized")
             continue

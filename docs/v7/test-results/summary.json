@@ -1,0 +1,44 @@
+{
+  "milestone": "V7-001",
+  "hostVersion": "7.0.0-alpha.1",
+  "frontendBaseline": "6.2.3",
+  "executedChecks": [
+    {
+      "suite": "v6-static",
+      "passed": 46,
+      "total": 46
+    },
+    {
+      "suite": "v6-browser",
+      "passed": 118,
+      "total": 118
+    },
+    {
+      "suite": "v7-static",
+      "passed": 19,
+      "total": 19
+    },
+    {
+      "suite": "v7-browser",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "suite": "hud-math",
+      "passed": 12,
+      "total": 12
+    }
+  ],
+  "totalExecuted": 203,
+  "passed": 203,
+  "notExecuted": [
+    "dotnet build",
+    "PowerShell scripts",
+    "ASP.NET HTTP smoke tests",
+    "dotnet publish",
+    "Google Maps real",
+    "PeerJS real multi-player"
+  ],
+  "reason": "No .NET SDK or PowerShell available in this container; installation download unavailable.",
+  "sourceArchiveSha256": "9cedaf18b2ad755169a28012ed789ef8f706aac29c14a67226848028ec24141c"
+}

@@ -1,0 +1,246 @@
+{
+  "total": 46,
+  "passed": 46,
+  "checks": [
+    {
+      "name": "HTML identifiers unique",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Static DOM identifiers exist",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "JS syntax src/js/core/app.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/core/geography.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/ui/hud-math.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/ui/theme.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/ui/gameplay-ui.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/ui/v6-ui.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/features/stats.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/features/playlists.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/features/music.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/features/multiplayer.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax src/js/features/challenge.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax dev/qa/hud-math.test.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "JS syntax dev/qa/google-maps.stub.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "HTML resources exist (config generated locally)",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "CSS asset references resolve",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Tool present scripts/runtime/server.ps1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present scripts/dev/build-updater.bat",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present scripts/dev/setup-updater.bat",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present scripts/dev/publish-release.bat",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present scripts/dev/publish-release.ps1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present scripts/dev/Test-Release.ps1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present scripts/dev/Test-Package.ps1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present scripts/dev/sync-to-repo.ps1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present scripts/dev/enable-git-safety.ps1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present sync-to-repo.bat",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present enable-git-safety.bat",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present .githooks/pre-commit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Tool present .githooks/pre-push",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Only config example supplied",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "start.bat uses literal placeholder gate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Reduced map opacity is explicit and hover does not force opaque",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Safe sync excludes local config and benchmark",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Pre-push scans HEAD",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Git ignores config.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Git ignores config/config.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Git ignores config/config.local.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Git ignores .env",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Git ignores .env.local",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Git ignores benchmark guessers/recording.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Git keeps example configurations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "git add . excludes local configs and benchmark",
+      "passed": true,
+      "detail": [
+        ".env.example",
+        ".gitignore",
+        "config/config.example.js",
+        "src/kept.js"
+      ]
+    },
+    {
+      "name": "Existing tracked config stays tracked despite ignore",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "git rm --cached removes tracking, keeps local file",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "No Google API key pattern in source text",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "unique_ids": 305,
+  "dom_refs": 280,
+  "html_resources": 22,
+  "css_resource_refs": 41,
+  "limits": "PowerShell/.NET unavailable: publication scripts not executed; no remote operations"
+}

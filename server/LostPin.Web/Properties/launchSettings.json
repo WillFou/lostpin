@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "LostPin": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "http://127.0.0.1:8080",
+      "environmentVariables": { "ASPNETCORE_ENVIRONMENT": "Development" }
+    }
+  }
+}
