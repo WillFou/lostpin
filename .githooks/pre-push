@@ -1,0 +1,10 @@
+#!/bin/sh
+# Defense in depth: scan the commit that is about to be pushed.
+if command -v pwsh >/dev/null 2>&1; then
+  exec pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/dev/Test-Release.ps1 -Head
+elif command -v powershell.exe >/dev/null 2>&1; then
+  exec powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/dev/Test-Release.ps1 -Head
+else
+  echo 'LostPin: PowerShell is required for the credential safety check.' >&2
+  exit 1
+fi

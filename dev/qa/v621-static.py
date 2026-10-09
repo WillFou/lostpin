@@ -40,9 +40,18 @@ for p in (ROOT/'src/css').glob('*.css'):
   f=p.parent/unquote(val.split('?')[0].split('#')[0]);css_urls.append(str(f))
   if not f.is_file():absent.append(str(f))
 check('CSS asset references resolve',not absent,absent)
-for rel in ['scripts/runtime/server.ps1','scripts/dev/build-updater.bat','scripts/dev/setup-updater.bat','scripts/dev/publish-release.bat','scripts/dev/publish-release.ps1','scripts/dev/Test-Release.ps1','scripts/dev/Test-Package.ps1','.githooks/pre-commit']:
+for rel in ['scripts/runtime/server.ps1','scripts/dev/build-updater.bat','scripts/dev/setup-updater.bat','scripts/dev/publish-release.bat','scripts/dev/publish-release.ps1','scripts/dev/Test-Release.ps1','scripts/dev/Test-Package.ps1','scripts/dev/sync-to-repo.ps1','scripts/dev/enable-git-safety.ps1','sync-to-repo.bat','enable-git-safety.bat','.githooks/pre-commit','.githooks/pre-push']:
  check('Tool present '+rel,(ROOT/rel).is_file())
 check('Only config example supplied',not (ROOT/'config/config.js').exists() and (ROOT/'config/config.example.js').is_file())
+
+start_text=(ROOT/'start.bat').read_text(encoding='utf-8',errors='replace')
+check('start.bat uses literal placeholder gate','findstr /l /c:"%API_PLACEHOLDER%" "%CONFIG_FILE%"' in start_text and 'AIza' not in start_text)
+css_text=(ROOT/'src/css/gameplay-ui.css').read_text(encoding='utf-8',errors='replace')
+check('Reduced map opacity is explicit and hover does not force opaque','#mapPanel #guessMap{position:relative;opacity:.72' in css_text and '#mapPanel:hover #guessMap' not in css_text)
+sync_text=(ROOT/'scripts/dev/sync-to-repo.ps1').read_text(encoding='utf-8',errors='replace')
+check('Safe sync excludes local config and benchmark',all(x in sync_text for x in ["'config/config.js'","'benchmark guessers/'",'core.hooksPath']))
+check('Pre-push scans HEAD','-Head' in (ROOT/'.githooks/pre-push').read_text(encoding='utf-8',errors='replace'))
+
 with tempfile.TemporaryDirectory(prefix='lostpin-git-qa-') as name:
  d=Path(name);run(['git','init','-q'],d);(d/'.gitignore').write_text((ROOT/'.gitignore').read_text())
  for rel in ['config.js','config/config.js','config/config.local.js','.env','.env.local','benchmark guessers/recording.txt','config/config.example.js','.env.example','src/kept.js']:

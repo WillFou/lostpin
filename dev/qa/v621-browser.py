@@ -43,12 +43,12 @@ with sync_playwright() as pw:
 
  start(page,timer=60)
  page.mouse.move(100,500);page.wait_for_timeout(70)
- check('Reduced map actually translucent over transparent parent',page.locator('#guessMap').evaluate("e=>getComputedStyle(e).opacity==='0.9' && getComputedStyle(e.parentElement).backgroundColor==='rgba(0, 0, 0, 0)'") )
+ check('Reduced map actually translucent over transparent parent',page.locator('#guessMap').evaluate("e=>getComputedStyle(e).opacity==='0.72' && getComputedStyle(e.parentElement).backgroundColor==='rgba(0, 0, 0, 0)'") )
  before=page.locator('#mapPanel').bounding_box()
  page.locator('#guessMap').hover();page.wait_for_timeout(70)
  after=page.locator('#mapPanel').bounding_box()
  check('Hover never enlarges map',abs(before['width']-after['width'])<1 and abs(before['height']-after['height'])<1)
- check('Map opaque on interaction',page.locator('#guessMap').evaluate("e=>getComputedStyle(e).opacity==='1'"))
+ check('Reduced map remains translucent on hover',page.locator('#guessMap').evaluate("e=>getComputedStyle(e).opacity==='0.72'"))
  page.mouse.move(100,500);page.wait_for_timeout(70)
  None # Captures are produced by the separate visual probe.
  page.locator('#expandMap').click();page.mouse.move(100,500);page.wait_for_timeout(70)
@@ -63,7 +63,7 @@ with sync_playwright() as pw:
  page.set_viewport_size({'width':1920,'height':1080});page.wait_for_timeout(70)
  None
  page.locator('#expandMap').click();page.mouse.move(100,500);page.wait_for_timeout(70)
- check('Mouse focus left on reduce does not keep map opaque',page.locator('#guessMap').evaluate("e=>getComputedStyle(e).opacity==='0.9'"))
+ check('Mouse focus left on reduce does not keep map opaque',page.locator('#guessMap').evaluate("e=>getComputedStyle(e).opacity==='0.72'"))
  page.keyboard.press('m');page.wait_for_timeout(70)
  check('M expands deliberately',page.locator('#mapPanel').evaluate("e=>e.classList.contains('expanded')"))
  page.keyboard.press('Escape');page.wait_for_timeout(70)

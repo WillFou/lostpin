@@ -1,5 +1,21 @@
 # LostPin - Changelog
 
+## 6.2.3 - Transparence visible de la mini-carte
+
+- Mini-carte reduite : opacite portee a 72 % pour rendre Street View reellement perceptible a travers les tuiles Google, au lieu d une transparence trop subtile.
+- La transparence reste limitee a la zone Google Maps : l en-tete, les boutons et le pied du panneau restent parfaitement opaques et lisibles.
+- Carte agrandie, revelation de manche et recapitulatif final restent a 100 % d opacite. Aucun changement du gameplay, des trois modes OpenGuessr encore a documenter, ni du workflow de securite.
+
+## 6.2.2 - Workflow de test securise et mini-carte
+
+- Nouveau `sync-to-repo.bat` pour le workflow reel : tester dans un dossier extrait puis recopier vers `D:\Web\LostPin` sans jamais copier `config/config.js`, les `.env` ni `/benchmark guessers/`.
+- La copie sure retire aussi une ancienne configuration de l index Git si elle y etait encore suivie et active automatiquement les hooks LostPin dans le depot cible.
+- Protection Git en deux etages : `pre-commit` scanne l index et nouveau `pre-push` scanne `HEAD`. Le controle refuse toute configuration locale suivie et toute cle Google detectee dans les fichiers texte suivis.
+- `enable-git-safety.bat` permet d activer/reparer ces protections independamment de la copie.
+- `start.bat` applique la regle simple demandee : si `config/config.js` existe et ne contient pas le placeholder literal `PASTE_YOUR_GOOGLE_MAPS_KEY_HERE`, LostPin demarre sans autre validation de la valeur.
+- Mini-carte reduite : transparence maintenue meme lorsque la souris se trouve dessus ; seule une ouverture volontaire de la grande carte ou un resultat la rend opaque.
+- Aucun changement sur les trois modes d affichage OpenGuessr mentionnes : ils restent a documenter avec de nouvelles captures avant implementation.
+
 ## 6.2.1 - Carte, chrono Classique, récapitulatif et sécurité
 
 - Carte agrandie : environ 54 % de la largeur sur desktop et hauteur adaptée sous la boussole, sans agrandissement au survol.

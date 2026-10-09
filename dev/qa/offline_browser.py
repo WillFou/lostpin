@@ -31,7 +31,7 @@ def load_page(page):
  page.evaluate('''() => {
  const data={};const store={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=String(v),removeItem:k=>delete data[k],clear:()=>Object.keys(data).forEach(k=>delete data[k])};
  Object.defineProperty(window,'localStorage',{value:store,configurable:true});
- window.PG_CONFIG={};window.fetch=async u=>new Response(JSON.stringify(String(u).includes('version.json')?{version:'6.2.1'}:{}),{status:200});
+ window.PG_CONFIG={};window.fetch=async u=>new Response(JSON.stringify(String(u).includes('version.json')?{version:'6.2.2'}:{}),{status:200});
  }''')
  page.add_script_tag(content=(ROOT/'dev/qa/google-maps.stub.js').read_text())
  for s in scripts:page.add_script_tag(content=s)

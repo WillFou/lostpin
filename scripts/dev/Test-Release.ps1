@@ -1,6 +1,7 @@
 param(
     [string]$Version = '',
-    [switch]$Staged
+    [switch]$Staged,
+    [switch]$Head
 )
 
 # Never print matching key values. Git index inspection also catches an empty config.js
@@ -10,12 +11,16 @@ $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 Push-Location $root
 try {
+    if ($Staged -and $Head) { throw 'Use -Staged or -Head, not both.' }
     & git rev-parse --is-inside-work-tree 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'This check must run inside the LostPin Git repository.' }
 
     if ($Staged) {
         $versionText = (& git show ':version.json') -join "`n"
         if ($LASTEXITCODE -ne 0) { throw 'version.json is missing from the Git index.' }
+    } elseif ($Head) {
+        $versionText = (& git show 'HEAD:version.json') -join "`n"
+        if ($LASTEXITCODE -ne 0) { throw 'version.json is missing from HEAD.' }
     } else {
         $versionText = Get-Content -LiteralPath 'version.json' -Raw
     }
@@ -28,8 +33,13 @@ try {
         }
     }
 
-    $files = @(& git -c core.quotepath=false ls-files)
-    if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect the Git index.' }
+    if ($Head) {
+        $files = @(& git -c core.quotepath=false ls-tree -r --name-only HEAD)
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect HEAD.' }
+    } else {
+        $files = @(& git -c core.quotepath=false ls-files)
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect the Git index.' }
+    }
     $problems = [Collections.Generic.List[string]]::new()
     foreach ($file in $files) {
         $normalized = $file.Replace('\', '/')
@@ -46,6 +56,9 @@ try {
         if ($Staged) {
             $content = (& git show ":$normalized") -join "`n"
             if ($LASTEXITCODE -ne 0) { throw "Cannot inspect indexed file: $normalized" }
+        } elseif ($Head) {
+            $content = (& git show "HEAD:$normalized") -join "`n"
+            if ($LASTEXITCODE -ne 0) { throw "Cannot inspect HEAD file: $normalized" }
         } else {
             if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
             $content = Get-Content -LiteralPath $file -Raw

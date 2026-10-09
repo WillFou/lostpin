@@ -7,6 +7,7 @@ set "CONFIG_DIR=%~dp0config"
 set "CONFIG_FILE=%CONFIG_DIR%\config.js"
 set "LEGACY_CONFIG=%~dp0config.js"
 set "SERVER_SCRIPT=%~dp0scripts\runtime\server.ps1"
+set "API_PLACEHOLDER=PASTE_YOUR_GOOGLE_MAPS_KEY_HERE"
 
 if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
 
@@ -15,13 +16,16 @@ if exist "%LEGACY_CONFIG%" (
   if not exist "%CONFIG_FILE%" (
     copy /y "%LEGACY_CONFIG%" "%CONFIG_FILE%" >nul
   ) else (
-    findstr /c:"PASTE_YOUR_GOOGLE_MAPS_KEY_HERE" "%CONFIG_FILE%" >nul 2>nul && copy /y "%LEGACY_CONFIG%" "%CONFIG_FILE%" >nul
+    findstr /l /c:"%API_PLACEHOLDER%" "%CONFIG_FILE%" >nul 2>nul && copy /y "%LEGACY_CONFIG%" "%CONFIG_FILE%" >nul
   )
   del /q "%LEGACY_CONFIG%" >nul 2>nul
 )
 
+rem Regle volontairement simple : si config\config.js existe et ne contient plus
+rem exactement le placeholder ci-dessous, LostPin demarre. Aucun controle du format
+rem de la cle n est effectue ici.
 if not exist "%CONFIG_FILE%" goto ASKKEY
-findstr /c:"PASTE_YOUR_GOOGLE_MAPS_KEY_HERE" "%CONFIG_FILE%" >nul 2>nul && goto ASKKEY
+findstr /l /c:"%API_PLACEHOLDER%" "%CONFIG_FILE%" >nul 2>nul && goto ASKKEY
 goto START
 
 :ASKKEY

@@ -9,6 +9,8 @@ LostPin/
 ├─ version.json                # version courante
 ├─ README.txt
 ├─ CHANGELOG.md
+├─ sync-to-repo.bat           # copie sure du dossier teste vers le depot
+├─ enable-git-safety.bat      # active/repare les hooks de securite Git
 ├─ src/
 │  ├─ css/
 │  │  ├─ themes.css
@@ -30,7 +32,7 @@ LostPin/
 │  ├─ brand/                   # logos et sprites SVG
 │  └─ images/v6/               # photos et visuels V6
 ├─ config/
-│  ├─ config.js                # cle locale, jamais a partager
+│  ├─ config.js                # cree localement, jamais versionne ni livre
 │  └─ config.example.js
 ├─ scripts/
 │  ├─ runtime/                 # serveur local et changement de cle

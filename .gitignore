@@ -5,6 +5,7 @@
 
 # Local configuration: never commit real keys (legacy + current layout).
 config.js
+/config/config.js
 config.local.js
 /config/*.local.js
 .env

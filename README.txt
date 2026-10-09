@@ -1,8 +1,8 @@
-V6.2.1 - IMPORTANT
+V6.2.2 - IMPORTANT
 Le ZIP source ne contient volontairement pas config/config.js.
 start.bat le cree localement si absent. Ne jamais le versionner.
-Lire docs/SECURITY_CONFIG.md avant publication et docs/HUD_V6_2_1.md pour les changements.
-Recette : docs/QA_V6_2_1.md.
+Apres un test dans un dossier extrait, utilise sync-to-repo.bat pour recopier vers le depot sans config locale.
+Lire docs/SECURITY_CONFIG.md et docs/QA_V6_2_2.md avant publication.
 
 LostPin
 =======
@@ -11,7 +11,7 @@ Jeu de géolocalisation basé sur Google Street View, jouable en solo, en multij
 
 VERSION
 -------
-Version 6.0.14.
+Version 6.2.2.
 La version courante n'est plus écrite en dur dans index.html.
 La source de vérité est le fichier version.json.
 Pendant les tests, l'onglet du navigateur affiche automatiquement : LostPin vX.Y.Z.
@@ -39,6 +39,17 @@ Référents conseillés dans Google Cloud :
 
 API nécessaire : Maps JavaScript API.
 
+WORKFLOW DE TEST / DEPOT
+------------------------
+Pour eviter de recopier une cle depuis un dossier de test vers Git :
+1. Decompresse et teste LostPin normalement ; start.bat peut creer config\config.js dans ce dossier de test.
+2. Une fois le test valide, lance sync-to-repo.bat depuis ce dossier. Par defaut il cible D:\Web\LostPin.
+3. Le script copie le code mais exclut config/config.js, les autres configs locales, les .env et /benchmark guessers/.
+4. Il active aussi les controles Git pre-commit et pre-push dans le depot cible.
+5. Verifie git status puis commit/push normalement.
+
+Pour reparer uniquement les protections Git d un depot deja en place : enable-git-safety.bat.
+
 SOLO
 ----
 LostPin propose désormais deux types de parties solo :
@@ -50,7 +61,7 @@ Une playlist peut changer de terrain entre les manches ou les missions.
 FORMATS DE PARTIE (V5.5)
 -------------------------
 En Géolocalisation, LostPin propose trois formats indépendants du mode de déplacement :
-- Classique : barème historique LostPin, sans limite de temps en solo.
+- Classique : barème historique LostPin, avec chrono solo configurable Off / 60 / 120 / 180 secondes.
 - Blitz : 15, 20 ou 30 secondes par manche, avec le barème classique.
 - Précision : barème linéaire basé sur la distance ; chaque mètre fait perdre directement des points.
 

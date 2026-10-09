@@ -1,4 +1,4 @@
-## V6.2.1 - Protection configuration et version
+## V6.2.2 - Protection configuration, version et workflow de copie
 
 La configuration locale est exclue explicitement de la Release. Le workflow controle que le tag correspond a version.json, refuse les configurations suivies et les motifs de cle Google, puis verifie le dossier de packaging. Le source ne livre pas de binaire dist/ ; les scripts de build et de publication sont inclus. Voir SECURITY_CONFIG.md.
 
@@ -25,7 +25,7 @@ Game/
     brand/
     images/v6/
   config/
-    config.js
+    config.example.js
   scripts/runtime/
     server.ps1
     change-api-key.bat
@@ -39,7 +39,7 @@ Aucun token GitHub n'est necessaire pour le depot public.
 
 ## Protection de la cle Google
 
-`Game/config/config.js` et `Game/config/config.local.js` sont proteges pendant une mise a jour.
+`Game/config/config.js` et `Game/config/config.local.js` sont des fichiers locaux : ils ne sont pas livres dans la Release et sont proteges pendant une mise a jour.
 Les anciens `Game/config.js` et `Game/config.local.js` restent egalement proteges pendant la migration vers la nouvelle arborescence.
 `start.bat` migre automatiquement une ancienne configuration vers `Game/config/config.js` au premier lancement.
 

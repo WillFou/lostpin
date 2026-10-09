@@ -69,6 +69,8 @@ jobs:
             ".gitignore",
             ".gitattributes",
             "publish-release.bat",
+            "sync-to-repo.bat",
+            "enable-git-safety.bat",
             "config.js",
             "config/config.js",
             "config.local.js",
